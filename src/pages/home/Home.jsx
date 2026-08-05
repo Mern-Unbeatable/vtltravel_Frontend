@@ -5,6 +5,9 @@ import PromotionsSection from './sections/PromotionsSection'
 import TrustedBySection from './sections/TrustedBySection'
 import BintanGlanceSection from './sections/BintanGlanceSection'
 import GroupToursSection from './sections/GroupToursSection'
+import PromotionEventSection from './sections/PromotionEventSection'
+import TrustedOperatorSection from './sections/TrustedOperatorSection'
+import TicketPricesSection from './sections/TicketPricesSection'
 
 export default function Home() {
   return (
@@ -16,6 +19,9 @@ export default function Home() {
       <TrustedBySection />
       <BintanGlanceSection />
       <GroupToursSection />
+      <PromotionEventSection />
+      <TrustedOperatorSection />
+      <TicketPricesSection />
     </>
   )
 }
