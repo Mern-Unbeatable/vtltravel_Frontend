@@ -8,6 +8,8 @@ import GroupToursSection from './sections/GroupToursSection'
 import PromotionEventSection from './sections/PromotionEventSection'
 import TrustedOperatorSection from './sections/TrustedOperatorSection'
 import TicketPricesSection from './sections/TicketPricesSection'
+import OnlineBookingSection from './sections/OnlineBookingSection'
+import FaqSection from './sections/FaqSection'
 
 export default function Home() {
   return (
@@ -22,6 +24,8 @@ export default function Home() {
       <PromotionEventSection />
       <TrustedOperatorSection />
       <TicketPricesSection />
+      <OnlineBookingSection />
+      <FaqSection />
     </>
   )
 }
