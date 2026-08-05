@@ -19,7 +19,7 @@ export default function Navbar() {
   }, [location.pathname])
 
   return (
-    <header className="border-b border-gray-200 bg-white shadow-sm">
+    <header className="sticky top-0 z-50 border-b border-gray-200 bg-white shadow-sm">
       <nav className="mx-auto flex container items-center justify-between px-4 py-4">
         <NavLink to="/" className="flex items-center">
           <img
