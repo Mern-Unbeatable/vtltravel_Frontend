@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { IoTicketOutline } from 'react-icons/io5'
 import { NavLink, useLocation } from 'react-router-dom'
 
 const linkClasses = ({ isActive }) =>
@@ -13,7 +14,7 @@ export default function Navbar() {
   const location = useLocation()
 
   useEffect(() => {
-    // Route change হলে mobile menu auto-close হবে
+ 
     setMobileOpen(false)
   }, [location.pathname])
 
@@ -51,8 +52,9 @@ export default function Navbar() {
         <div className="hidden md:flex">
           <NavLink
             to="/contact"
-            className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white transition hover:bg-primary"
+            className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white transition hover:bg-primary"
           >
+            <IoTicketOutline className="text-base" />
             Book Tickets
           </NavLink>
         </div>
@@ -120,8 +122,9 @@ export default function Navbar() {
               </NavLink>
               <NavLink
                 to="/contact"
-                className="mt-2 rounded-full bg-primary px-5 py-2 text-center text-sm font-semibold text-white transition hover:bg-primary"
+                className="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-2 text-center text-sm font-semibold text-white transition hover:bg-primary"
               >
+                <IoTicketOutline className="text-base" />
                 Book Tickets
               </NavLink>
             </div>
