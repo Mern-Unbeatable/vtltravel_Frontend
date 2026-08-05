@@ -19,3 +19,24 @@
       Helvetica, Arial, sans-serif;
   }
 }
+
+@keyframes brand-rail {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.brand-rail-track {
+  display: flex;
+  width: max-content;
+  animation: brand-rail 25s linear infinite;
+  will-change: transform;
+}
+
+.brand-rail-track:hover {
+  animation-play-state: paused;
+}
+
