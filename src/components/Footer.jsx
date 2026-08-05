@@ -9,7 +9,7 @@ import {
   IoLogoLinkedin,
   IoLogoYoutube,
 } from 'react-icons/io5'
-import { FaPinterestP } from 'react-icons/fa'
+import { FaPinterestP, FaCcVisa, FaCcMastercard, FaPaypal } from 'react-icons/fa'
 
 const services = [
   'Ticket Fares',
@@ -86,10 +86,16 @@ export default function Footer() {
             </select>
 
             <p className="mt-5 text-sm font-medium text-gray-700">Payment Method</p>
-            <div className="mt-2 inline-flex items-center gap-3 rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-600">
-              <span>VISA</span>
-              <span>MC</span>
-              <span>PayPal</span>
+            <div className="mt-2 flex items-center gap-2">
+              <div className="flex h-10 w-14 items-center justify-center rounded-md border border-gray-200 bg-white">
+                <FaCcVisa className="text-2xl text-[#1A1F71]" title="Visa" />
+              </div>
+              <div className="flex h-10 w-14 items-center justify-center rounded-md border border-gray-200 bg-white">
+                <FaCcMastercard className="text-2xl text-[#EB001B]" title="Mastercard" />
+              </div>
+              <div className="flex h-10 w-14 items-center justify-center rounded-md border border-gray-200 bg-white">
+                <FaPaypal className="text-2xl text-[#003087]" title="PayPal" />
+              </div>
             </div>
           </div>
 

@@ -10,7 +10,7 @@ export default function HeroSection() {
         className="relative min-h-[420px] overflow-hidden rounded-[2rem] bg-cover bg-center px-6 pt-10 pb-24 text-white md:px-12 md:pt-14 md:pb-32"
         style={{
           backgroundImage:
-            "linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.35)), url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1800&q=80')",
+            "linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.35)), url('/hero.jpg')",
         }}
       >
         {/* Trusted Badge */}

@@ -61,25 +61,27 @@ const resorts = [
 
 function ResortCard({ resort }) {
   return (
-    <article className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md">
+    <article className="rounded-xl border border-[#05588E29] bg-white p-3 shadow-sm transition hover:shadow-md">
       <img
         src={resort.image}
         alt={resort.name}
-        className="h-44 w-full object-cover"
+        className="aspect-[16/10] w-full rounded-xl object-cover"
       />
 
-      <div className="p-4">
-        <h3 className="text-base font-semibold text-gray-900">{resort.name}</h3>
+      <div className="px-1 pt-4 pb-1">
+        <h3 className="min-h-[48px] text-base font-bold leading-snug text-gray-900">
+          {resort.name}
+        </h3>
 
         <div className="mt-4 flex items-end justify-between gap-3">
           <div>
-            <p className="text-xs text-gray-400">From</p>
-            <p className="text-lg font-semibold text-primary">{resort.price}</p>
+            <p className="text-sm text-gray-400">From</p>
+            <p className="text-xl font-bold text-primary">{resort.price}</p>
           </div>
 
           <button
             type="button"
-            className="rounded-full bg-primary/10 px-4 py-2 text-xs font-semibold text-primary transition hover:bg-primary/15"
+            className="rounded-full bg-[#eef7fc] px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary/15"
           >
             Check Availability
           </button>
