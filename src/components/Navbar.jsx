@@ -32,7 +32,7 @@ export default function Navbar() {
 
         {/* Desktop links */}
         <div className="hidden items-center gap-8 md:flex">
-          <NavLink to="/" end className={linkClasses}>
+          <NavLink to="/home" className={linkClasses}>
             Home
           </NavLink>
           <NavLink to="/about" className={linkClasses}>
@@ -116,8 +116,7 @@ export default function Navbar() {
             <div className="mx-auto container px-4 py-4">
               <div className="flex flex-col gap-3">
                 <NavLink
-                  to="/"
-                  end
+                  to="/home"
                   className="rounded-lg px-2 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                 >
                   Home

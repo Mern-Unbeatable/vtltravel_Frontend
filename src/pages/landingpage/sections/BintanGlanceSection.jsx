@@ -41,7 +41,7 @@ const glances = [
 function GlanceCard({ item }) {
   return (
     <article
-      className={`relative min-h-[180px] overflow-hidden rounded-2xl ${item.className}`}
+      className={`relative min-h-45 overflow-hidden rounded-2xl ${item.className}`}
     >
       <img
         src={item.image}

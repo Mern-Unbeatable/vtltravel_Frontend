@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Layout from '../layout/Layout'
+import LandingPage from '../pages/landingpage/LandingPage'
 import Home from '../pages/home/Home'
+import SearchResultsPage from '../pages/searchResultsPage/SearchResultsPage'
 import About from '../pages/About'
 import Destinations from '../pages/Destinations'
 import TravelInfo from '../pages/TravelInfo'
@@ -12,7 +14,9 @@ export default function AppRouter() {
     <Router>
       <Routes>
         <Route path="/" element={<Layout />}>
-          <Route index element={<Home />} />
+          <Route index element={<LandingPage />} />
+          <Route path="home" element={<Home />} />
+          <Route path="home/search" element={<SearchResultsPage />} />
           <Route path="about" element={<About />} />
           <Route path="destinations" element={<Destinations />} />
           <Route path="travel-info" element={<TravelInfo />} />
