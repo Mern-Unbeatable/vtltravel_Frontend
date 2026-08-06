@@ -1,13 +1,18 @@
-import React from 'react';
+import { useNavigate } from 'react-router-dom'
 import { HiOutlinePhotograph } from 'react-icons/hi';
 
 export default function HotelResultCard({ hotel }) {
-  // Fallbacks to match the image design
+  const navigate = useNavigate()
   const title = hotel?.title || "Holiday Inn Resort Batam";
   const stars = hotel?.stars || "4 Hotels";
   const imageUrl = hotel?.image || "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80";
   const price = hotel?.price || "$87";
-  const brandText = hotel?.brandText || "Brand Logo";
+  const brandText = hotel?.brandText || "Brand ";
+  const hotelId = hotel?.id || 1
+
+  const handleHotelClick = () => {
+    navigate(`/home/search/${hotelId}`, { state: { hotel } })
+  }
 
   return (
     <article className="flex w-full  flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm md:flex-row">
@@ -80,6 +85,7 @@ export default function HotelResultCard({ hotel }) {
             {/* Button - Full width on mobile, auto on desktop */}
             <button
               type="button"
+              onClick={handleHotelClick}
               className="mt-4 w-full rounded-full bg-[#2d9cdb] px-7 py-3 text-sm font-semibold text-white transition-all hover:bg-[#2680b4] active:scale-95 md:w-auto"
             >
               See the hotel
