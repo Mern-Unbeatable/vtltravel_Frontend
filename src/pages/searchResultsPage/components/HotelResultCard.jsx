@@ -7,10 +7,10 @@ export default function HotelResultCard({ hotel }) {
   const stars = hotel?.stars || "4 Hotels";
   const imageUrl = hotel?.image || "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80";
   const price = hotel?.price || "$87";
-  const logoUrl = hotel?.logo || "https://upload.wikimedia.org/wikipedia/commons/e/e8/Novotel_logo.svg";
+  const brandText = hotel?.brandText || "Brand Logo";
 
   return (
-    <article className="flex w-full max-w-[920px] flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm md:flex-row">
+    <article className="flex w-full  flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm md:flex-row">
       
       {/* Image Section - Adjusts height on mobile, fixed width on desktop */}
       <div className="relative h-[240px] w-full shrink-0 md:h-[280px] md:w-[320px]">
@@ -21,12 +21,8 @@ export default function HotelResultCard({ hotel }) {
         />
         
         {/* Top-Left Logo */}
-        <div className="absolute left-3 top-3 flex items-center justify-center rounded-lg bg-white px-3 py-2 shadow-xs">
-          <img
-            src={logoUrl}
-            alt="Brand Logo"
-            className="h-4 object-contain" 
-          />
+        <div className="absolute left-3 top-3 rounded-lg bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-xs">
+          {brandText}
         </div>
 
         {/* Bottom-Left Image Count */}
