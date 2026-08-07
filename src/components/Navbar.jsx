@@ -30,7 +30,7 @@ const Navbar = () => {
         </NavLink>
 
         {/* Desktop links */}
-        <div className="hidden items-center gap-8 md:flex">
+        <div className="hidden items-center gap-8 lg:flex">
           <NavLink to="/" end className={linkClasses}>
             Home
           </NavLink>
@@ -49,7 +49,7 @@ const Navbar = () => {
         </div>
 
         {/* Desktop CTA */}
-        <div className="hidden md:flex">
+        <div className="hidden lg:flex">
           <NavLink
             to="/contact"
             className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white transition hover:bg-primary"
@@ -59,11 +59,11 @@ const Navbar = () => {
           </NavLink>
         </div>
 
-        {/* Mobile hamburger */}
+        {/* Mobile / Tablet hamburger */}
         <button
           type="button"
           onClick={() => setMobileOpen((v) => !v)}
-          className="relative z-[70] inline-flex items-center justify-center rounded-lg border border-gray-300 p-2 text-gray-700 transition hover:bg-gray-50 md:hidden"
+          className="relative z-[70] inline-flex items-center justify-center rounded-lg border border-gray-300 p-2 text-gray-700 transition hover:bg-gray-50 lg:hidden"
           aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
           aria-expanded={mobileOpen}
         >
@@ -101,9 +101,9 @@ const Navbar = () => {
         </button>
       </nav>
 
-      {/* Mobile menu overlays page content (does not push it down) */}
+      {/* Mobile / Tablet menu overlay */}
       {mobileOpen && (
-        <div className="fixed inset-0 z-[60] md:hidden">
+        <div className="fixed inset-0 z-[60] lg:hidden">
           <button
             type="button"
             aria-label="Close menu"
