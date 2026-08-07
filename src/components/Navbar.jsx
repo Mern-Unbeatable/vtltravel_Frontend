@@ -3,10 +3,9 @@ import { IoTicketOutline } from 'react-icons/io5'
 import { NavLink, useLocation } from 'react-router-dom'
 
 const linkClasses = ({ isActive }) =>
-  `inline-flex items-center pb-1 text-sm font-medium transition-colors ${
-    isActive
-      ? 'border-b-2 border-primary text-primary'
-      : 'border-b-2 border-transparent text-gray-600 hover:text-primary'
+  `inline-flex items-center pb-1 text-sm font-medium transition-colors ${isActive
+    ? 'border-b-2 border-primary text-primary'
+    : 'border-b-2 border-transparent text-gray-600 hover:text-primary'
   }`
 
 export default function Navbar() {
@@ -14,7 +13,7 @@ export default function Navbar() {
   const location = useLocation()
 
   useEffect(() => {
- 
+
     setMobileOpen(false)
   }, [location.pathname])
 
@@ -32,7 +31,7 @@ export default function Navbar() {
 
         {/* Desktop links */}
         <div className="hidden items-center gap-8 md:flex">
-          <NavLink to="/home" className={linkClasses}>
+          <NavLink to="/" end className={linkClasses}>
             Home
           </NavLink>
           <NavLink to="/about" className={linkClasses}>
@@ -116,7 +115,8 @@ export default function Navbar() {
             <div className="mx-auto container px-4 py-4">
               <div className="flex flex-col gap-3">
                 <NavLink
-                  to="/home"
+                  to="/"
+                  end
                   className="rounded-lg px-2 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                 >
                   Home

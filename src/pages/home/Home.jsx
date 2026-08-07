@@ -1,7 +1,10 @@
 import HeroSection from './sections/HeroSection'
 import FerryTicketsSection from './sections/FerryTicketsSection'
 import FamilyPackagesSection from './sections/FamilyPackagesSection'
-import BintanGlanceSection from '../landingpage/sections/BintanGlanceSection'
+
+import EpicSaleSection from './sections/EpicSaleSection'
+import { GroupIcon } from 'lucide-react'
+import GroupToursSection from './sections/GroupToursSection'
 
 export default function Home() {
   return (
@@ -9,7 +12,9 @@ export default function Home() {
       <HeroSection />
       <FerryTicketsSection />
       <FamilyPackagesSection />
-      <BintanGlanceSection/>
+      <EpicSaleSection />
+      <GroupToursSection />
+
     </>
   )
 }
