@@ -25,7 +25,7 @@ const tours = [
   },
 ]
 
-function TourCard({ tour }) {
+const TourCard = ({ tour }) => {
   return (
     <article
       className="relative h-64 overflow-hidden bg-gray-800 shadow-md md:h-72"
@@ -47,7 +47,7 @@ function TourCard({ tour }) {
   )
 }
 
-export default function GroupToursSection() {
+const GroupToursSection = () => {
   return (
     <section className="mx-auto container px-4 py-12 md:py-16">
       <h2 className="mb-8 text-center text-3xl font-bold text-gray-900 md:mb-10 md:text-4xl">
@@ -62,3 +62,5 @@ export default function GroupToursSection() {
     </section>
   )
 }
+
+export default GroupToursSection

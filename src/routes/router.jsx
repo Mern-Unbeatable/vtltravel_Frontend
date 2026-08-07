@@ -9,7 +9,7 @@ import TravelInfo from '../pages/TravelInfo'
 import Contact from '../pages/Contact'
 import NotFound from '../pages/NotFound'
 
-export default function AppRouter() {
+const AppRouter = () => {
   return (
     <Router>
       <Routes>
@@ -28,3 +28,5 @@ export default function AppRouter() {
     </Router>
   )
 }
+
+export default AppRouter

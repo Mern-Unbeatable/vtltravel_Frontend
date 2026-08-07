@@ -8,7 +8,7 @@ const linkClasses = ({ isActive }) =>
     : 'border-b-2 border-transparent text-gray-600 hover:text-primary'
   }`
 
-export default function Navbar() {
+const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false)
   const location = useLocation()
 
@@ -160,3 +160,5 @@ export default function Navbar() {
     </header>
   )
 }
+
+export default Navbar

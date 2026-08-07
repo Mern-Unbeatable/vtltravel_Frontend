@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { HiOutlinePhotograph } from 'react-icons/hi'
 import HotelGalleryModal from './HotelGalleryModal'
 
-export default function HotelResultCard({ hotel }) {
+const HotelResultCard = ({ hotel }) => {
   const navigate = useNavigate()
   const [isGalleryOpen, setIsGalleryOpen] = useState(false)
   const title = hotel?.title || 'Holiday Inn Resort Batam'
@@ -84,3 +84,5 @@ export default function HotelResultCard({ hotel }) {
     </>
   )
 }
+
+export default HotelResultCard

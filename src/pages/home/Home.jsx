@@ -1,12 +1,10 @@
 import HeroSection from './sections/HeroSection'
 import FerryTicketsSection from './sections/FerryTicketsSection'
 import FamilyPackagesSection from './sections/FamilyPackagesSection'
-
 import EpicSaleSection from './sections/EpicSaleSection'
-import { GroupIcon } from 'lucide-react'
 import GroupToursSection from './sections/GroupToursSection'
 
-export default function Home() {
+const Home = () => {
   return (
     <>
       <HeroSection />
@@ -14,7 +12,8 @@ export default function Home() {
       <FamilyPackagesSection />
       <EpicSaleSection />
       <GroupToursSection />
-
     </>
   )
 }
+
+export default Home

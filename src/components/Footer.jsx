@@ -38,7 +38,7 @@ const socialLinks = [
   { icon: IoLogoYoutube, label: 'YouTube' },
 ]
 
-export default function Footer() {
+const Footer = () => {
   return (
     <footer className="bg-white">
       {/* CTA Banner */}
@@ -183,7 +183,7 @@ export default function Footer() {
   )
 }
 
-function FooterColumn({ title, items }) {
+const FooterColumn = ({ title, items }) => {
   return (
     <div>
       <h4 className="mb-4 text-base font-bold text-gray-900">{title}</h4>
@@ -199,3 +199,5 @@ function FooterColumn({ title, items }) {
     </div>
   )
 }
+
+export default Footer

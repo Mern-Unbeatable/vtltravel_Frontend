@@ -35,7 +35,7 @@ const hotels = [
   },
 ]
 
-export default function HotelCardsSection() {
+const HotelCardsSection = () => {
   return (
     <div>
       <p className="text-sm text-gray-500">36 hotels are available.</p>
@@ -48,4 +48,6 @@ export default function HotelCardsSection() {
     </div>
   )
 }
+
+export default HotelCardsSection
 

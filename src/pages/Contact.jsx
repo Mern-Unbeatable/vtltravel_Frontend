@@ -1,4 +1,4 @@
-export default function Contact() {
+const Contact = () => {
   return (
     <section className="mx-auto max-w-6xl px-4 py-16">
       <h1 className="text-3xl font-bold text-gray-900">Contact Us</h1>
@@ -51,3 +51,5 @@ export default function Contact() {
     </section>
   )
 }
+
+export default Contact

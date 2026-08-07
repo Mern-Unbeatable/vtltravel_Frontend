@@ -26,7 +26,7 @@ const GALLERY_IMAGES = [
   'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=900&q=80',
 ]
 
-export default function HotelGalleryModal({ open, onClose, hotelTitle }) {
+const HotelGalleryModal = ({ open, onClose, hotelTitle }) => {
   const [activeCategory, setActiveCategory] = useState('Hotel')
 
   useEffect(() => {
@@ -119,3 +119,5 @@ export default function HotelGalleryModal({ open, onClose, hotelTitle }) {
     </div>
   )
 }
+
+export default HotelGalleryModal

@@ -1,4 +1,4 @@
-export default function Destinations() {
+const Destinations = () => {
   return (
     <section className="mx-auto max-w-6xl px-4 py-16">
       <h1 className="text-3xl font-bold text-gray-900">Destinations</h1>
@@ -9,4 +9,6 @@ export default function Destinations() {
     </section>
   )
 }
+
+export default Destinations
 

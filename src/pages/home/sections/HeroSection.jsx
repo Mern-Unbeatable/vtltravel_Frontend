@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { IoLocationOutline } from 'react-icons/io5'
 import SearchCard from '../../../components/SearchCard'
 
-export default function HeroSection() {
+const HeroSection = () => {
   const [activeTab, setActiveTab] = useState('hotel')
   const navigate = useNavigate()
 
@@ -44,3 +44,5 @@ export default function HeroSection() {
     </section>
   )
 }
+
+export default HeroSection

@@ -1,4 +1,4 @@
-export default function TravelInfo() {
+const TravelInfo = () => {
   return (
     <section className="mx-auto max-w-6xl px-4 py-16">
       <h1 className="text-3xl font-bold text-gray-900">Travel Info</h1>
@@ -9,4 +9,6 @@ export default function TravelInfo() {
     </section>
   )
 }
+
+export default TravelInfo
 

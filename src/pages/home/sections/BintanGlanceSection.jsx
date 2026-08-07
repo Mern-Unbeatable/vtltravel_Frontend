@@ -38,7 +38,7 @@ const glances = [
   },
 ]
 
-function GlanceCard({ item }) {
+const GlanceCard = ({ item }) => {
   return (
     <article
       className={`relative min-h-45 overflow-hidden rounded-2xl ${item.className}`}
@@ -56,7 +56,7 @@ function GlanceCard({ item }) {
   )
 }
 
-export default function BintanGlanceSection() {
+const BintanGlanceSection = () => {
   return (
     <section className="mx-auto container px-4 py-12 md:py-16">
       <div className="mb-8 text-center">
@@ -79,3 +79,5 @@ export default function BintanGlanceSection() {
     </section>
   )
 }
+
+export default BintanGlanceSection

@@ -2,7 +2,7 @@ import SearchCard from '../../components/SearchCard'
 import FilterSection from './sections/FilterSection'
 import HotelCardsSection from './sections/HotelCardsSection'
 
-export default function SearchResultsPage() {
+const SearchResultsPage = () => {
   return (
     <section className="pb-10 pt-6">
       <div className="mx-auto container px-4">
@@ -26,3 +26,5 @@ export default function SearchResultsPage() {
     </section>
   )
 }
+
+export default SearchResultsPage

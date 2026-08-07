@@ -4,7 +4,7 @@ import {
   IoSearchOutline,
 } from 'react-icons/io5'
 
-export default function SearchCard({
+const SearchCard = ({
   destination = 'Destination, hotel name',
   checkIn = 'July 23',
   checkOut = 'July 24',
@@ -14,7 +14,7 @@ export default function SearchCard({
   wrapperClassName = '',
   valueOnly = false,
   compact = false,
-}) {
+}) => {
   return (
     <div
       className={`mx-auto mt-6 rounded-2xl border border-gray-100 bg-white shadow-sm ${
@@ -23,59 +23,66 @@ export default function SearchCard({
     >
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-0">
         <div
-          className={`flex flex-1 items-start gap-3 rounded-xl hover:bg-gray-50 lg:rounded-none ${
-            compact ? 'px-2.5 py-2.5' : 'px-3 py-3'
+          className={`flex flex-1 flex-col gap-3 sm:flex-row sm:items-center ${
+            compact ? 'sm:gap-2' : 'sm:gap-4'
           }`}
         >
-          <IoSearchOutline className="mt-1 text-xl text-gray-400" />
-          <div className="min-w-0 flex-1">
-            {valueOnly ? (
-              <p className="mt-0.5 w-full text-sm font-medium text-gray-800">
-                {destination}
-              </p>
-            ) : (
-              <>
-                <p className="text-xs text-gray-400">Which hotel are you looking</p>
-                <input
-                  type="text"
-                  defaultValue={destination}
-                  className="mt-0.5 w-full border-0 bg-transparent p-0 text-sm font-medium text-gray-800 outline-none placeholder:text-gray-500"
-                />
-              </>
-            )}
-          </div>
-        </div>
-
-        <div className="hidden h-12 w-px bg-gray-200 lg:block" />
-
-        <div
-          className={`flex flex-1 items-start gap-3 rounded-xl hover:bg-gray-50 lg:rounded-none ${
-            compact ? 'px-2.5 py-2.5' : 'px-3 py-3'
-          }`}
-        >
-          <IoCalendarOutline className="mt-1 text-xl text-gray-400" />
-          <div className="min-w-0 flex-1">
-            {!valueOnly && <p className="text-xs text-gray-400">What are your dates?</p>}
-            <p className={`${valueOnly ? 'mt-1' : 'mt-0.5'} text-sm font-medium text-gray-800`}>
-              {checkIn} <span className="text-gray-400">→</span> {checkOut}
+          {/* Destination */}
+          <div
+            className={`flex-1 rounded-xl border border-gray-200 bg-white hover:border-gray-300 ${
+              compact ? 'px-3 py-2' : 'px-4 py-2.5'
+            }`}
+          >
+            <p className="text-[11px] font-medium text-gray-400">Destination</p>
+            <p className="mt-0.5 truncate text-xs font-semibold text-gray-800 md:text-sm">
+              {destination}
             </p>
           </div>
-        </div>
 
-        <div className="hidden h-12 w-px bg-gray-200 lg:block" />
+          {/* Dates */}
+          <div
+            className={`flex flex-1 items-center justify-between rounded-xl border border-gray-200 bg-white hover:border-gray-300 ${
+              compact ? 'px-3 py-2' : 'px-4 py-2.5'
+            }`}
+          >
+            <div>
+              <p className="text-[11px] font-medium text-gray-400">Check in</p>
+              <p className="mt-0.5 text-xs font-semibold text-gray-800 md:text-sm">
+                {checkIn}
+              </p>
+            </div>
 
-        <div
-          className={`flex flex-1 items-center gap-3 rounded-xl hover:bg-gray-50 lg:rounded-none ${
-            compact ? 'px-2.5 py-2.5' : 'px-3 py-3'
-          }`}
-        >
-          <IoPersonOutline className="text-xl text-gray-400" />
-          <div className="min-w-0 flex-1">
-            {!valueOnly && <p className="text-xs text-gray-400">Rooms & Guests</p>}
-            <p className={`${valueOnly ? 'mt-1' : 'mt-0.5'} text-sm font-medium text-gray-800`}>
+            <div className="h-6 w-px bg-gray-200" />
+
+            <div className="text-right">
+              <p className="text-[11px] font-medium text-gray-400">Check out</p>
+              <p className="mt-0.5 text-xs font-semibold text-gray-800 md:text-sm">
+                {checkOut}
+              </p>
+            </div>
+          </div>
+
+          {/* Guests */}
+          <div
+            className={`flex-1 rounded-xl border border-gray-200 bg-white hover:border-gray-300 ${
+              compact ? 'px-3 py-2' : 'px-4 py-2.5'
+            }`}
+          >
+            <p className="text-[11px] font-medium text-gray-400">
+              Rooms and Guests
+            </p>
+            <p className="mt-0.5 truncate text-xs font-semibold text-gray-800 md:text-sm">
               {guests}
             </p>
           </div>
+        </div>
+
+        {/* Button */}
+        <div
+          className={`flex justify-end lg:ml-3 ${
+            compact ? 'mt-2 lg:mt-0' : 'mt-3 lg:mt-0'
+          }`}
+        >
           <button
             type="button"
             onClick={onSearch}
@@ -91,3 +98,4 @@ export default function SearchCard({
   )
 }
 
+export default SearchCard

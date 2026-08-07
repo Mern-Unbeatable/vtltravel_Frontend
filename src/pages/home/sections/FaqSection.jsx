@@ -88,7 +88,7 @@ const faqs = [
   },
 ]
 
-function FaqItem({ faq, isOpen, onToggle }) {
+const FaqItem = ({ faq, isOpen, onToggle }) => {
   return (
     <div className="rounded-xl border border-gray-100 bg-white shadow-sm">
       <button
@@ -113,7 +113,7 @@ function FaqItem({ faq, isOpen, onToggle }) {
   )
 }
 
-export default function FaqSection() {
+const FaqSection = () => {
   const [openId, setOpenId] = useState(1)
 
   const leftFaqs = faqs.filter((_, index) => index % 2 === 0)
@@ -157,3 +157,5 @@ export default function FaqSection() {
     </section>
   )
 }
+
+export default FaqSection

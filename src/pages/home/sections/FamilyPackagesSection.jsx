@@ -43,7 +43,7 @@ const packages = [
   },
 ]
 
-export default function FamilyPackagesSection() {
+const FamilyPackagesSection = () => {
   return (
     <section className="mx-auto container px-4 pb-12 md:pb-16">
       <h2 className="mb-6 text-2xl font-bold text-gray-900 md:text-3xl">
@@ -58,3 +58,5 @@ export default function FamilyPackagesSection() {
     </section>
   )
 }
+
+export default FamilyPackagesSection

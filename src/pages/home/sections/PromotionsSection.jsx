@@ -18,7 +18,7 @@ const promotions = [
   },
 ]
 
-export default function PromotionsSection() {
+const PromotionsSection = () => {
   return (
     <section className="mx-auto container px-4 py-8 md:py-12">
       <h2 className="mb-6 text-3xl font-bold text-gray-900 md:text-4xl">
@@ -33,3 +33,5 @@ export default function PromotionsSection() {
     </section>
   )
 }
+
+export default PromotionsSection

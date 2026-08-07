@@ -28,7 +28,7 @@ const resortFeatures = [
   { name: 'Walking Distance to Lagoi Bay & Plaza', count: 5 },
 ]
 
-function FilterCheckboxRow({ label, count }) {
+const FilterCheckboxRow = ({ label, count }) => {
   return (
     <label className="flex items-center justify-between gap-3 text-xs text-gray-500">
       <span className="flex items-center gap-2">
@@ -40,7 +40,7 @@ function FilterCheckboxRow({ label, count }) {
   )
 }
 
-function FilterGroup({ title, children }) {
+const FilterGroup = ({ title, children }) => {
   return (
     <div className="mt-5 border-t border-gray-100 pt-4">
       <p className="text-sm font-semibold text-gray-700">{title}</p>
@@ -49,7 +49,7 @@ function FilterGroup({ title, children }) {
   )
 }
 
-export default function FilterSection() {
+const FilterSection = () => {
   return (
     <aside className="">
       <h3 className="text-3xl font-semibold text-slate-900">Filter</h3>
@@ -145,4 +145,6 @@ export default function FilterSection() {
     </aside>
   )
 }
+
+export default FilterSection
 

@@ -8,7 +8,7 @@ const galleryFallback = [
   'https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1100&q=80',
 ]
 
-export default function HotelDetailsPage() {
+const HotelDetailsPage = () => {
   const { state } = useLocation()
   const hotel = state?.hotel || {}
 
@@ -28,18 +28,15 @@ export default function HotelDetailsPage() {
         </div>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
-          <div>
-            <h1 className="text-4xl font-bold text-slate-900">{title}</h1>
-            <p className="mt-2 text-sm text-gray-500">Hotels 5 • 4.4/5 990 reviews</p>
-            <p className="mt-6 max-w-3xl text-sm leading-7 text-gray-500">
-              The hotel stands as one of the city&apos;s premier business hotels with convenient access
-              to headquarters, attractions and restaurants. This page follows your provided layout so
-              users can move from search results into hotel details directly.
-            </p>
+          <div className="space-y-6">
+            <h1 className="text-2xl font-bold text-gray-900 md:text-3xl">{title}</h1>
 
-            <a href="#rooms" className="mt-3 inline-block text-sm font-medium text-primary hover:underline">
-              Read More
-            </a>
+            <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+              <h2 className="text-base font-bold text-gray-900">About the property</h2>
+              <p className="mt-2 text-sm leading-relaxed text-gray-600">
+                Located conveniently in Bintan, offering easy access to transport hub, beaches, and dining. Exceptional comfort and customer service for your tropical trip.
+              </p>
+            </div>
 
             <div className="mt-8 grid border border-gray-200 md:grid-cols-2">
               <div className="p-4">
@@ -108,3 +105,5 @@ export default function HotelDetailsPage() {
     </section>
   )
 }
+
+export default HotelDetailsPage

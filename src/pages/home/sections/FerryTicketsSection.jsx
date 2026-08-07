@@ -43,7 +43,7 @@ const packages = [
   },
 ]
 
-export default function FerryTicketsSection() {
+const FerryTicketsSection = () => {
   return (
     <section className="mx-auto container px-4 py-10 md:py-14">
       <h2 className="mb-6 text-2xl font-bold text-gray-900 md:text-3xl">
@@ -58,3 +58,5 @@ export default function FerryTicketsSection() {
     </section>
   )
 }
+
+export default FerryTicketsSection

@@ -2,7 +2,7 @@ import { Outlet } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 
-export default function Layout() {
+const Layout = () => {
   return (
     <div className="flex min-h-screen flex-col  text-gray-900">
       <Navbar />
@@ -13,3 +13,5 @@ export default function Layout() {
     </div>
   )
 }
+
+export default Layout

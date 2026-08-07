@@ -1,6 +1,6 @@
 import { IoCalendarOutline } from 'react-icons/io5'
 
-export default function PackageCard({ item }) {
+const PackageCard = ({ item }) => {
   return (
     <article className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition hover:shadow-md">
       <img
@@ -38,3 +38,5 @@ export default function PackageCard({ item }) {
     </article>
   )
 }
+
+export default PackageCard

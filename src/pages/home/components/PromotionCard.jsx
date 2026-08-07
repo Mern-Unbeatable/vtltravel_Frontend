@@ -1,4 +1,4 @@
-export default function PromotionCard({ promo }) {
+const PromotionCard = ({ promo }) => {
   return (
     <article className="overflow-hidden rounded-2xl shadow-sm transition hover:shadow-md">
       <img
@@ -9,3 +9,5 @@ export default function PromotionCard({ promo }) {
     </article>
   )
 }
+
+export default PromotionCard

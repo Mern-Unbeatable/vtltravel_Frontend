@@ -1,4 +1,4 @@
-export default function EpicSaleSection() {
+const EpicSaleSection = () => {
   return (
     <section className="mx-auto container px-4 py-6 md:py-10">
       <img
@@ -9,3 +9,5 @@ export default function EpicSaleSection() {
     </section>
   )
 }
+
+export default EpicSaleSection
