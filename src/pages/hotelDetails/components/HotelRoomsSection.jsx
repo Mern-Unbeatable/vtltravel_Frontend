@@ -1,7 +1,7 @@
 import { IoCalendarOutline, IoPersonOutline, IoCheckmarkOutline } from 'react-icons/io5'
 import RoomCard from './RoomCard'
 
-const HotelRoomsSection = ({ rooms = [], onSelectRoom }) => {
+const HotelRoomsSection = ({ rooms = [], onSelectRoom, onOpenDetails }) => {
   return (
     <div id="rooms" className="mt-10">
       <h2 className="text-2xl font-bold text-slate-900 md:text-3xl">Rooms available</h2>
@@ -51,7 +51,12 @@ const HotelRoomsSection = ({ rooms = [], onSelectRoom }) => {
       {/* Room Cards List */}
       <div className="mt-6 space-y-5">
         {rooms.map((room) => (
-          <RoomCard key={room.id} room={room} onSelectRoom={onSelectRoom} />
+          <RoomCard
+            key={room.id}
+            room={room}
+            onSelectRoom={onSelectRoom}
+            onOpenDetails={onOpenDetails}
+          />
         ))}
       </div>
     </div>

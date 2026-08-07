@@ -1,8 +1,19 @@
 import { useState } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { IoCalendarOutline, IoPersonOutline, IoChevronUp, IoChevronDown } from 'react-icons/io5'
 
 const HotelSummarySidebar = ({ title = 'Pullman Hanoi', selectedRoom = null }) => {
+  const navigate = useNavigate()
+  const location = useLocation()
   const [showDetails, setShowDetails] = useState(true)
+
+  const handleNext = () => {
+    if (location.pathname.includes('/customize')) {
+      navigate('/home/search/1/book-ferry', { state: { selectedRoom, title } })
+    } else {
+      navigate('/home/search/1/customize', { state: { selectedRoom, title } })
+    }
+  }
 
   // 1. DEFAULT STATE: When no room is selected yet
   if (!selectedRoom) {
@@ -131,13 +142,15 @@ const HotelSummarySidebar = ({ title = 'Pullman Hanoi', selectedRoom = null }) =
       <div className="mt-5 space-y-2.5">
         <button
           type="button"
-          className="w-full rounded-full bg-[#3ea5dc] py-3 text-xs font-bold text-white shadow-md transition hover:bg-[#3296cc] active:scale-95"
+          onClick={handleNext}
+          className="w-full rounded-full bg-[#3ea5dc] py-3 text-xs font-bold text-white shadow-md transition hover:bg-[#3296cc] active:scale-95 cursor-pointer"
         >
           Continue to ferry booking
         </button>
         <button
           type="button"
-          className="w-full rounded-full border border-[#3ea5dc] py-3 text-xs font-bold text-[#3ea5dc] transition hover:bg-sky-50 active:scale-95"
+          onClick={handleNext}
+          className="w-full rounded-full border border-[#3ea5dc] py-3 text-xs font-bold text-[#3ea5dc] transition hover:bg-sky-50 active:scale-95 cursor-pointer"
         >
           Skip ferry booking
         </button>

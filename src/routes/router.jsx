@@ -3,6 +3,8 @@ import Layout from '../layout/Layout'
 import Home from '../pages/home/Home'
 import SearchResultsPage from '../pages/searchResultsPage/SearchResultsPage'
 import HotelDetailsPage from '../pages/hotelDetails/HotelDetailsPage'
+import CustomizeStayPage from '../pages/customizeStay/CustomizeStayPage'
+import FerryBookingPage from '../pages/ferryBooking/FerryBookingPage'
 import About from '../pages/About'
 import Destinations from '../pages/Destinations'
 import TravelInfo from '../pages/TravelInfo'
@@ -18,6 +20,8 @@ const AppRouter = () => {
           <Route path="home" element={<Navigate to="/" replace />} />
           <Route path="home/search" element={<SearchResultsPage />} />
           <Route path="home/search/:hotelId" element={<HotelDetailsPage />} />
+          <Route path="home/search/:hotelId/customize" element={<CustomizeStayPage />} />
+          <Route path="home/search/:hotelId/book-ferry" element={<FerryBookingPage />} />
           <Route path="about" element={<About />} />
           <Route path="destinations" element={<Destinations />} />
           <Route path="travel-info" element={<TravelInfo />} />

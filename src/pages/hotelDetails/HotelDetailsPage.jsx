@@ -5,6 +5,7 @@ import HotelOverviewSection from './components/HotelOverviewSection'
 import HotelFacilitiesCard from './components/HotelFacilitiesCard'
 import HotelSummarySidebar from './components/HotelSummarySidebar'
 import HotelRoomsSection from './components/HotelRoomsSection'
+import RoomDetailsModal from './components/RoomDetailsModal'
 
 const galleryFallback = [
   'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80',
@@ -51,6 +52,7 @@ const HotelDetailsPage = () => {
   const title = hotel.title || 'Pullman Hanoi'
   const galleryImages = galleryFallback
   const [selectedRoom, setSelectedRoom] = useState(null)
+  const [modalRoom, setModalRoom] = useState(null)
 
   return (
     <div className="pb-16 pt-0">
@@ -67,7 +69,11 @@ const HotelDetailsPage = () => {
           {/* Left Column: Facilities Card + Rooms Section */}
           <div className="space-y-10">
             <HotelFacilitiesCard />
-            <HotelRoomsSection rooms={roomsList} onSelectRoom={(room) => setSelectedRoom(room)} />
+            <HotelRoomsSection
+              rooms={roomsList}
+              onSelectRoom={(room) => setSelectedRoom(room)}
+              onOpenDetails={(room) => setModalRoom(room)}
+            />
           </div>
 
           {/* Right Column: Sticky Summary Box */}
@@ -76,6 +82,11 @@ const HotelDetailsPage = () => {
           </div>
         </div>
       </div>
+
+      {/* 3. Room Details Modal */}
+      {modalRoom && (
+        <RoomDetailsModal room={modalRoom} onClose={() => setModalRoom(null)} />
+      )}
     </div>
   )
 }
