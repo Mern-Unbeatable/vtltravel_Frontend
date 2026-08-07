@@ -60,11 +60,12 @@ const HotelDetailsPage = () => {
         {/* Title, Overview & "See the rooms" CTA */}
         <HotelOverviewSection title={title} />
 
-        {/* 2-Column Grid: Facilities & Summary Box */}
+        {/* 2-Column Grid: Left Column (Facilities & Rooms), Right Column (Summary Sidebar) */}
         <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_340px]">
-          {/* Left Column: Facilities Card */}
-          <div>
+          {/* Left Column: Facilities Card + Rooms Section */}
+          <div className="space-y-10">
             <HotelFacilitiesCard />
+            <HotelRoomsSection rooms={roomsList} />
           </div>
 
           {/* Right Column: Sticky Summary Box */}
@@ -73,9 +74,6 @@ const HotelDetailsPage = () => {
           </div>
         </div>
       </div>
-
-      {/* 3. Rooms Available Section */}
-      <HotelRoomsSection rooms={roomsList} />
     </div>
   )
 }
