@@ -1,5 +1,9 @@
-const stars = ['5 ★', '4 ★', '3 ★', '1 ★', 'Unclassified ★']
+import { useState } from 'react'
+
+const starsList = ['5 ★', '4 ★', '3 ★', '1 ★', 'Unclassified ★']
+
 const featuredPackages = [{ name: 'Packages of the Month', count: 1 }]
+
 const bestFor = [
   { name: 'Family-Friendly Getaway', count: 1 },
   { name: "Couple's Getaway", count: 11 },
@@ -10,6 +14,7 @@ const bestFor = [
   { name: 'Luxury Getaway', count: 5 },
   { name: 'Peaceful Nature Retreat', count: 5 },
 ]
+
 const accommodationStyle = [
   { name: 'Luxury Hotel Room', count: 1 },
   { name: 'Glamping Tent', count: 11 },
@@ -17,6 +22,7 @@ const accommodationStyle = [
   { name: 'Apartment with In-Room Kitchen', count: 2 },
   { name: 'Connecting Rooms Available', count: 2 },
 ]
+
 const resortFeatures = [
   { name: 'Beachfront Resort', count: 1 },
   { name: 'Private Beach Access', count: 11 },
@@ -28,14 +34,19 @@ const resortFeatures = [
   { name: 'Walking Distance to Lagoi Bay & Plaza', count: 5 },
 ]
 
-const FilterCheckboxRow = ({ label, count }) => {
+const FilterCheckboxRow = ({ label, count, checked, onChange }) => {
   return (
-    <label className="flex items-center justify-between gap-3 text-xs text-gray-500">
+    <label className="flex cursor-pointer items-center justify-between gap-3 text-xs text-gray-600 hover:text-gray-900">
       <span className="flex items-center gap-2">
-        <input type="checkbox" className="h-3.5 w-3.5 rounded border-gray-300" />
-        {label}
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={(e) => onChange(label, e.target.checked)}
+          className="h-3.5 w-3.5 rounded border-gray-300 accent-primary cursor-pointer"
+        />
+        <span>{label}</span>
       </span>
-      <span>{count}</span>
+      <span className="text-gray-400 font-medium">{count}</span>
     </label>
   )
 }
@@ -49,97 +60,240 @@ const FilterGroup = ({ title, children }) => {
   )
 }
 
-const FilterSection = () => {
+const FilterSection = ({ onFilterChange }) => {
+  // 1. Budget State
+  const MIN_PRICE = 48
+  const MAX_PRICE = 466
+
+  const [minBudget, setMinBudget] = useState(MIN_PRICE)
+  const [maxBudget, setMaxBudget] = useState(MAX_PRICE)
+
+  // 2. Stars State
+  const [selectedStars, setSelectedStars] = useState([])
+
+  // 3. Options Checkbox State
+  const [selectedOptions, setSelectedOptions] = useState({})
+
+  // 4. Availability Toggle State
+  const [onlyAvailable, setOnlyAvailable] = useState(false)
+
+  const toggleStar = (star) => {
+    setSelectedStars((prev) =>
+      prev.includes(star) ? prev.filter((s) => s !== star) : [...prev, star]
+    )
+  }
+
+  const handleCheckboxChange = (name, isChecked) => {
+    setSelectedOptions((prev) => ({
+      ...prev,
+      [name]: isChecked,
+    }))
+  }
+
+  const handleApplyFilter = () => {
+    if (onFilterChange) {
+      onFilterChange({
+        minBudget,
+        maxBudget,
+        selectedStars,
+        selectedOptions,
+        onlyAvailable,
+      })
+    }
+  }
+
+  const handleClearFilters = () => {
+    setMinBudget(MIN_PRICE)
+    setMaxBudget(MAX_PRICE)
+    setSelectedStars([])
+    setSelectedOptions({})
+    setOnlyAvailable(false)
+    if (onFilterChange) {
+      onFilterChange({
+        minBudget: MIN_PRICE,
+        maxBudget: MAX_PRICE,
+        selectedStars: [],
+        selectedOptions: {},
+        onlyAvailable: false,
+      })
+    }
+  }
+
   return (
     <aside className="">
-      <h3 className="text-3xl font-semibold text-slate-900">Filter</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-2xl font-bold text-slate-900">Filter</h3>
+        <button
+          type="button"
+          onClick={handleClearFilters}
+          className="text-xs font-semibold text-primary hover:underline"
+        >
+          Reset All
+        </button>
+      </div>
 
+      {/* Budget Filter */}
       <div className="mt-4 border-t border-gray-100 pt-4">
-        <p className="text-sm font-semibold text-gray-700">Budget</p>
-        <p className="mt-1 text-xs text-gray-400">Price for 1 night - 1 room, 1 adult.</p>
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-semibold text-gray-800">Budget</p>
+          <span className="text-xs font-bold text-primary">
+            ${minBudget} - ${maxBudget}
+          </span>
+        </div>
+        <p className="mt-0.5 text-xs text-gray-400">Price for 1 night - 1 room, 1 adult.</p>
+
         <div className="mt-3 grid grid-cols-2 gap-2">
           <div>
             <p className="mb-1 text-[10px] font-semibold text-gray-400 uppercase">Minimum</p>
-            <input
-              type="text"
-              value="$48"
-              readOnly
-              className="w-full rounded-md border border-gray-200 px-2 py-1.5 text-xs text-gray-600"
-            />
+            <div className="relative flex items-center">
+              <span className="absolute left-2.5 text-xs text-gray-400">$</span>
+              <input
+                type="number"
+                min={MIN_PRICE}
+                max={maxBudget}
+                value={minBudget}
+                onChange={(e) => setMinBudget(Number(e.target.value))}
+                className="w-full rounded-lg border border-gray-200 pl-6 pr-2 py-1.5 text-xs font-medium text-gray-700 outline-none focus:border-primary"
+              />
+            </div>
           </div>
           <div>
             <p className="mb-1 text-[10px] font-semibold text-gray-400 uppercase">Maximum</p>
-            <input
-              type="text"
-              value="$466"
-              readOnly
-              className="w-full rounded-md border border-gray-200 px-2 py-1.5 text-xs text-gray-600"
-            />
+            <div className="relative flex items-center">
+              <span className="absolute left-2.5 text-xs text-gray-400">$</span>
+              <input
+                type="number"
+                min={minBudget}
+                max={MAX_PRICE}
+                value={maxBudget}
+                onChange={(e) => setMaxBudget(Number(e.target.value))}
+                className="w-full rounded-lg border border-gray-200 pl-6 pr-2 py-1.5 text-xs font-medium text-gray-700 outline-none focus:border-primary"
+              />
+            </div>
           </div>
         </div>
+
         <div className="mt-3">
-          <input type="range" min="48" max="466" value="180" readOnly className="w-full accent-primary" />
+          <input
+            type="range"
+            min={MIN_PRICE}
+            max={MAX_PRICE}
+            value={maxBudget}
+            onChange={(e) => setMaxBudget(Number(e.target.value))}
+            className="w-full cursor-pointer accent-primary"
+          />
         </div>
       </div>
 
+      {/* Stars Filter */}
       <div className="mt-5 border-t border-gray-100 pt-4">
-        <p className="text-sm font-semibold text-gray-700">Stars</p>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {stars.map((item) => (
-            <button
-              key={item}
-              type="button"
-              className="rounded-md border border-gray-200 px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-50"
-            >
-              {item}
-            </button>
-          ))}
+        <p className="text-sm font-semibold text-gray-800">Stars</p>
+        <div className="mt-2.5 flex flex-wrap gap-2">
+          {starsList.map((item) => {
+            const isSelected = selectedStars.includes(item)
+            return (
+              <button
+                key={item}
+                type="button"
+                onClick={() => toggleStar(item)}
+                className={`rounded-lg border px-3 py-1.5 text-xs transition-all ${
+                  isSelected
+                    ? 'border-primary bg-primary text-white shadow-xs font-semibold'
+                    : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                {item}
+              </button>
+            )
+          })}
         </div>
       </div>
 
+      {/* Checkbox Groups */}
       <FilterGroup title="Featured Packages">
         {featuredPackages.map((item) => (
-          <FilterCheckboxRow key={item.name} label={item.name} count={item.count} />
+          <FilterCheckboxRow
+            key={item.name}
+            label={item.name}
+            count={item.count}
+            checked={!!selectedOptions[item.name]}
+            onChange={handleCheckboxChange}
+          />
         ))}
       </FilterGroup>
 
       <FilterGroup title="Best For">
         {bestFor.map((item) => (
-          <FilterCheckboxRow key={item.name} label={item.name} count={item.count} />
+          <FilterCheckboxRow
+            key={item.name}
+            label={item.name}
+            count={item.count}
+            checked={!!selectedOptions[item.name]}
+            onChange={handleCheckboxChange}
+          />
         ))}
       </FilterGroup>
 
       <FilterGroup title="Accommodation Style">
         {accommodationStyle.map((item) => (
-          <FilterCheckboxRow key={item.name} label={item.name} count={item.count} />
+          <FilterCheckboxRow
+            key={item.name}
+            label={item.name}
+            count={item.count}
+            checked={!!selectedOptions[item.name]}
+            onChange={handleCheckboxChange}
+          />
         ))}
       </FilterGroup>
 
       <FilterGroup title="Resort Features">
         {resortFeatures.map((item) => (
-          <FilterCheckboxRow key={item.name} label={item.name} count={item.count} />
+          <FilterCheckboxRow
+            key={item.name}
+            label={item.name}
+            count={item.count}
+            checked={!!selectedOptions[item.name]}
+            onChange={handleCheckboxChange}
+          />
         ))}
       </FilterGroup>
 
+      {/* Availability Toggle */}
       <div className="mt-5 border-t border-gray-100 pt-4">
-        <p className="text-sm font-semibold text-gray-700">Availability</p>
+        <p className="text-sm font-semibold text-gray-800">Availability</p>
         <div className="mt-3 flex items-center justify-between">
-          <span className="text-xs text-gray-500">Show only available hotels</span>
-          <button type="button" className="h-5 w-9 rounded-full bg-gray-200 p-0.5">
-            <span className="block h-4 w-4 rounded-full bg-slate-700" />
+          <span className="text-xs text-gray-600">Show only available hotels</span>
+          <button
+            type="button"
+            onClick={() => setOnlyAvailable((prev) => !prev)}
+            className={`relative flex h-6 w-11 items-center rounded-full p-0.5 transition-colors ${
+              onlyAvailable ? 'bg-primary' : 'bg-gray-300'
+            }`}
+          >
+            <span
+              className={`h-5 w-5 rounded-full bg-white shadow-md transition-transform ${
+                onlyAvailable ? 'translate-x-5' : 'translate-x-0'
+              }`}
+            />
           </button>
         </div>
       </div>
 
-      <div className="mt-6 flex items-center justify-between">
-        <button type="button" className="text-sm text-gray-500 hover:text-gray-700">
+      {/* Actions */}
+      <div className="mt-6 flex items-center gap-3">
+        <button
+          type="button"
+          onClick={handleClearFilters}
+          className="flex-1 rounded-xl border border-gray-200 py-2.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-50"
+        >
           Clear
         </button>
         <button
           type="button"
-          className="rounded-full bg-primary px-5 py-2 text-xs font-semibold text-white hover:opacity-90"
+          onClick={handleApplyFilter}
+          className="flex-1 rounded-xl bg-primary py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-primary/90 active:scale-95"
         >
-          Filter
+          Apply Filter
         </button>
       </div>
     </aside>
@@ -147,4 +301,3 @@ const FilterSection = () => {
 }
 
 export default FilterSection
-
