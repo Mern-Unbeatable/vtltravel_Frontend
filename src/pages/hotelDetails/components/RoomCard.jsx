@@ -1,6 +1,6 @@
 import { HiOutlinePhotograph } from 'react-icons/hi'
 
-const RoomCard = ({ room }) => {
+const RoomCard = ({ room, onSelectRoom }) => {
   return (
     <article className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md">
       <div className="flex flex-col lg:flex-row">
@@ -57,7 +57,8 @@ const RoomCard = ({ room }) => {
 
               <button
                 type="button"
-                className="mt-3 rounded-full bg-[#3ea5dc] px-7 py-2.5 text-xs font-bold text-white shadow-md transition hover:bg-[#3296cc] active:scale-95"
+                onClick={() => onSelectRoom && onSelectRoom(room)}
+                className="mt-3 rounded-full bg-[#3ea5dc] px-7 py-2.5 text-xs font-bold text-white shadow-md transition hover:bg-[#3296cc] active:scale-95 cursor-pointer"
               >
                 Choose this room
               </button>

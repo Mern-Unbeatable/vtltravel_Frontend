@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import HotelHeaderGallery from './components/HotelHeaderGallery'
 import HotelOverviewSection from './components/HotelOverviewSection'
@@ -49,6 +50,7 @@ const HotelDetailsPage = () => {
 
   const title = hotel.title || 'Pullman Hanoi'
   const galleryImages = galleryFallback
+  const [selectedRoom, setSelectedRoom] = useState(null)
 
   return (
     <div className="pb-16 pt-0">
@@ -65,12 +67,12 @@ const HotelDetailsPage = () => {
           {/* Left Column: Facilities Card + Rooms Section */}
           <div className="space-y-10">
             <HotelFacilitiesCard />
-            <HotelRoomsSection rooms={roomsList} />
+            <HotelRoomsSection rooms={roomsList} onSelectRoom={(room) => setSelectedRoom(room)} />
           </div>
 
           {/* Right Column: Sticky Summary Box */}
           <div>
-            <HotelSummarySidebar title={title} />
+            <HotelSummarySidebar title={title} selectedRoom={selectedRoom} />
           </div>
         </div>
       </div>
