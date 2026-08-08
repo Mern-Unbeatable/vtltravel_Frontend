@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { FormInput, FormFileInput } from '../../../../components/FormFields';
+import { FormInput, FormFileInput, FormTextarea } from '../../../../components/FormFields';
 import { fileToBase64 } from '../../../../utils/fileHelpers';
 
 const roomSchema = z.object({
@@ -11,6 +11,12 @@ const roomSchema = z.object({
   size: z.string().min(1, 'Size is required'),
   capacity: z.string().default('3 pers. max'),
   bedInfo: z.string().default('1 King size bed(s)'),
+  baths: z.string().default('1 Bath(s)'),
+  description: z.string().default(''),
+  foodBeverage: z.string().default(''),
+  bathroom: z.string().default(''),
+  mediaTech: z.string().default(''),
+  serviceEquipment: z.string().default(''),
   tags: z.string().default(''),
   image: z.string().default(''),
   roomsLeft: z.string().default('Only 2 rooms left'),
@@ -32,6 +38,12 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
       size: '',
       capacity: '3 pers. max',
       bedInfo: '1 King size bed(s)',
+      baths: '1 Bath(s)',
+      description: '',
+      foodBeverage: '',
+      bathroom: '',
+      mediaTech: '',
+      serviceEquipment: '',
       tags: '',
       image: '',
       roomsLeft: 'Only 2 rooms left',
@@ -48,7 +60,13 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
         size: room.size || '',
         capacity: room.capacity || '3 pers. max',
         bedInfo: room.bedInfo || '1 King size bed(s)',
-        tags: room.tags ? room.tags.join(', ') : '',
+        baths: room.baths || '1 Bath(s)',
+        description: room.description || '',
+        foodBeverage: room.foodBeverage ? (Array.isArray(room.foodBeverage) ? room.foodBeverage.join(', ') : room.foodBeverage) : '',
+        bathroom: room.bathroom ? (Array.isArray(room.bathroom) ? room.bathroom.join(', ') : room.bathroom) : '',
+        mediaTech: room.mediaTech ? (Array.isArray(room.mediaTech) ? room.mediaTech.join(', ') : room.mediaTech) : '',
+        serviceEquipment: room.serviceEquipment ? (Array.isArray(room.serviceEquipment) ? room.serviceEquipment.join(', ') : room.serviceEquipment) : '',
+        tags: room.tags ? (Array.isArray(room.tags) ? room.tags.join(', ') : room.tags) : '',
         image: room.image || '',
         roomsLeft: room.roomsLeft || 'Only 2 rooms left',
       });
@@ -59,6 +77,12 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
         size: '',
         capacity: '3 pers. max',
         bedInfo: '1 King size bed(s)',
+        baths: '1 Bath(s)',
+        description: '',
+        foodBeverage: '',
+        bathroom: '',
+        mediaTech: '',
+        serviceEquipment: '',
         tags: '',
         image: '',
         roomsLeft: 'Only 2 rooms left',
@@ -88,6 +112,12 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
       size: data.size,
       capacity: data.capacity,
       bedInfo: data.bedInfo,
+      baths: data.baths,
+      description: data.description,
+      foodBeverage: data.foodBeverage.split(',').map(t => t.trim()).filter(Boolean),
+      bathroom: data.bathroom.split(',').map(t => t.trim()).filter(Boolean),
+      mediaTech: data.mediaTech.split(',').map(t => t.trim()).filter(Boolean),
+      serviceEquipment: data.serviceEquipment.split(',').map(t => t.trim()).filter(Boolean),
       tags: data.tags.split(',').map(t => t.trim()).filter(Boolean),
       image: data.image || 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=800&q=80',
       roomsLeft: data.roomsLeft,
@@ -112,10 +142,19 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
             name="name"
             register={register}
             error={errors.name}
-            placeholder="e.g. DELUXE SUITE, 1 King Size Bed, Ocean View"
+            placeholder="e.g. SUPERIOR ROOM, 1 King Size Bed, City View"
           />
 
-          <div className="grid grid-cols-2 gap-4">
+          <FormTextarea
+            label="Description"
+            name="description"
+            register={register}
+            error={errors.description}
+            placeholder="Describe the room experience, view, amenities, etc."
+            rows={3}
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormInput
               label="Price per Night ($)"
               name="price"
@@ -129,11 +168,11 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
               name="size"
               register={register}
               error={errors.size}
-              placeholder="e.g. 45m²"
+              placeholder="e.g. 32m²"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <FormInput
               label="Max Capacity"
               name="capacity"
@@ -148,23 +187,66 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
               error={errors.bedInfo}
               placeholder="e.g. 1 King size bed(s)"
             />
+            <FormInput
+              label="Baths Count"
+              name="baths"
+              register={register}
+              error={errors.baths}
+              placeholder="e.g. 1 Baths"
+            />
           </div>
 
-          <FormInput
-            label="Rooms Left Alert"
-            name="roomsLeft"
-            register={register}
-            error={errors.roomsLeft}
-            placeholder="e.g. Only 2 rooms left or 5 rooms left"
-          />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormInput
+              label="Rooms Left Alert"
+              name="roomsLeft"
+              register={register}
+              error={errors.roomsLeft}
+              placeholder="e.g. Only 2 rooms left or 5 rooms left"
+            />
+            <FormInput
+              label="Tags "
+              name="tags"
+              register={register}
+              error={errors.tags}
+              placeholder="e.g. City View, Bathtub/shower combination"
+            />
+          </div>
 
-          <FormInput
-            label="Tags (comma separated)"
-            name="tags"
-            register={register}
-            error={errors.tags}
-            placeholder="e.g. Ocean View, Private Balcony, Bathtub"
-          />
+          <div className="border-t border-gray-100 pt-4">
+            <h4 className="text-xs font-bold text-slate-800 uppercase mb-3">Room Facilities & Amenities</h4>
+            
+            <div className="space-y-3">
+              <FormInput
+                label="Food & Beverage Facilities"
+                name="foodBeverage"
+                register={register}
+                error={errors.foodBeverage}
+                placeholder="e.g. Bottled water, Coffee maker, Kettle"
+              />
+              <FormInput
+                label="Bathroom Facilities"
+                name="bathroom"
+                register={register}
+                error={errors.bathroom}
+                placeholder="e.g. Hair dryer in bathroom, Make-up mirror"
+              />
+              <FormInput
+                label="Media & Technology"
+                name="mediaTech"
+                register={register}
+                error={errors.mediaTech}
+                placeholder="e.g. Wireless internet, Children's TV Channels"
+              />
+              <FormInput
+                label="Service & Equipment"
+                name="serviceEquipment"
+                register={register}
+                error={errors.serviceEquipment}
+                placeholder="e.g. Safe deposit box, Blackout curtain, Air Conditioning"
+              />
+            </div>
+          </div>
 
           <FormFileInput
             label="Room Photo"
