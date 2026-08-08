@@ -9,12 +9,19 @@ import About from '../pages/About'
 import Destinations from '../pages/Destinations'
 import TravelInfo from '../pages/TravelInfo'
 import Contact from '../pages/Contact'
+import Login from '../pages/auth/Login'
+import Admindashboard from '../pages/dashboard/Admindashboard'
 import NotFound from '../pages/NotFound'
 
 const AppRouter = () => {
   return (
     <Router>
       <Routes>
+        {/* Admin and Auth routes (standalone layout) */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/admin" element={<Admindashboard />} />
+
+        {/* Public Website routes */}
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="home" element={<Navigate to="/" replace />} />
@@ -34,3 +41,4 @@ const AppRouter = () => {
 }
 
 export default AppRouter
+
