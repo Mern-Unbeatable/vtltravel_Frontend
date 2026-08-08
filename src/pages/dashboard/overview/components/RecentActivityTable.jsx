@@ -3,12 +3,12 @@ import Pagination from '../../../../components/Pagination';
 
 const mockBookings = [
   { id: 1, customer: "Farhan Ahmed", service: "Saint Martin Ferry", date: "Aug 8, 2026", amount: "$120.00", status: "Confirmed" },
-  { id: 2, customer: "Muntasir Rahman", service: "Sayeman Beach Resort", date: "Aug 7, 2026", amount: "$450.00", status: "Pending" },
+  { id: 2, customer: "Muntasir Rahman", service: "Sayeman Beach Resort", date: "Aug 7, 2026", amount: "$450.00", status: "Confirmed" },
   { id: 3, customer: "Anika Tabassum", service: "Cox's Bazar Tour Package", date: "Aug 6, 2026", amount: "$890.00", status: "Confirmed" },
   { id: 4, customer: "Rakib Hasan", service: "Radisson Blu Chittagong", date: "Aug 5, 2026", amount: "$320.00", status: "Confirmed" },
   { id: 5, customer: "Tasnim Ara", service: "Kuakata Beach Hotel", date: "Aug 4, 2026", amount: "$180.00", status: "Cancelled" },
   { id: 6, customer: "Imran Khan", service: "Sajek Valley Resort", date: "Aug 3, 2026", amount: "$240.00", status: "Confirmed" },
-  { id: 7, customer: "Nabila Yasmin", service: "Sylhet Tea Garden Tour", date: "Aug 2, 2026", amount: "$150.00", status: "Pending" },
+  { id: 7, customer: "Nabila Yasmin", service: "Sylhet Tea Garden Tour", date: "Aug 2, 2026", amount: "$150.00", status: "Confirmed" },
 ];
 
 const RecentActivityTable = () => {
