@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { IoEyeOutline, IoEyeOffOutline, IoArrowBackOutline } from 'react-icons/io5';
+import { useAuth } from '../../context/AuthContext';
 
 const Login = () => {
   const [email, setEmail] = useState('admin@vtltravel.com');
@@ -9,22 +10,21 @@ const Login = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
-    // Simulate network request
-    setTimeout(() => {
-      if (email === 'admin@vtltravel.com' && password === 'admin123') {
-        localStorage.setItem('isAdminLoggedIn', 'true');
-        navigate('/admin');
-      } else {
-        setError('Invalid email or password. Use the dummy credentials provided.');
-      }
+    try {
+      await login(email, password);
+      navigate('/admin');
+    } catch (err) {
+      setError(typeof err === 'string' ? err : 'Authentication failed.');
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (

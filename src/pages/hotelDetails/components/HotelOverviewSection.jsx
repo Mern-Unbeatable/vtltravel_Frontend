@@ -1,7 +1,9 @@
 import { useState } from 'react'
 
-const HotelOverviewSection = ({ title = 'Pullman Hanoi' }) => {
+const HotelOverviewSection = ({ title = 'Pullman Hanoi', description = '' }) => {
   const [readMore, setReadMore] = useState(false)
+
+  const defaultDesc = `The ${title} stands as one of the city's premier hotels, strategically located with convenient access to key travel hubs and sightseeing destinations.`
 
   return (
     <div>
@@ -27,10 +29,8 @@ const HotelOverviewSection = ({ title = 'Pullman Hanoi' }) => {
 
       {/* Description */}
       <p className="mt-4 text-xs leading-relaxed text-gray-500 max-w-2xl">
-        The {title} stands as one of the city&apos;s premier business hotels, strategically
-        located close to corporate headquarters and government offices. It offers convenient
-        access, just an easy 10-minute drive.
-        {readMore && (
+        {description || defaultDesc}
+        {readMore && !description && (
           <span>
             {' '}
             Enjoy high-speed Wi-Fi, world-class dining options, spa facilities, and
@@ -38,15 +38,18 @@ const HotelOverviewSection = ({ title = 'Pullman Hanoi' }) => {
           </span>
         )}
       </p>
-      <button
-        type="button"
-        onClick={() => setReadMore((v) => !v)}
-        className="mt-3 block text-xs font-medium text-[#3ea5dc] hover:underline"
-      >
-        {readMore ? 'Read Less' : 'Read More'}
-      </button>
+      {(!description || description.length > 200) && (
+        <button
+          type="button"
+          onClick={() => setReadMore((v) => !v)}
+          className="mt-3 block text-xs font-medium text-[#3ea5dc] hover:underline"
+        >
+          {readMore ? 'Read Less' : 'Read More'}
+        </button>
+      )}
     </div>
   )
 }
 
 export default HotelOverviewSection
+
