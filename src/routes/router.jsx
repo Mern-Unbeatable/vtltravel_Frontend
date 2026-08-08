@@ -11,6 +11,8 @@ import TravelInfo from '../pages/TravelInfo'
 import Contact from '../pages/Contact'
 import Login from '../pages/auth/Login'
 import Admindashboard from '../pages/dashboard/Admindashboard'
+import ManageHotel from '../pages/dashboard/ManageHotel'
+import AdminLayout from '../layout/AdminLayout'
 import NotFound from '../pages/NotFound'
 
 const AppRouter = () => {
@@ -19,7 +21,11 @@ const AppRouter = () => {
       <Routes>
         {/* Admin and Auth routes (standalone layout) */}
         <Route path="/login" element={<Login />} />
-        <Route path="/admin" element={<Admindashboard />} />
+        
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<Admindashboard />} />
+          <Route path="hotels" element={<ManageHotel />} />
+        </Route>
 
         {/* Public Website routes */}
         <Route path="/" element={<Layout />}>
