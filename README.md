@@ -49,9 +49,12 @@ src/
 │   │   ├── overview/     # Overview metrics & stats
 │   │   │   ├── components/  # StatsGrid, RecentActivityTable
 │   │   │   └── Admindashboard.jsx
-│   │   └── manageHotel/  # Hotel management panel
-│   │       ├── components/  # HotelForm, HotelList, RoomFormModal
-│   │       └── ManageHotel.jsx
+│   │   ├── manageHotel/  # Hotel management panel
+│   │   │   ├── components/  # HotelForm, HotelList, RoomFormModal
+│   │   │   └── ManageHotel.jsx
+│   │   └── allBookings/  # Booking management panel
+│   │       ├── components/  # BookingList (Confirmed bookings, details modal)
+│   │       └── AllBookings.jsx
 │   │
 │   ├── hotelDetails/     # Public Hotel Details page
 │   └── searchResultsPage/# Search and Hotel Listing pages
