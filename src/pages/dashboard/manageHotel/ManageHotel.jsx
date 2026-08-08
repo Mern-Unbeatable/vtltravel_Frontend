@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import HotelList from "../overview/components/HotelList";
+import HotelList from "./components/HotelList";
 import HotelForm from "./components/HotelForm";
 import {
   useHotels,
