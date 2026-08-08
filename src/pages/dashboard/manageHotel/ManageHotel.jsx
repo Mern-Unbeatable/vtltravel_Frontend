@@ -57,7 +57,7 @@ const ManageHotel = () => {
         (isLoading ? (
           <div className="flex justify-center items-center py-16 bg-white border border-gray-200 rounded-2xl shadow-sm">
             <svg
-              className="animate-spin h-8 w-8 text-[var(--color-primary)]"
+              className="animate-spin h-8 w-8 text-primary"
               fill="none"
               viewBox="0 0 24 24"
             >

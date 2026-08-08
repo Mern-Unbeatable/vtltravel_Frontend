@@ -47,7 +47,8 @@ const RecentActivityTable = () => {
           Total {mockBookings.length} bookings
         </span>
       </div>
-      <div className="overflow-x-auto">
+      {/* Desktop Table View */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-left text-sm text-slate-600">
           <thead className="bg-[#f7f8fa] text-gray-500 uppercase text-xs font-bold border-b border-gray-200">
             <tr>
@@ -74,6 +75,34 @@ const RecentActivityTable = () => {
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile/Tablet Card View */}
+      <div className="grid grid-cols-1 gap-4 p-4 md:hidden">
+        {currentData.map((item) => (
+          <div key={item.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex flex-col gap-3">
+            <div className="flex justify-between items-start">
+              <div>
+                <span className="font-semibold text-slate-900 block text-sm">{item.customer}</span>
+                <span className="text-xs text-gray-500 block mt-0.5">{item.date}</span>
+              </div>
+              <span className={`px-2.5 py-0.5 rounded text-xs font-semibold ${getStatusBadgeClass(item.status)}`}>
+                {item.status}
+              </span>
+            </div>
+            
+            <div className="flex justify-between items-center border-t border-gray-100 pt-3">
+              <div>
+                <span className="text-[10px] text-gray-400 font-bold uppercase block">Service</span>
+                <span className="text-sm font-medium text-slate-700">{item.service}</span>
+              </div>
+              <div className="text-right">
+                <span className="text-[10px] text-gray-400 font-bold uppercase block">Amount</span>
+                <span className="text-sm font-extrabold text-slate-950">{item.amount}</span>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Pagination Controls */}
