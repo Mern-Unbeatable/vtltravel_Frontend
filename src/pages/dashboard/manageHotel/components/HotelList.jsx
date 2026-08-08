@@ -3,7 +3,7 @@ import Pagination from '../../../../components/Pagination';
 
 const HotelList = ({ hotels, onEdit, onDelete, onAddNew }) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 4;
 
   const totalPages = Math.ceil(hotels.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -37,7 +37,8 @@ const HotelList = ({ hotels, onEdit, onDelete, onAddNew }) => {
         </div>
       ) : (
         <>
-          <div className="overflow-x-auto">
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-sm text-slate-600">
               <thead className="bg-[#f7f8fa] text-gray-500 uppercase text-xs font-bold border-b border-gray-200">
                 <tr>
@@ -61,7 +62,6 @@ const HotelList = ({ hotels, onEdit, onDelete, onAddNew }) => {
                         />
                         <div>
                           <span className="font-semibold text-slate-900 block text-sm">{hotel.title}</span>
-                          <span className="text-xs text-gray-400 block line-clamp-1 max-w-xs">{hotel.description}</span>
                         </div>
                       </div>
                     </td>
@@ -101,6 +101,57 @@ const HotelList = ({ hotels, onEdit, onDelete, onAddNew }) => {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile/Tablet Card View */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 md:hidden">
+            {currentData.map((hotel) => (
+              <div key={hotel.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex flex-col justify-between gap-4">
+                <div className="flex gap-3">
+                  <img
+                    src={hotel.image}
+                    alt={hotel.title}
+                    className="w-16 h-16 object-cover rounded-lg border border-gray-200 bg-gray-50 shrink-0"
+                  />
+                  <div className="min-w-0">
+                    <span className="font-semibold text-slate-900 block text-sm truncate">{hotel.title}</span>
+                    <span className="text-xs text-amber-500 font-bold block mt-0.5">{hotel.stars} Rating</span>
+                    <span className="text-xs text-gray-500 font-medium block mt-0.5">
+                      {hotel.rooms ? hotel.rooms.length : 0} room type{(hotel.rooms || []).length !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center border-t border-gray-100 pt-3">
+                  <div>
+                    <span className="text-[10px] text-gray-400 font-bold uppercase block">Starting Price</span>
+                    <span className="text-sm font-extrabold text-slate-950">{hotel.price}/night</span>
+                  </div>
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${
+                    hotel.available
+                      ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                      : 'bg-red-50 text-red-600 border-red-200'
+                  }`}>
+                    {hotel.available ? 'Active' : 'Unavailable'}
+                  </span>
+                </div>
+
+                <div className="flex gap-2 border-t border-gray-100 pt-3">
+                  <button
+                    onClick={() => onEdit(hotel)}
+                    className="flex-1 py-2 text-center text-xs font-bold bg-gray-50 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/5 rounded-lg border border-gray-200 transition cursor-pointer"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => onDelete(hotel.id)}
+                    className="flex-1 py-2 text-center text-xs font-bold bg-gray-50 text-red-500 hover:bg-red-50 rounded-lg border border-gray-200 transition cursor-pointer"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
 
           {/* Reusable Pagination Component */}
