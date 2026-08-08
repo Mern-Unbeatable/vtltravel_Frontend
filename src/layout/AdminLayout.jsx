@@ -78,48 +78,13 @@ const AdminLayout = () => {
           </div>
 
           <div className="flex items-center gap-4">
-            <span className="text-xs bg-emerald-50 text-emerald-600 border border-emerald-200 px-3 py-1.5 rounded-full font-semibold flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
-              Live System
-            </span>
-
-            <div className="h-6 w-[1px] bg-gray-200"></div>
-
             <div className="flex items-center gap-3">
-              <img
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80"
-                alt="Admin Profile"
-                className="w-8 h-8 rounded-full object-cover border border-gray-200"
-              />
               <div className="hidden lg:block text-left">
-                <p className="text-xs font-bold text-slate-900 leading-none">
-                  Sara Ahmed
-                </p>
-                <p className="text-[10px] text-gray-400 font-semibold mt-0.5">
-                  Super Admin
+                <p className="text-lg font-bold text-slate-900 leading-none">
+                  Admin
                 </p>
               </div>
             </div>
-
-            <button
-              onClick={handleLogout}
-              title="Sign Out"
-              className="p-2 text-gray-400 hover:text-red-500 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                />
-              </svg>
-            </button>
           </div>
         </header>
 
