@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import HotelList from "./components/HotelList";
+import HotelList from "../overview/components/HotelList";
 import HotelForm from "./components/HotelForm";
 import {
   useHotels,
   useAddHotel,
   useUpdateHotel,
   useDeleteHotel,
-} from "../../hooks/useHotels";
+} from "../../../hooks/useHotels";
 
 const ManageHotel = () => {
   // CMS view state

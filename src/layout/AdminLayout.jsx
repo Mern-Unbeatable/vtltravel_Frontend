@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import Sidebar from '../pages/dashboard/components/Sidebar';
-import { useAuth } from '../context/AuthContext';
-import { IoMenuOutline } from 'react-icons/io5';
+import React, { useEffect, useState } from "react";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import Sidebar from "../components/Sidebar";
+import { useAuth } from "../context/AuthContext";
+import { IoMenuOutline } from "react-icons/io5";
 
 const AdminLayout = () => {
   const navigate = useNavigate();
@@ -12,35 +12,35 @@ const AdminLayout = () => {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate('/login');
+      navigate("/login");
     }
   }, [isAuthenticated, navigate]);
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   // Determine active title based on path
   const getPageTitle = () => {
-    if (location.pathname === '/admin/hotels') {
-      return 'Hotels & Resort CMS';
+    if (location.pathname === "/admin/hotels") {
+      return "Hotels & Resort CMS";
     }
-    return 'Admin Console';
+    return "Admin Console";
   };
 
   const getPageSubtitle = () => {
-    if (location.pathname === '/admin/hotels') {
-      return 'Configure and update hotels, rooms, facilities, and galleries.';
+    if (location.pathname === "/admin/hotels") {
+      return "Configure and update hotels, rooms, facilities, and galleries.";
     }
-    return 'Manage bookings, destinations, and system metrics.';
+    return "Manage bookings, destinations, and system metrics.";
   };
 
   const getTabName = () => {
-    if (location.pathname === '/admin/hotels') {
-      return 'hotels';
+    if (location.pathname === "/admin/hotels") {
+      return "hotels";
     }
-    return 'overview';
+    return "overview";
   };
 
   if (!isAuthenticated) return null;
@@ -67,10 +67,14 @@ const AdminLayout = () => {
             >
               <IoMenuOutline className="text-2xl" />
             </button>
-            
-            <span className="font-bold text-slate-800 hidden sm:inline-block">Admin Workspace</span>
+
+            <span className="font-bold text-slate-800 hidden sm:inline-block">
+              Admin Workspace
+            </span>
             <span className="text-gray-300 hidden sm:inline-block">|</span>
-            <span className="text-xs font-semibold text-gray-500 capitalize">{getTabName()} Manager</span>
+            <span className="text-xs font-semibold text-gray-500 capitalize">
+              {getTabName()} Manager
+            </span>
           </div>
 
           <div className="flex items-center gap-4">
@@ -88,8 +92,12 @@ const AdminLayout = () => {
                 className="w-8 h-8 rounded-full object-cover border border-gray-200"
               />
               <div className="hidden lg:block text-left">
-                <p className="text-xs font-bold text-slate-900 leading-none">Sara Ahmed</p>
-                <p className="text-[10px] text-gray-400 font-semibold mt-0.5">Super Admin</p>
+                <p className="text-xs font-bold text-slate-900 leading-none">
+                  Sara Ahmed
+                </p>
+                <p className="text-[10px] text-gray-400 font-semibold mt-0.5">
+                  Super Admin
+                </p>
               </div>
             </div>
 
@@ -98,8 +106,18 @@ const AdminLayout = () => {
               title="Sign Out"
               className="p-2 text-gray-400 hover:text-red-500 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                />
               </svg>
             </button>
           </div>
@@ -113,9 +131,7 @@ const AdminLayout = () => {
               <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
                 {getPageTitle()}
               </h1>
-              <p className="text-gray-500 mt-1">
-                {getPageSubtitle()}
-              </p>
+              <p className="text-gray-500 mt-1">{getPageSubtitle()}</p>
             </div>
 
             {/* Nested Page Content */}
