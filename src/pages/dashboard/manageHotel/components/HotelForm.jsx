@@ -354,28 +354,30 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
           </div>
           <div className="space-y-3">
             {addOnFields.map((field, idx) => (
-              <div key={field.id} className="flex gap-4 items-center">
+              <div key={field.id} className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center bg-gray-50/50 sm:bg-transparent p-3 sm:p-0 rounded-xl border border-gray-100 sm:border-0">
                 <input
                   type="text"
                   {...register(`addOns.${idx}.name`)}
                   placeholder="Add-on Name (e.g. Airport Shuttle, Breakfast)"
                   className="flex-1 bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-primary"
                 />
-                <input
-                  type="text"
-                  {...register(`addOns.${idx}.price`)}
-                  placeholder="Price (e.g. $25)"
-                  className="w-32 bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-primary"
-                />
-                {addOnFields.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeAddOn(idx)}
-                    className="text-red-500 hover:text-red-700 text-xs font-bold px-2 py-1 cursor-pointer"
-                  >
-                    Remove
-                  </button>
-                )}
+                <div className="flex gap-2 items-center">
+                  <input
+                    type="text"
+                    {...register(`addOns.${idx}.price`)}
+                    placeholder="Price (e.g. $25)"
+                    className="w-full sm:w-32 bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-primary"
+                  />
+                  {addOnFields.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeAddOn(idx)}
+                      className="text-red-500 hover:text-red-700 text-xs font-bold px-2 py-1 cursor-pointer whitespace-nowrap"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -402,8 +404,8 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
               No rooms configured for this hotel yet. Add at least one room type.
             </div>
           ) : (
-            <div className="border border-gray-200 rounded-xl overflow-hidden">
-              <table className="w-full text-left text-xs text-slate-600">
+            <div className="border border-gray-200 rounded-xl overflow-x-auto">
+              <table className="w-full text-left text-xs text-slate-600 min-w-[600px]">
                 <thead className="bg-gray-50 uppercase font-semibold text-gray-500 border-b border-gray-200">
                   <tr>
                     <th className="px-4 py-3">Room Name</th>
@@ -445,17 +447,17 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-4 pt-6 border-t border-gray-200 justify-end">
+        <div className="flex flex-col-reverse sm:flex-row gap-3 pt-6 border-t border-gray-200 justify-end">
           <button
             type="button"
             onClick={onCancel}
-            className="px-6 py-2.5 border border-gray-300 rounded-lg text-sm text-slate-700 hover:bg-gray-50 font-semibold cursor-pointer"
+            className="w-full sm:w-auto px-6 py-2.5 border border-gray-300 rounded-lg text-sm text-slate-700 hover:bg-gray-50 font-semibold cursor-pointer"
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="px-6 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-lg text-sm font-semibold shadow-sm cursor-pointer"
+            className="w-full sm:w-auto px-6 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-lg text-sm font-semibold shadow-sm cursor-pointer"
           >
             Save Hotel
           </button>
