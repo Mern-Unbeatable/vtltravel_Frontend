@@ -17,6 +17,7 @@ import Contact from "../pages/Contact";
 import Login from "../pages/auth/Login";
 import Admindashboard from "../pages/dashboard/overview/Admindashboard";
 import ManageHotel from "../pages/dashboard/manageHotel/ManageHotel";
+import AllBookings from "../pages/dashboard/allBookings/AllBookings";
 import AdminLayout from "../layout/AdminLayout";
 import NotFound from "../pages/NotFound";
 
@@ -30,6 +31,7 @@ const AppRouter = () => {
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Admindashboard />} />
           <Route path="hotels" element={<ManageHotel />} />
+          <Route path="bookings" element={<AllBookings />} />
         </Route>
 
         {/* Public Website routes */}

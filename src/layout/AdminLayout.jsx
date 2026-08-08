@@ -26,6 +26,9 @@ const AdminLayout = () => {
     if (location.pathname === "/admin/hotels") {
       return "Hotels & Resort CMS";
     }
+    if (location.pathname === "/admin/bookings") {
+      return "Manage All Bookings";
+    }
     return "Admin Console";
   };
 
@@ -33,12 +36,18 @@ const AdminLayout = () => {
     if (location.pathname === "/admin/hotels") {
       return "Configure and update hotels, rooms, facilities, and galleries.";
     }
+    if (location.pathname === "/admin/bookings") {
+      return "Track, confirm, or cancel passenger bookings and resort bookings.";
+    }
     return "Manage bookings, destinations, and system metrics.";
   };
 
   const getTabName = () => {
     if (location.pathname === "/admin/hotels") {
       return "hotels";
+    }
+    if (location.pathname === "/admin/bookings") {
+      return "bookings";
     }
     return "overview";
   };
