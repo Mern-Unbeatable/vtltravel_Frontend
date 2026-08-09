@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useParams } from 'react-router-dom'
 import HotelHeaderGallery from './components/HotelHeaderGallery'
 import HotelOverviewSection from './components/HotelOverviewSection'
 import HotelFacilitiesCard from './components/HotelFacilitiesCard'
@@ -16,9 +16,11 @@ const galleryFallback = [
 ]
 
 const HotelDetailsPage = () => {
+  const { hotelId } = useParams()
   const { state } = useLocation()
   const hotelState = state?.hotel || {}
-  const { data: hotel, isLoading, isError } = useHotel(hotelState.id)
+  const targetId = hotelState.id || hotelId
+  const { data: hotel, isLoading, isError } = useHotel(targetId)
   const [selectedRoom, setSelectedRoom] = useState(null)
   const [modalRoom, setModalRoom] = useState(null)
 

@@ -10,7 +10,7 @@ const HeroSection = () => {
   return (
     <section className="bg-[#f7f8fa] py-14 md:py-16 lg:py-20">
       <div className="mx-auto container px-4">
-        <h1 className="text-center text-3xl font-bold tracking-tight text-slate-900 md:text-4xl lg:text-[2.75rem]">
+        <h1 className="text-center text-3xl font-semibold tracking-tight text-slate-900 md:text-4xl">
           Welcome To Bintan Ferry, Book At The Best Price
         </h1>
 

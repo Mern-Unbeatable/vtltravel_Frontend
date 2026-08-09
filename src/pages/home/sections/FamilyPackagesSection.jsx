@@ -45,8 +45,8 @@ const packages = [
 
 const FamilyPackagesSection = () => {
   return (
-    <section className="mx-auto container px-4">
-      <h2 className="mb-6 text-2xl font-bold text-gray-900 md:text-3xl">
+    <section className="mx-auto container px-4  pb-14 md:pb-16 lg:pb-20">
+      <h2 className="mb-6 text-3xl font-bold text-gray-900 md:text-4xl">
         Top Family-Friendly Bintan Packages
       </h2>
 
