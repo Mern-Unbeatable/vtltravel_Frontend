@@ -8,9 +8,10 @@ const Home = () => {
   return (
     <>
       <HeroSection />
+       <EpicSaleSection />
       <FerryTicketsSection />
       <FamilyPackagesSection />
-      <EpicSaleSection />
+     
       <GroupToursSection />
     </>
   )
