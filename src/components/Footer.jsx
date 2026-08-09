@@ -104,8 +104,8 @@ const Footer = () => {
       </div>
 
       {/* Newsletter */}
-      <div className="border-t border-gray-200">
-        <div className="mx-auto container grid grid-cols-1 items-center gap-6 px-4 py-8 lg:grid-cols-[1.1fr_1fr]">
+      <div className="">
+        <div className="mx-auto container grid grid-cols-1 items-center gap-6 px-4 py-8 lg:grid-cols-[1.1fr_1fr] border-t border-[#05588E29]">
           <h3 className="text-2xl font-bold text-gray-900 md:text-3xl">
             Sign up to Receive News and Information
           </h3>
@@ -132,8 +132,8 @@ const Footer = () => {
       </div>
 
       {/* Bottom bar */}
-      <div className="border-t border-gray-200">
-        <div className="mx-auto container flex flex-col items-center justify-between gap-4 px-4 py-5 sm:flex-row">
+      <div className="">
+        <div className="mx-auto container flex flex-col items-center justify-between gap-4 px-4 py-5 sm:flex-row border-t border-[#05588E29]">
           <p className="text-sm text-gray-400">
             Copyright VTL Travel Private Limited. All Rights Reserved{' '}
             {new Date().getFullYear()}.
