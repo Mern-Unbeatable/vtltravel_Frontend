@@ -149,12 +149,11 @@ const FilterSection = ({ onFilterChange }) => {
       {/* Filter Sidebar / Sliding Drawer */}
       <aside
         className={`
-          fixed bottom-0 top-0 left-0 z-[101] w-[300px] bg-white p-6 shadow-2xl transition-transform duration-300 overflow-y-auto flex flex-col justify-between
-          lg:static lg:z-auto lg:w-auto lg:p-0 lg:shadow-none lg:translate-x-0 lg:overflow-y-visible lg:flex lg:flex-col
+          fixed bottom-0 top-0 left-0 z-[101] w-[300px] bg-white p-6 shadow-2xl transition-transform duration-300 overflow-y-auto
+          lg:static lg:z-auto lg:w-auto lg:p-0 lg:shadow-none lg:translate-x-0 lg:overflow-y-visible
           ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
       >
-        <div>
           {/* Mobile/Tablet Header with Close Button */}
           <div className="flex items-center justify-between lg:hidden mb-4 pb-3 border-b border-[#05588E29]">
             <h3 className="text-xl font-bold text-slate-900">Filters</h3>
@@ -334,7 +333,6 @@ const FilterSection = ({ onFilterChange }) => {
                   }`}
                 />
               </button>
-            </div>
           </div>
         </div>
 
