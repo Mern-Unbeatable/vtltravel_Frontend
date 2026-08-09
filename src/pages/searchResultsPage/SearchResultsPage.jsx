@@ -7,7 +7,7 @@ const SearchResultsPage = () => {
   const [filters, setFilters] = useState(null);
 
   return (
-    <section className="pb-10 pt-6">
+    <section className=" pt-12 md:pt-16 lg:pt-20">
       <div className="mx-auto container px-4">
         <div className="max-w-6xl mx-auto">
           <SearchCard
@@ -17,7 +17,7 @@ const SearchResultsPage = () => {
           />
         </div>
 
-        <div className="mt-6 grid grid-cols-1 gap-10 lg:grid-cols-[320px_minmax(0,1fr)]">
+        <div className="mt-10 lg:mt-20 grid grid-cols-1 gap-10 lg:grid-cols-[320px_minmax(0,1fr)]">
           <FilterSection
             onFilterChange={(newFilters) => setFilters(newFilters)}
           />

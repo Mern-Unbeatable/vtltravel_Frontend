@@ -9,7 +9,7 @@ const Pagination = ({
   if (totalPages <= 1) return null;
 
   return (
-    <div className="flex justify-center items-center py-6 w-full">
+    <div className="flex justify-center items-center w-full">
       <div className="flex items-center gap-2">
         {/* Previous Button */}
         <button
