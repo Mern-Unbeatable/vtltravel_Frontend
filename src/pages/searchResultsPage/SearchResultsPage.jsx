@@ -1,10 +1,10 @@
-import { useState } from 'react'
-import SearchCard from '../../components/SearchCard'
-import FilterSection from './sections/FilterSection'
-import HotelCardsSection from './sections/HotelCardsSection'
+import { useState } from "react";
+import SearchCard from "../../components/SearchCard";
+import FilterSection from "./sections/FilterSection";
+import HotelCardsSection from "./sections/HotelCardsSection";
 
 const SearchResultsPage = () => {
-  const [filters, setFilters] = useState(null)
+  const [filters, setFilters] = useState(null);
 
   return (
     <section className="pb-10 pt-6">
@@ -18,12 +18,14 @@ const SearchResultsPage = () => {
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-[320px_minmax(0,1fr)]">
-          <FilterSection onFilterChange={(newFilters) => setFilters(newFilters)} />
+          <FilterSection
+            onFilterChange={(newFilters) => setFilters(newFilters)}
+          />
           <HotelCardsSection filters={filters} />
         </div>
       </div>
     </section>
-  )
-}
+  );
+};
 
-export default SearchResultsPage
+export default SearchResultsPage;
