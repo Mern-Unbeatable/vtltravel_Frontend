@@ -8,7 +8,7 @@ const HeroSection = () => {
   const navigate = useNavigate()
 
   return (
-    <section className="bg-[#f7f8fa] pb-16 pt-10 md:pb-20 md:pt-14">
+    <section className="bg-[#f7f8fa] py-14 md:py-16 lg:py-20">
       <div className="mx-auto container px-4">
         <h1 className="text-center text-3xl font-bold tracking-tight text-slate-900 md:text-4xl lg:text-[2.75rem]">
           Welcome To Bintan Ferry, Book At The Best Price

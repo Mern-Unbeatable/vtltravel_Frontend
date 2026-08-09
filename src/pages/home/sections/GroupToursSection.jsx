@@ -49,7 +49,7 @@ const TourCard = ({ tour }) => {
 
 const GroupToursSection = () => {
   return (
-    <section className="mx-auto container px-4 py-12 md:py-16">
+    <section className="mx-auto container px-4  py-14 md:py-16 lg:py-20">
       <h2 className="mb-8 text-center text-3xl font-bold text-gray-900 md:mb-10 md:text-4xl">
         Bintan Group Tours
       </h2>

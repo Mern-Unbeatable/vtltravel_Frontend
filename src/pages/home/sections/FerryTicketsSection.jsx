@@ -45,7 +45,7 @@ const packages = [
 
 const FerryTicketsSection = () => {
   return (
-    <section className="mx-auto container px-4 py-10 md:py-14">
+    <section className="mx-auto container px-4  py-14 md:py-16 lg:py-20">
       <h2 className="mb-6 text-2xl font-bold text-gray-900 md:text-3xl">
         Ferry Tickets From Singapore To Batam
       </h2>
