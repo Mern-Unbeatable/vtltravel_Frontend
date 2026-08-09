@@ -1,6 +1,8 @@
+import { Link } from 'react-router-dom'
 import PackageCard from '../components/PackageCard'
 
 const packages = [
+  // ... (keep packages unchanged)
   {
     id: 1,
     title: 'Holiday Inn Resort Batam',
@@ -46,9 +48,17 @@ const packages = [
 const FamilyPackagesSection = () => {
   return (
     <section className="mx-auto container px-4  pb-14 md:pb-16 lg:pb-20">
-      <h2 className="mb-6 text-3xl font-bold text-gray-900 md:text-4xl">
-        Top Family-Friendly Bintan Packages
-      </h2>
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">
+          Top Family-Friendly Bintan Packages
+        </h2>
+        <Link
+          to="/home/search"
+          className="inline-flex items-center justify-center rounded-full border border-primary px-5 py-2 text-sm font-semibold text-primary transition hover:bg-primary hover:text-white self-start sm:self-auto"
+        >
+          View All
+        </Link>
+      </div>
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {packages.map((item) => (
