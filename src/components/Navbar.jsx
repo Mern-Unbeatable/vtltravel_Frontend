@@ -3,8 +3,8 @@ import { IoTicketOutline } from 'react-icons/io5'
 import { NavLink, useLocation } from 'react-router-dom'
 
 const linkClasses = ({ isActive }) =>
-  `inline-flex items-center pb-1 text-sm font-medium transition-colors ${isActive
-    ? 'border-b-2 border-primary text-primary'
+  `inline-flex items-center pb-1 text-base font-medium transition-colors ${isActive
+    ? 'border-b-3 border-primary text-primary'
     : 'border-b-2 border-transparent text-gray-600 hover:text-primary'
   }`
 
