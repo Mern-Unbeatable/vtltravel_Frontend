@@ -1,9 +1,17 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import HotelResultCard from "../components/HotelResultCard";
 import { useHotels } from "../../../hooks/useHotels";
+import Pagination from "../../../components/Pagination";
 
 const HotelCardsSection = ({ filters }) => {
   const { data: hotels = [], isLoading, isError } = useHotels();
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 5;
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
 
   if (isLoading) {
     return (
@@ -59,12 +67,18 @@ const HotelCardsSection = ({ filters }) => {
     return true;
   });
 
+  const totalEntries = filteredHotels.length;
+  const totalPages = Math.ceil(totalEntries / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedHotels = filteredHotels.slice(startIndex, endIndex);
+
   return (
     <div>
-      <p className="text-sm text-gray-500">
+      <p className="text-xl text-gray-500">
         {filteredHotels.length} hotels available.
       </p>
-      <p className="mb-3 text-xs text-gray-400">
+      <p className="mb-3 text-base text-gray-400">
         Sorted by recommended for you
       </p>
 
@@ -78,10 +92,18 @@ const HotelCardsSection = ({ filters }) => {
           </p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {filteredHotels.map((hotel) => (
-            <HotelResultCard key={hotel.id} hotel={hotel} />
-          ))}
+        <div className="space-y-4">
+          <div className="space-y-3">
+            {paginatedHotels.map((hotel) => (
+              <HotelResultCard key={hotel.id} hotel={hotel} />
+            ))}
+          </div>
+
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={(page) => setCurrentPage(page)}
+            />
         </div>
       )}
     </div>

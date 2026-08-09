@@ -52,15 +52,15 @@ const HotelResultCard = ({ hotel }) => {
 
             <div className="flex flex-col items-start text-left md:items-end md:text-right">
               <div className="flex items-baseline gap-1">
-                <span className="text-sm text-gray-500">From</span>
+                <span className="text-base text-gray-500">From</span>
                 <span className="text-3xl font-extrabold text-[#2d9cdb] md:text-4xl">{price}</span>
               </div>
 
-              <p className="mt-1 text-sm font-medium text-slate-900">
+              <p className="mt-1 text-base font-medium text-slate-900">
                 Public rate from <span className="font-bold">$96</span>
               </p>
 
-              <p className="mt-0.5 text-xs text-gray-400">
+              <p className="mt-0.5 text-base text-gray-400">
                 1 night - 1 adult - Taxes not included : $15
               </p>
 
