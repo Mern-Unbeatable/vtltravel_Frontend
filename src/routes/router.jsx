@@ -1,8 +1,10 @@
+import { useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
+  useLocation,
 } from "react-router-dom";
 import Layout from "../layout/Layout";
 import Home from "../pages/home/Home";
@@ -21,9 +23,20 @@ import AllBookings from "../pages/dashboard/allBookings/AllBookings";
 import AdminLayout from "../layout/AdminLayout";
 import NotFound from "../pages/NotFound";
 
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+};
+
 const AppRouter = () => {
   return (
     <Router>
+      <ScrollToTop />
       <Routes>
         {/* Admin and Auth routes (standalone layout) */}
         <Route path="/login" element={<Login />} />
