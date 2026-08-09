@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { IoFilterOutline, IoCloseOutline } from 'react-icons/io5'
 
 const starsList = ['5 ★', '4 ★', '3 ★', '1 ★', 'Unclassified ★']
 
@@ -36,7 +37,7 @@ const resortFeatures = [
 
 const FilterCheckboxRow = ({ label, count, checked, onChange }) => {
   return (
-    <label className="flex cursor-pointer items-center justify-between gap-3 text-xs text-gray-600 hover:text-gray-900">
+    <label className="flex cursor-pointer items-center justify-between gap-3 text-sm text-gray-600 hover:text-gray-900">
       <span className="flex items-center gap-2">
         <input
           type="checkbox"
@@ -61,6 +62,9 @@ const FilterGroup = ({ title, children }) => {
 }
 
 const FilterSection = ({ onFilterChange }) => {
+  // Drawer Open/Close State (Mobile/Tablet)
+  const [isOpen, setIsOpen] = useState(false)
+
   // 1. Budget State
   const MIN_PRICE = 48
   const MAX_PRICE = 466
@@ -100,6 +104,7 @@ const FilterSection = ({ onFilterChange }) => {
         onlyAvailable,
       })
     }
+    setIsOpen(false)
   }
 
   const handleClearFilters = () => {
@@ -120,183 +125,238 @@ const FilterSection = ({ onFilterChange }) => {
   }
 
   return (
-    <aside className="">
-      <div className="flex items-center justify-between">
-        <h3 className="text-2xl font-semibold text-slate-900">Filter</h3>
+    <>
+      {/* Mobile & Tablet Filter Toggle Button */}
+      <div className="lg:hidden">
         <button
           type="button"
-          onClick={handleClearFilters}
-          className="text-sm font-semibold text-primary hover:underline"
+          onClick={() => setIsOpen(true)}
+          className="inline-flex items-center gap-2 rounded-xl border border-[#05588E29] bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 active:scale-95 transition-all"
         >
-          Reset All
+          <IoFilterOutline className="text-lg text-primary" />
+          <span>Filters</span>
         </button>
       </div>
 
-      {/* Budget Filter */}
-      <div className="mt-4 border-t border-[#05588E29] pt-4">
-        <div className="flex items-center justify-between">
-          <p className="text-base font-semibold text-gray-800">Budget</p>
-          <span className="text-sm font-bold text-primary">
-            ${minBudget} - ${maxBudget}
-          </span>
-        </div>
-        <p className="mt-0.5 text-sm text-gray-400">Price for 1 night - 1 room, 1 adult.</p>
+      {/* Dim Overlay backdrop (Mobile/Tablet) */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/40 lg:hidden"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
 
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <div>
-            <p className="mb-1 text-sm font-medium text-[#262626]">Minimum</p>
-            <div className="relative flex items-center">
-              <span className="absolute left-2.5 text-sm text-gray-400">$</span>
-              <input
-                type="number"
-                min={MIN_PRICE}
-                max={maxBudget}
-                value={minBudget}
-                onChange={(e) => setMinBudget(Number(e.target.value))}
-                className="w-full rounded-lg border border-[#05588E29] pl-6 pr-2 py-1.5 text-sm font-medium text-[#262626] outline-none focus:border-primary"
-              />
-            </div>
+      {/* Filter Sidebar / Sliding Drawer */}
+      <aside
+        className={`
+          fixed bottom-0 top-0 left-0 z-[101] w-[300px] bg-white p-6 shadow-2xl transition-transform duration-300 overflow-y-auto flex flex-col justify-between
+          lg:static lg:z-auto lg:w-auto lg:p-0 lg:shadow-none lg:translate-x-0 lg:overflow-y-visible lg:flex lg:flex-col
+          ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+        `}
+      >
+        <div>
+          {/* Mobile/Tablet Header with Close Button */}
+          <div className="flex items-center justify-between lg:hidden mb-4 pb-3 border-b border-[#05588E29]">
+            <h3 className="text-xl font-bold text-slate-900">Filters</h3>
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+            >
+              <IoCloseOutline className="text-2xl" />
+            </button>
           </div>
-          <div>
-            <p className="mb-1 text-sm font-medium text-[#262626]">Maximum</p>
-            <div className="relative flex items-center">
-              <span className="absolute left-2.5 text-xs text-gray-400">$</span>
+
+          {/* Desktop Title Header */}
+          <div className="hidden lg:flex items-center justify-between">
+            <h3 className="text-2xl font-semibold text-slate-900">Filter</h3>
+            <button
+              type="button"
+              onClick={handleClearFilters}
+              className="text-sm font-semibold text-primary hover:underline"
+            >
+              Reset All
+            </button>
+          </div>
+
+          {/* Mobile Reset Action */}
+          <div className="flex items-center justify-between lg:hidden mb-3">
+            <button
+              type="button"
+              onClick={handleClearFilters}
+              className="text-sm font-semibold text-primary hover:underline"
+            >
+              Reset All Filters
+            </button>
+          </div>
+
+          {/* Budget Filter */}
+          <div className="mt-4 border-t border-[#05588E29] pt-4">
+            <div className="flex items-center justify-between">
+              <p className="text-base font-semibold text-gray-800">Budget</p>
+              <span className="text-sm font-bold text-primary">
+                ${minBudget} - ${maxBudget}
+              </span>
+            </div>
+            <p className="mt-0.5 text-sm text-gray-400">Price for 1 night - 1 room, 1 adult.</p>
+
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <div>
+                <p className="mb-1 text-sm font-medium text-[#262626]">Minimum</p>
+                <div className="relative flex items-center">
+                  <span className="absolute left-2.5 text-sm text-gray-400">$</span>
+                  <input
+                    type="number"
+                    min={MIN_PRICE}
+                    max={maxBudget}
+                    value={minBudget}
+                    onChange={(e) => setMinBudget(Number(e.target.value))}
+                    className="w-full rounded-lg border border-[#05588E29] pl-6 pr-2 py-1.5 text-sm font-medium text-[#262626] outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+              <div>
+                <p className="mb-1 text-sm font-medium text-[#262626]">Maximum</p>
+                <div className="relative flex items-center">
+                  <span className="absolute left-2.5 text-sm text-gray-400">$</span>
+                  <input
+                    type="number"
+                    min={minBudget}
+                    max={MAX_PRICE}
+                    value={maxBudget}
+                    onChange={(e) => setMaxBudget(Number(e.target.value))}
+                    className="w-full rounded-lg border border-[#05588E29] pl-6 pr-2 py-1.5 text-sm font-medium text-[#262626] outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-3">
               <input
-                type="number"
-                min={minBudget}
+                type="range"
+                min={MIN_PRICE}
                 max={MAX_PRICE}
                 value={maxBudget}
                 onChange={(e) => setMaxBudget(Number(e.target.value))}
-                className="w-full rounded-lg border border-[#05588E29] pl-6 pr-2 py-1.5 text-sm font-medium text-[#262626] outline-none focus:border-primary"
+                className="w-full cursor-pointer accent-primary"
               />
+            </div>
+          </div>
+
+          {/* Stars Filter */}
+          <div className="mt-5 border-t border-[#05588E29] pt-4">
+            <p className="text-sm font-semibold text-gray-800">Stars</p>
+            <div className="mt-2.5 flex flex-wrap gap-2">
+              {starsList.map((item) => {
+                const isSelected = selectedStars.includes(item)
+                return (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => toggleStar(item)}
+                    className={`rounded-lg border px-3 py-1.5 text-sm transition-all ${
+                      isSelected
+                        ? 'border-primary bg-primary text-white shadow-xs font-semibold'
+                        : 'border-[#05588E29] bg-white text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    {item}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Checkbox Groups */}
+          <FilterGroup title="Featured Packages">
+            {featuredPackages.map((item) => (
+              <FilterCheckboxRow
+                key={item.name}
+                label={item.name}
+                count={item.count}
+                checked={!!selectedOptions[item.name]}
+                onChange={handleCheckboxChange}
+              />
+            ))}
+          </FilterGroup>
+
+          <FilterGroup title="Best For">
+            {bestFor.map((item) => (
+              <FilterCheckboxRow
+                key={item.name}
+                label={item.name}
+                count={item.count}
+                checked={!!selectedOptions[item.name]}
+                onChange={handleCheckboxChange}
+              />
+            ))}
+          </FilterGroup>
+
+          <FilterGroup title="Accommodation Style">
+            {accommodationStyle.map((item) => (
+              <FilterCheckboxRow
+                key={item.name}
+                label={item.name}
+                count={item.count}
+                checked={!!selectedOptions[item.name]}
+                onChange={handleCheckboxChange}
+              />
+            ))}
+          </FilterGroup>
+
+          <FilterGroup title="Resort Features">
+            {resortFeatures.map((item) => (
+              <FilterCheckboxRow
+                key={item.name}
+                label={item.name}
+                count={item.count}
+                checked={!!selectedOptions[item.name]}
+                onChange={handleCheckboxChange}
+              />
+            ))}
+          </FilterGroup>
+
+          {/* Availability Toggle */}
+          <div className="mt-5 border-t border-[#05588E29] pt-4">
+            <p className="text-sm font-semibold text-gray-800">Availability</p>
+            <div className="mt-3 flex items-center justify-between">
+              <span className="text-sm text-gray-600">Show only available hotels</span>
+              <button
+                type="button"
+                onClick={() => setOnlyAvailable((prev) => !prev)}
+                className={`relative flex h-6 w-11 items-center rounded-full p-0.5 transition-colors ${
+                  onlyAvailable ? 'bg-primary' : 'bg-gray-300'
+                }`}
+              >
+                <span
+                  className={`h-5 w-5 rounded-full bg-white shadow-md transition-transform ${
+                    onlyAvailable ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
             </div>
           </div>
         </div>
 
-        <div className="mt-3">
-          <input
-            type="range"
-            min={MIN_PRICE}
-            max={MAX_PRICE}
-            value={maxBudget}
-            onChange={(e) => setMaxBudget(Number(e.target.value))}
-            className="w-full cursor-pointer accent-primary"
-          />
-        </div>
-      </div>
-
-      {/* Stars Filter */}
-      <div className="mt-5 border-t border-[#05588E29] pt-4">
-        <p className="text-sm font-semibold text-gray-800">Stars</p>
-        <div className="mt-2.5 flex flex-wrap gap-2">
-          {starsList.map((item) => {
-            const isSelected = selectedStars.includes(item)
-            return (
-              <button
-                key={item}
-                type="button"
-                onClick={() => toggleStar(item)}
-                className={`rounded-lg border px-3 py-1.5 text-xs transition-all ${
-                  isSelected
-                    ? 'border-primary bg-primary text-white shadow-xs font-semibold'
-                    : 'border-[#05588E29] bg-white text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                {item}
-              </button>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* Checkbox Groups */}
-      <FilterGroup title="Featured Packages">
-        {featuredPackages.map((item) => (
-          <FilterCheckboxRow
-            key={item.name}
-            label={item.name}
-            count={item.count}
-            checked={!!selectedOptions[item.name]}
-            onChange={handleCheckboxChange}
-          />
-        ))}
-      </FilterGroup>
-
-      <FilterGroup title="Best For">
-        {bestFor.map((item) => (
-          <FilterCheckboxRow
-            key={item.name}
-            label={item.name}
-            count={item.count}
-            checked={!!selectedOptions[item.name]}
-            onChange={handleCheckboxChange}
-          />
-        ))}
-      </FilterGroup>
-
-      <FilterGroup title="Accommodation Style">
-        {accommodationStyle.map((item) => (
-          <FilterCheckboxRow
-            key={item.name}
-            label={item.name}
-            count={item.count}
-            checked={!!selectedOptions[item.name]}
-            onChange={handleCheckboxChange}
-          />
-        ))}
-      </FilterGroup>
-
-      <FilterGroup title="Resort Features">
-        {resortFeatures.map((item) => (
-          <FilterCheckboxRow
-            key={item.name}
-            label={item.name}
-            count={item.count}
-            checked={!!selectedOptions[item.name]}
-            onChange={handleCheckboxChange}
-          />
-        ))}
-      </FilterGroup>
-
-      {/* Availability Toggle */}
-      <div className="mt-5 border-t border-[#05588E29] pt-4">
-        <p className="text-sm font-semibold text-gray-800">Availability</p>
-        <div className="mt-3 flex items-center justify-between">
-          <span className="text-xs text-gray-600">Show only available hotels</span>
+        {/* Actions */}
+        <div className="mt-6 flex items-center gap-3 border-t border-[#05588E29] pt-4 lg:border-t-0 lg:pt-0">
           <button
             type="button"
-            onClick={() => setOnlyAvailable((prev) => !prev)}
-            className={`relative flex h-6 w-11 items-center rounded-full p-0.5 transition-colors ${
-              onlyAvailable ? 'bg-primary' : 'bg-gray-300'
-            }`}
+            onClick={handleClearFilters}
+            className="flex-1 rounded-xl border border-[#05588E29] py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50"
           >
-            <span
-              className={`h-5 w-5 rounded-full bg-white shadow-md transition-transform ${
-                onlyAvailable ? 'translate-x-5' : 'translate-x-0'
-              }`}
-            />
+            Clear
+          </button>
+          <button
+            type="button"
+            onClick={handleApplyFilter}
+            className="flex-1 rounded-xl bg-primary py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-primary/90 active:scale-95"
+          >
+            Apply Filter
           </button>
         </div>
-      </div>
-
-      {/* Actions */}
-      <div className="mt-6 flex items-center gap-3">
-        <button
-          type="button"
-          onClick={handleClearFilters}
-          className="flex-1 rounded-xl border border-[#05588E29] py-2.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-50"
-        >
-          Clear
-        </button>
-        <button
-          type="button"
-          onClick={handleApplyFilter}
-          className="flex-1 rounded-xl bg-primary py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-primary/90 active:scale-95"
-        >
-          Apply Filter
-        </button>
-      </div>
-    </aside>
+      </aside>
+    </>
   )
 }
 
