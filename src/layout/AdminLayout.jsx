@@ -29,7 +29,7 @@ const AdminLayout = () => {
     if (location.pathname === "/admin/bookings") {
       return "Manage All Bookings";
     }
-    return "Admin Console";
+    return "Operations Dashboard";
   };
 
   const getPageSubtitle = () => {
@@ -39,7 +39,7 @@ const AdminLayout = () => {
     if (location.pathname === "/admin/bookings") {
       return "Track, confirm, or cancel passenger bookings and resort bookings.";
     }
-    return "Manage bookings, destinations, and system metrics.";
+    return "Track real-time reservation statistics, service performance, and system activities.";
   };
 
   const getTabName = () => {

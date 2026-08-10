@@ -34,13 +34,7 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-[#f7f8fa] flex flex-col justify-center items-center px-4 relative">
       {/* Back to Home Button */}
-      <Link
-        to="/"
-        className="absolute top-6 left-6 flex items-center gap-2 text-slate-600 hover:text-primary font-medium text-sm transition-colors duration-200 bg-white px-4 py-2 rounded-full border border-gray-200 shadow-sm"
-      >
-        <IoArrowBackOutline className="text-lg" />
-        Back to Home
-      </Link>
+      {/*  */}
 
       {/* Background decoration matching home page feel */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -z-10"></div>
