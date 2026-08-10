@@ -42,7 +42,9 @@ const HotelResultCard = ({ hotel }) => {
         <div className="flex flex-1 flex-col justify-between p-5 md:p-6">
           <div className="mb-4 md:mb-0">
             <h3 className="text-xl font-bold tracking-tight text-slate-900 md:text-2xl">{title}</h3>
-            <p className="mt-1 text-sm font-medium text-gray-500">{stars}</p>
+            <p className="mt-1 text-sm font-medium text-gray-500">
+              {hotel?.rooms?.length || 0} room{(hotel?.rooms?.length || 0) !== 1 ? 's' : ''}
+            </p>
           </div>
 
           <div className="flex flex-col-reverse gap-5 md:flex-row md:items-end md:justify-between md:gap-0">
@@ -53,7 +55,7 @@ const HotelResultCard = ({ hotel }) => {
             <div className="flex flex-col items-start text-left md:items-end md:text-right">
               <div className="flex items-baseline gap-1">
                 <span className="text-base text-gray-500">From</span>
-                <span className="text-3xl font-extrabold text-[#2d9cdb] md:text-4xl">{price}</span>
+                <span className="text-2xl font-extrabold text-[#2d9cdb] ">{price}</span>
               </div>
 
               <p className="mt-1 text-base font-medium text-slate-900">
