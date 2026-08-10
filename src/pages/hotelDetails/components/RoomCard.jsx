@@ -19,7 +19,7 @@ const RoomCard = ({ room, onSelectRoom, onOpenDetails }) => {
           <img src={room.image} alt={room.name} className="h-full w-full object-cover" />
           <button
             type="button"
-            onClick={() => setIsGalleryOpen(true)}
+            onClick={() => onOpenDetails && onOpenDetails(room)}
             className="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-md bg-black/60 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-xs transition hover:bg-black/75 cursor-pointer"
           >
             <HiOutlinePhotograph className="h-4 w-4" />

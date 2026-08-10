@@ -59,13 +59,27 @@ const FerryBookingPage = () => {
       <div className="mx-auto container px-4 md:px-6">
         {/* Breadcrumbs */}
         <nav className="flex items-center gap-2 text-xs font-medium text-gray-400">
-          <Link to="/" className="hover:text-slate-900 transition">
+          <Link to="/" className="hover:text-slate-900 transition cursor-pointer">
             Home
           </Link>
           <span>/</span>
-          <span>Select Trip</span>
+          <button
+            type="button"
+            onClick={() => navigate(`/home/search`)}
+            className="hover:text-slate-900 transition cursor-pointer bg-transparent border-0 p-0 font-medium text-gray-400"
+          >
+            Hotels
+          </button>
           <span>/</span>
-          <span className="font-semibold text-[#3ea5dc]">Book Ferry</span>
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="hover:text-slate-900 transition cursor-pointer bg-transparent border-0 p-0 font-medium text-gray-400"
+          >
+            Add-ons
+          </button>
+          <span>/</span>
+          <span className="font-semibold text-[#3ea5dc]">Ferry Booking</span>
         </nav>
 
         {/* Step Badge & Page Title */}
@@ -76,7 +90,7 @@ const FerryBookingPage = () => {
           <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
             Complete Your Ferry Booking
           </h1>
-          <p className="mt-2 text-xs text-gray-500 max-w-2xl">
+          <p className="mt-2 text-base text-gray-500 max-w-2xl">
             Follow the steps below to review your trip, enter passenger details, and confirm your ferry tickets.
           </p>
         </div>
@@ -411,26 +425,7 @@ const FerryBookingPage = () => {
               </label>
             </div>
 
-            {/* Bottom Action Navigation Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6">
-              <button
-                type="button"
-                onClick={() => navigate(-1)}
-                className="inline-flex items-center gap-2 rounded-full border border-slate-800 px-7 py-3 text-xs font-bold text-slate-800 transition hover:bg-slate-800 hover:text-white cursor-pointer active:scale-95"
-              >
-                <IoArrowBackOutline className="text-base" />
-                <span>Back to Previous Step</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => alert('Booking submission successful!')}
-                className="inline-flex items-center gap-2 rounded-full bg-[#3ea5dc] px-8 py-3.5 text-xs font-bold text-white shadow-md transition hover:bg-[#3296cc] cursor-pointer active:scale-95"
-              >
-                <span>Continue to Next Step</span>
-                <IoArrowForwardOutline className="text-base" />
-              </button>
-            </div>
+      
           </div>
 
           {/* Right Column - Summary Sidebar */}
