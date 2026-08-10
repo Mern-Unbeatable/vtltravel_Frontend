@@ -63,6 +63,7 @@ const SearchCard = ({
   buttonLabel = 'Search',
   wrapperClassName = '',
   compact = false,
+  hideDestination = false,
 }) => {
   // Helper to parse dates securely
   const parseDateProp = (dateVal, defaultDate) => {
@@ -228,26 +229,28 @@ const SearchCard = ({
           }`}
         >
           {/* 1. Destination Input */}
-          <div
-            className={`flex flex-1 items-center gap-3 rounded-xl border border-gray-200 bg-white transition hover:border-primary/50 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 ${
-              compact ? 'px-3 py-2' : 'px-4 py-2.5'
-            }`}
-          >
-            <IoLocationOutline className="text-xl text-primary shrink-0" />
-            <div className="min-w-0 flex-1">
-              <label htmlFor="destination-input" className="block text-[11px] font-medium text-gray-400">
-                Destination
-              </label>
-              <input
-                id="destination-input"
-                type="text"
-                value={destValue}
-                onChange={(e) => setDestValue(e.target.value)}
-                placeholder="Destination, hotel name"
-                className="w-full border-0 bg-transparent p-0 text-xs font-semibold text-gray-800 outline-none placeholder:font-normal placeholder:text-gray-400 md:text-sm"
-              />
+          {!hideDestination && (
+            <div
+              className={`flex flex-1 items-center gap-3 rounded-xl border border-gray-200 bg-white transition hover:border-primary/50 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 ${
+                compact ? 'px-3 py-2' : 'px-4 py-2.5'
+              }`}
+            >
+              <IoLocationOutline className="text-xl text-primary shrink-0" />
+              <div className="min-w-0 flex-1">
+                <label htmlFor="destination-input" className="block text-[11px] font-medium text-gray-400">
+                  Destination
+                </label>
+                <input
+                  id="destination-input"
+                  type="text"
+                  value={destValue}
+                  onChange={(e) => setDestValue(e.target.value)}
+                  placeholder="Destination, hotel name"
+                  className="w-full border-0 bg-transparent p-0 text-xs font-semibold text-gray-800 outline-none placeholder:font-normal placeholder:text-gray-400 md:text-sm"
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* 2. Check in & Check out Date Picker Trigger */}
           <div ref={datePickerRef} className="relative flex-1">

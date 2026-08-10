@@ -19,12 +19,27 @@ const HotelOverviewSection = ({ title = 'Pullman Hanoi', description = '' }) => 
           </p>
         </div>
 
-        <a
-          href="#rooms"
-          className="inline-flex shrink-0 items-center justify-center rounded-full bg-[#3ea5dc] px-7 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-[#3296cc] active:scale-95"
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            const element = document.getElementById('rooms');
+            if (element) {
+              const offset = 90;
+              const bodyRect = document.body.getBoundingClientRect().top;
+              const elementRect = element.getBoundingClientRect().top;
+              const elementPosition = elementRect - bodyRect;
+              const offsetPosition = elementPosition - offset;
+              window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+              });
+            }
+          }}
+          className="inline-flex shrink-0 items-center justify-center rounded-full bg-[#3ea5dc] px-7 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-[#3296cc] active:scale-95 cursor-pointer"
         >
           See the rooms
-        </a>
+        </button>
       </div>
 
       {/* Description */}

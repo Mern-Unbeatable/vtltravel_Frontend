@@ -48,7 +48,7 @@ const HotelDetailsPage = () => {
   const roomsList = hotel.rooms || []
 
   return (
-    <div className="pb-16 pt-0">
+    <div className="">
       {/* 1. Top Image Gallery Banner */}
       <HotelHeaderGallery images={galleryImages} title={title} />
 
