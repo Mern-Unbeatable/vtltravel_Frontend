@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import TablePagination from "../../../../components/TablePagination";
+import HotelTable from "./HotelTable";
 
 const HotelList = ({ hotels, onEdit, onDelete, onAddNew }) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -44,78 +45,11 @@ const HotelList = ({ hotels, onEdit, onDelete, onAddNew }) => {
       ) : (
         <>
           {/* Desktop Table View */}
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-600">
-              <thead className="bg-[#f7f8fa] text-gray-500 uppercase text-xs font-bold border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-4">Hotel / Resort</th>
-                  <th className="px-6 py-4">Rating</th>
-                  <th className="px-6 py-4">Starting Price</th>
-                  <th className="px-6 py-4">Rooms Configured</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {currentData.map((hotel) => (
-                  <tr
-                    key={hotel.id}
-                    className="hover:bg-gray-50/40 transition-colors"
-                  >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={hotel.image}
-                          alt={hotel.title}
-                          className="w-12 h-12 object-cover rounded-lg border border-gray-200 bg-gray-50"
-                        />
-                        <div>
-                          <span className="font-semibold text-slate-900 block text-sm">
-                            {hotel.title}
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 font-semibold text-amber-500 text-sm">
-                      {hotel.stars}
-                    </td>
-                    <td className="px-6 py-4 font-bold text-slate-950">
-                      {hotel.price}/night
-                    </td>
-                    <td className="px-6 py-4 font-medium text-slate-700">
-                      {hotel.rooms ? hotel.rooms.length : 0} room type
-                      {(hotel.rooms || []).length !== 1 ? "s" : ""}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${
-                          hotel.available
-                            ? "bg-emerald-50 text-emerald-600 border-emerald-200"
-                            : "bg-red-50 text-red-600 border-red-200"
-                        }`}
-                      >
-                        {hotel.available ? "Active" : "Unavailable"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right space-x-3">
-                      <button
-                        onClick={() => onEdit(hotel)}
-                        className="text-xs text-primary hover:underline font-bold cursor-pointer"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => onDelete(hotel.id)}
-                        className="text-xs text-red-500 hover:underline font-bold cursor-pointer"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <HotelTable
+            hotels={currentData}
+            onEdit={onEdit}
+            onDelete={onDelete}
+          />
 
           {/* Mobile/Tablet Card View */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 md:hidden">
@@ -126,20 +60,20 @@ const HotelList = ({ hotels, onEdit, onDelete, onAddNew }) => {
               >
                 <div className="flex gap-3">
                   <img
-                    src={hotel.image}
-                    alt={hotel.title}
+                    src={hotel.primaryImage || hotel.coverImageUrl || (hotel.images && hotel.images[0]?.url)}
+                    alt={hotel.name}
                     className="w-16 h-16 object-cover rounded-lg border border-gray-200 bg-gray-50 shrink-0"
                   />
                   <div className="min-w-0">
                     <span className="font-semibold text-slate-900 block text-sm truncate">
-                      {hotel.title}
+                      {hotel.name}
                     </span>
                     <span className="text-xs text-amber-500 font-bold block mt-0.5">
-                      {hotel.stars} Rating
+                      {hotel.starRating} ★ Rating
                     </span>
                     <span className="text-xs text-gray-500 font-medium block mt-0.5">
-                      {hotel.rooms ? hotel.rooms.length : 0} room type
-                      {(hotel.rooms || []).length !== 1 ? "s" : ""}
+                      {hotel._count?.roomTypes || hotel.roomTypes?.length || 0} room type
+                      {(hotel._count?.roomTypes || hotel.roomTypes?.length || 0) !== 1 ? "s" : ""}
                     </span>
                   </div>
                 </div>
@@ -150,17 +84,17 @@ const HotelList = ({ hotels, onEdit, onDelete, onAddNew }) => {
                       Starting Price
                     </span>
                     <span className="text-sm font-extrabold text-slate-950">
-                      {hotel.price}/night
+                      ${hotel.fromPrice || hotel.startingPrice || 0}/night
                     </span>
                   </div>
                   <span
                     className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${
-                      hotel.available
+                      hotel.isActive
                         ? "bg-emerald-50 text-emerald-600 border-emerald-200"
                         : "bg-red-50 text-red-600 border-red-200"
                     }`}
                   >
-                    {hotel.available ? "Active" : "Unavailable"}
+                    {hotel.isActive ? "Active" : "Unavailable"}
                   </span>
                 </div>
 

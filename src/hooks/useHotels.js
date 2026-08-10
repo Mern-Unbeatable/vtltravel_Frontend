@@ -4,14 +4,26 @@ import { hotelService } from '../api/services/hotelService';
 export const useHotels = () => {
   return useQuery({
     queryKey: ['hotels'],
-    queryFn: hotelService.getHotels,
+    queryFn: async () => {
+      const response = await hotelService.getHotels();
+      if (response && response.success && response.data && Array.isArray(response.data.items)) {
+        return response.data.items;
+      }
+      return Array.isArray(response) ? response : [];
+    },
   });
 };
 
 export const useHotel = (id) => {
   return useQuery({
     queryKey: ['hotel', id],
-    queryFn: () => hotelService.getHotelById(id),
+    queryFn: async () => {
+      const response = await hotelService.getHotelById(id);
+      if (response && response.success && response.data) {
+        return response.data;
+      }
+      return response;
+    },
     enabled: !!id,
   });
 };
