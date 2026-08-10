@@ -1,16 +1,30 @@
+import { useState } from 'react'
 import { HiOutlinePhotograph } from 'react-icons/hi'
+import HotelGalleryModal from '../../searchResultsPage/components/HotelGalleryModal'
 
 const RoomCard = ({ room, onSelectRoom, onOpenDetails }) => {
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false)
+  const roomGallery = room?.gallery || [
+    room.image,
+    'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=800&q=80',
+    'https://images.unsplash.com/photo-1591088398332-8a7791972843?auto=format&fit=crop&w=800&q=80',
+  ]
+
   return (
     <article className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md">
       <div className="flex flex-col lg:flex-row">
         {/* Room Image */}
         <div className="relative h-[220px] w-full shrink-0 lg:h-auto lg:w-[320px]">
           <img src={room.image} alt={room.name} className="h-full w-full object-cover" />
-          <div className="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-md bg-black/60 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-xs">
+          <button
+            type="button"
+            onClick={() => setIsGalleryOpen(true)}
+            className="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-md bg-black/60 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-xs transition hover:bg-black/75 cursor-pointer"
+          >
             <HiOutlinePhotograph className="h-4 w-4" />
-            <span>1/6</span>
-          </div>
+            <span>1/{roomGallery.length}</span>
+          </button>
         </div>
 
         {/* Room Details */}
@@ -57,7 +71,7 @@ const RoomCard = ({ room, onSelectRoom, onOpenDetails }) => {
             <div className="flex flex-col items-start text-left sm:items-end sm:text-right">
               <div className="flex items-baseline gap-1">
                 <span className="text-xs text-gray-500">From</span>
-                <span className="text-3xl font-extrabold text-[#3ea5dc]">{room.price}</span>
+                <span className="text-2xl font-extrabold text-[#3ea5dc]">{room.price}</span>
               </div>
               <p className="mt-0.5 text-xs text-gray-500">
                 Public rate from <span className="font-semibold">{room.publicRate}</span>
@@ -74,6 +88,12 @@ const RoomCard = ({ room, onSelectRoom, onOpenDetails }) => {
           </div>
         </div>
       </div>
+      <HotelGalleryModal
+        open={isGalleryOpen}
+        onClose={() => setIsGalleryOpen(false)}
+        hotelTitle={room.name}
+        images={roomGallery}
+      />
     </article>
   )
 }

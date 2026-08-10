@@ -36,8 +36,9 @@ const GALLERY_IMAGES = [
   'https://images.unsplash.com/photo-1502005229762-fc1b2b812ca5?auto=format&fit=crop&w=900&q=80',
 ]
 
-const HotelGalleryModal = ({ open, onClose, hotelTitle }) => {
+const HotelGalleryModal = ({ open, onClose, hotelTitle, images }) => {
   const [activeCategory, setActiveCategory] = useState('Hotel')
+  const imagesList = images && images.length > 0 ? images : GALLERY_IMAGES
 
   useEffect(() => {
     if (!open) return undefined
@@ -133,7 +134,7 @@ const HotelGalleryModal = ({ open, onClose, hotelTitle }) => {
 
           <div className="flex-1 overflow-y-auto p-5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 hover:[&::-webkit-scrollbar-thumb]:bg-gray-400 [&::-webkit-scrollbar-track]:bg-transparent">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {GALLERY_IMAGES.map((image, index) => (
+              {imagesList.map((image, index) => (
                 <div
                   key={`${activeCategory}-${image}-${index}`}
                   className="overflow-hidden rounded-xl"
