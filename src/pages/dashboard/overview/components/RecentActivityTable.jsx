@@ -1,24 +1,14 @@
 import React, { useState } from 'react';
 import TablePagination from '../../../../components/TablePagination';
 
-const mockBookings = [
-  { id: 1, customer: "Farhan Ahmed", service: "Saint Martin Ferry", date: "Aug 8, 2026", amount: "$120.00", status: "Confirmed" },
-  { id: 2, customer: "Muntasir Rahman", service: "Sayeman Beach Resort", date: "Aug 7, 2026", amount: "$450.00", status: "Confirmed" },
-  { id: 3, customer: "Anika Tabassum", service: "Cox's Bazar Tour Package", date: "Aug 6, 2026", amount: "$890.00", status: "Confirmed" },
-  { id: 4, customer: "Rakib Hasan", service: "Radisson Blu Chittagong", date: "Aug 5, 2026", amount: "$320.00", status: "Confirmed" },
-  { id: 5, customer: "Tasnim Ara", service: "Kuakata Beach Hotel", date: "Aug 4, 2026", amount: "$180.00", status: "Cancelled" },
-  { id: 6, customer: "Imran Khan", service: "Sajek Valley Resort", date: "Aug 3, 2026", amount: "$240.00", status: "Confirmed" },
-  { id: 7, customer: "Nabila Yasmin", service: "Sylhet Tea Garden Tour", date: "Aug 2, 2026", amount: "$150.00", status: "Confirmed" },
-];
-
-const RecentActivityTable = () => {
+const RecentActivityTable = ({ bookings = [] }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
 
-  const totalPages = Math.ceil(mockBookings.length / itemsPerPage);
+  const totalPages = Math.ceil(bookings.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentData = mockBookings.slice(startIndex, endIndex);
+  const currentData = bookings.slice(startIndex, endIndex);
 
   const handlePageChange = (pageNumber) => {
     if (pageNumber >= 1 && pageNumber <= totalPages) {
@@ -27,16 +17,37 @@ const RecentActivityTable = () => {
   };
 
   const getStatusBadgeClass = (status) => {
-    switch (status) {
-      case 'Confirmed':
+    switch (status?.toUpperCase()) {
+      case 'CONFIRMED':
+      case 'PAID':
         return 'bg-emerald-50 text-emerald-600 border border-emerald-200';
-      case 'Pending':
+      case 'PENDING':
         return 'bg-amber-50 text-amber-600 border border-amber-200';
-      case 'Cancelled':
+      case 'CANCELLED':
+      case 'FAILED':
         return 'bg-rose-50 text-rose-600 border border-rose-200';
       default:
         return 'bg-gray-50 text-gray-600 border border-gray-200';
     }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
+
+  const formatCurrency = (amount, currency) => {
+    const value = parseFloat(amount);
+    if (isNaN(value)) return 'N/A';
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency || 'USD',
+    }).format(value);
   };
 
   return (
@@ -44,7 +55,7 @@ const RecentActivityTable = () => {
       <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-white">
         <h2 className="text-lg font-bold text-slate-900">Recent Hotel & Ferry Bookings</h2>
         <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">
-          Total {mockBookings.length} bookings
+          Total {bookings.length} bookings
         </span>
       </div>
       {/* Desktop Table View */}
@@ -52,70 +63,100 @@ const RecentActivityTable = () => {
         <table className="w-full text-left text-sm text-slate-600">
           <thead className="bg-[#f7f8fa] text-gray-500 uppercase text-xs font-bold border-b border-gray-200">
             <tr>
-              <th className="px-6 py-4">Customer</th>
-              <th className="px-6 py-4">Service</th>
-              <th className="px-6 py-4">Date</th>
+              <th className="px-6 py-4">Ref / Customer</th>
+              <th className="px-6 py-4">Hotel & Room</th>
+              <th className="px-6 py-4">Check In/Out</th>
               <th className="px-6 py-4">Amount</th>
               <th className="px-6 py-4">Status</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 bg-white">
-            {currentData.map((item) => (
-              <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
-                <td className="px-6 py-4 font-semibold text-slate-950">{item.customer}</td>
-                <td className="px-6 py-4">{item.service}</td>
-                <td className="px-6 py-4 text-gray-500">{item.date}</td>
-                <td className="px-6 py-4 font-bold text-slate-950">{item.amount}</td>
-                <td className="px-6 py-4">
-                  <span className={`px-2.5 py-0.5 rounded text-xs font-semibold ${getStatusBadgeClass(item.status)}`}>
-                    {item.status}
-                  </span>
+            {currentData.length > 0 ? (
+              currentData.map((item) => (
+                <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
+                  <td className="px-6 py-4">
+                    <span className="font-semibold text-slate-950 block">{item.guestName || 'Guest'}</span>
+                    <span className="text-xs text-gray-400 font-mono block mt-0.5">{item.bookingRef}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="font-medium text-slate-900 block">{item.hotel?.name || 'N/A'}</span>
+                    <span className="text-xs text-gray-500 block mt-0.5">
+                      {item.rooms?.[0]?.roomType?.name || item.rooms?.[0]?.roomLabel || 'No room selected'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-gray-500">
+                    <span className="block text-xs">In: {formatDate(item.checkIn)}</span>
+                    <span className="block text-xs">Out: {formatDate(item.checkOut)}</span>
+                  </td>
+                  <td className="px-6 py-4 font-bold text-slate-950">
+                    {formatCurrency(item.totalPrice, item.currency)}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`px-2.5 py-0.5 rounded text-xs font-semibold ${getStatusBadgeClass(item.status)}`}>
+                      {item.status}
+                    </span>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="5" className="px-6 py-10 text-center text-gray-400">
+                  No bookings found
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
 
       {/* Mobile/Tablet Card View */}
       <div className="grid grid-cols-1 gap-4 p-4 md:hidden">
-        {currentData.map((item) => (
-          <div key={item.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex flex-col gap-3">
-            <div className="flex justify-between items-start">
-              <div>
-                <span className="font-semibold text-slate-900 block text-sm">{item.customer}</span>
-                <span className="text-xs text-gray-500 block mt-0.5">{item.date}</span>
+        {currentData.length > 0 ? (
+          currentData.map((item) => (
+            <div key={item.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex flex-col gap-3">
+              <div className="flex justify-between items-start">
+                <div>
+                  <span className="font-semibold text-slate-900 block text-sm">{item.guestName || 'Guest'}</span>
+                  <span className="text-xs text-gray-400 font-mono block mt-0.5">{item.bookingRef}</span>
+                </div>
+                <span className={`px-2.5 py-0.5 rounded text-xs font-semibold ${getStatusBadgeClass(item.status)}`}>
+                  {item.status}
+                </span>
               </div>
-              <span className={`px-2.5 py-0.5 rounded text-xs font-semibold ${getStatusBadgeClass(item.status)}`}>
-                {item.status}
-              </span>
+              
+              <div className="flex justify-between items-center border-t border-gray-100 pt-3">
+                <div className="max-w-[60%]">
+                  <span className="text-[10px] text-gray-400 font-bold uppercase block">Hotel</span>
+                  <span className="text-sm font-medium text-slate-700 truncate block">{item.hotel?.name || 'N/A'}</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] text-gray-400 font-bold uppercase block">Amount</span>
+                  <span className="text-sm font-extrabold text-slate-950">{formatCurrency(item.totalPrice, item.currency)}</span>
+                </div>
+              </div>
             </div>
-            
-            <div className="flex justify-between items-center border-t border-gray-100 pt-3">
-              <div>
-                <span className="text-[10px] text-gray-400 font-bold uppercase block">Service</span>
-                <span className="text-sm font-medium text-slate-700">{item.service}</span>
-              </div>
-              <div className="text-right">
-                <span className="text-[10px] text-gray-400 font-bold uppercase block">Amount</span>
-                <span className="text-sm font-extrabold text-slate-950">{item.amount}</span>
-              </div>
-            </div>
+          ))
+        ) : (
+          <div className="text-center py-6 text-gray-400 text-sm">
+            No bookings found
           </div>
-        ))}
+        )}
       </div>
 
       {/* Pagination Controls */}
-      <TablePagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        totalEntries={mockBookings.length}
-        startIndex={startIndex}
-        endIndex={endIndex}
-        onPageChange={handlePageChange}
-      />
+      {totalPages > 1 && (
+        <TablePagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalEntries={bookings.length}
+          startIndex={startIndex}
+          endIndex={endIndex}
+          onPageChange={handlePageChange}
+        />
+      )}
     </div>
   );
 };
 
 export default RecentActivityTable;
+

@@ -28,14 +28,20 @@ const HotelFacilitiesCard = ({ facilities = [] }) => {
       <div>
         <h3 className="text-base font-bold text-slate-900">Most popular facilities</h3>
         <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 gap-y-3.5 gap-x-2 text-xs text-gray-600">
-          {displayFacilities.map((fac, idx) => (
-            <div key={idx} className="flex items-center gap-2">
-              {facilityIcons[fac] || <IoCheckmarkCircleOutline className="text-base text-[#3ea5dc] shrink-0" />}
-              <span>{fac}</span>
-            </div>
-          ))}
+          {displayFacilities.map((fac, idx) => {
+            const facName = typeof fac === 'string' 
+              ? fac 
+              : (fac?.facility?.name || fac?.name || 'Facility');
+            return (
+              <div key={idx} className="flex items-center gap-2">
+                {facilityIcons[facName] || <IoCheckmarkCircleOutline className="text-base text-[#3ea5dc] shrink-0" />}
+                <span>{facName}</span>
+              </div>
+            );
+          })}
         </div>
       </div>
+
 
       {/* Why book with us */}
       <div className="border-t border-sky-100/80 pt-6 md:border-l md:border-t-0 md:pl-8 md:pt-0">

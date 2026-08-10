@@ -3,4 +3,6 @@ export const API_ENDPOINTS = {
   HOTELS: '/v1/hotels',
   HOTEL_DETAILS: (id) => `/v1/hotels/${id}`,
   ROOMS: '/rooms',
+  ADMIN_STATS: '/v1/admin/stats',
 };
+
