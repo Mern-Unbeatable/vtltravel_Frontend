@@ -54,11 +54,26 @@ const parseDateInput = (str) => {
 
 const SearchCard = ({
   destination: initialDestination = 'Destination, hotel name',
+  initialCheckIn,
+  initialCheckOut,
+  initialRooms = 1,
+  initialAdults = 1,
+  initialChildren = 0,
   onSearch,
   buttonLabel = 'Search',
   wrapperClassName = '',
   compact = false,
 }) => {
+  // Helper to parse dates securely
+  const parseDateProp = (dateVal, defaultDate) => {
+    if (!dateVal) return defaultDate;
+    try {
+      const d = new Date(dateVal);
+      if (!isNaN(d.getTime())) return d;
+    } catch (e) {}
+    return defaultDate;
+  };
+
   // 1. Destination Input State
   const [destValue, setDestValue] = useState(initialDestination)
 
@@ -67,8 +82,8 @@ const SearchCard = ({
   const defaultCheckIn = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 2)
   const defaultCheckOut = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7)
 
-  const [checkInDate, setCheckInDate] = useState(defaultCheckIn)
-  const [checkOutDate, setCheckOutDate] = useState(defaultCheckOut)
+  const [checkInDate, setCheckInDate] = useState(parseDateProp(initialCheckIn, defaultCheckIn))
+  const [checkOutDate, setCheckOutDate] = useState(parseDateProp(initialCheckOut, defaultCheckOut))
 
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [activeDateTab, setActiveDateTab] = useState('checkIn')
@@ -77,10 +92,39 @@ const SearchCard = ({
   )
 
   // 3. Guests State
-  const [rooms, setRooms] = useState(1)
-  const [adults, setAdults] = useState(1)
-  const [childrenCount, setChildrenCount] = useState(0)
+  const [rooms, setRooms] = useState(Number(initialRooms))
+  const [adults, setAdults] = useState(Number(initialAdults))
+  const [childrenCount, setChildrenCount] = useState(Number(initialChildren))
   const [showGuestsPicker, setShowGuestsPicker] = useState(false)
+
+  // Sync state if props change (e.g. from routing)
+  useEffect(() => {
+    if (initialDestination) setDestValue(initialDestination);
+  }, [initialDestination]);
+
+  useEffect(() => {
+    if (initialCheckIn) {
+      setCheckInDate(parseDateProp(initialCheckIn, defaultCheckIn));
+    }
+  }, [initialCheckIn]);
+
+  useEffect(() => {
+    if (initialCheckOut) {
+      setCheckOutDate(parseDateProp(initialCheckOut, defaultCheckOut));
+    }
+  }, [initialCheckOut]);
+
+  useEffect(() => {
+    if (initialRooms) setRooms(Number(initialRooms));
+  }, [initialRooms]);
+
+  useEffect(() => {
+    if (initialAdults) setAdults(Number(initialAdults));
+  }, [initialAdults]);
+
+  useEffect(() => {
+    if (initialChildren !== undefined) setChildrenCount(Number(initialChildren));
+  }, [initialChildren]);
 
   // Refs for click outside
   const datePickerRef = useRef(null)

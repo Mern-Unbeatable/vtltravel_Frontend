@@ -33,11 +33,17 @@ const HeroSection = () => {
         </div>
 
         <SearchCard
-          destination="Destination, hotel name"
-          checkIn="July 23"
-          checkOut="July 24"
-          guests="1 Room(s) - 1 Guest(s)"
-          onSearch={() => navigate('/home/search')}
+          onSearch={(searchData) => {
+            const queryParams = new URLSearchParams({
+              destination: searchData.destination,
+              checkIn: searchData.checkIn,
+              checkOut: searchData.checkOut,
+              rooms: searchData.rooms,
+              adults: searchData.adults,
+              children: searchData.children,
+            }).toString();
+            navigate(`/home/search?${queryParams}`);
+          }}
           wrapperClassName="max-w-7xl rounded-xl md:rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.06)]"
         />
       </div>
