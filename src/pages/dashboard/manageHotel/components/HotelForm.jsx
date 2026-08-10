@@ -83,21 +83,34 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
 
   useEffect(() => {
     if (hotel) {
+      // Map API object properties to form properties
+      const mappedFacilities = (hotel.facilities || []).map(fac => 
+        typeof fac === 'string' ? fac : (fac?.facility?.name || fac?.name || '')
+      ).filter(Boolean);
+
+      const mappedGallery = (hotel.images || []).map(img => img.url).filter(Boolean);
+
       reset({
-        title: hotel.title || '',
-        starNum: hotel.starNum || 4,
-        priceNum: hotel.priceNum ? String(hotel.priceNum) : '',
-        image: hotel.image || '',
-        video: hotel.video || '',
+        title: hotel.name || hotel.title || '',
+        starNum: hotel.starRating || hotel.starNum || 4,
+        priceNum: hotel.startingPrice || hotel.priceNum ? String(hotel.startingPrice || hotel.priceNum) : '',
+        image: hotel.coverImageUrl || hotel.image || '',
+        video: hotel.videoUrl || hotel.video || '',
         description: hotel.description || '',
-        facilities: hotel.facilities || [],
-        gallery: hotel.gallery || [],
-        rooms: hotel.rooms || [],
-        available: hotel.available !== undefined ? hotel.available : true,
-        addOns: hotel.addOns && hotel.addOns.length > 0 ? hotel.addOns : [{ name: '', price: '' }],
+        facilities: mappedFacilities,
+        gallery: mappedGallery.length > 0 ? mappedGallery : (hotel.gallery || []),
+        rooms: hotel.rooms || hotel.roomTypes || [],
+        available: hotel.isActive !== undefined ? hotel.isActive : (hotel.available !== undefined ? hotel.available : true),
+        addOns: hotel.addOns && hotel.addOns.length > 0 
+          ? hotel.addOns.map(a => ({
+              name: a.addOn?.name || a.name || '',
+              price: String(a.addOn?.price || a.price || '')
+            })) 
+          : [{ name: '', price: '' }],
       });
     }
   }, [hotel, reset]);
+
 
   const handleFacilityChange = (facility) => {
     const isChecked = facilitiesVal.includes(facility);
@@ -168,23 +181,107 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
   };
 
   const onSubmit = (data) => {
-    const formattedHotel = {
-      title: data.title,
-      starNum: Number(data.starNum),
-      stars: `${data.starNum} ★`,
-      priceNum: Number(data.priceNum),
-      price: `$${data.priceNum}`,
-      image: data.image,
-      video: data.video,
-      description: data.description,
-      facilities: data.facilities,
-      gallery: data.gallery.filter(Boolean),
-      rooms: data.rooms,
-      available: data.available,
-      addOns: data.addOns.filter(a => a.name.trim() !== '')
+    console.log("HotelForm raw onSubmit data:", data);
+    // We will build a FormData object as the backend expects multipart/form-data
+    const formData = new FormData();
+    
+    // Add textual properties
+    formData.append('name', data.title);
+    formData.append('starRating', String(data.starNum));
+    formData.append('startingPrice', String(data.priceNum));
+    formData.append('availabilityStatus', data.available ? 'AVAILABLE' : 'UNAVAILABLE');
+    formData.append('description', data.description || '');
+    formData.append('location', 'Batam');
+    formData.append('city', 'Batam');
+    formData.append('country', 'Indonesia');
+
+    // Convert facilities array into a comma-separated slug string (e.g. 'free-wifi,swimming-pool,spa')
+    const slugMap = {
+      'Free Wi-Fi': 'free-wifi',
+      'Wi-Fi': 'free-wifi',
+      'Swimming Pool': 'swimming-pool',
+      'Giant Swimming Pools': 'swimming-pool',
+      'Spa': 'spa',
+      'Restaurant': 'restaurant',
+      'Free Parking': 'free-parking'
     };
-    onSave(formattedHotel);
+    const slugs = data.facilities
+      .map(fac => slugMap[fac] || fac.toLowerCase().replace(/\s+/g, '-'))
+      .join(',');
+    formData.append('facilitySlugs', slugs);
+
+    // Convert add-ons to the format [{"name":"Breakfast","price":18}]
+    const filteredAddOns = data.addOns
+      .filter(a => a.name && a.name.trim() !== '')
+      .map(a => ({
+        name: a.name,
+        price: parseFloat(a.price) || 0
+      }));
+    formData.append('addOns', JSON.stringify(filteredAddOns));
+
+    // Helper to convert base64 to File
+    const base64ToFile = (base64String, filename) => {
+      if (!base64String || !base64String.startsWith('data:')) return null;
+      try {
+        const arr = base64String.split(',');
+        const mime = arr[0].match(/:(.*?);/)[1];
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while(n--){
+          u8arr[n] = bstr.charCodeAt(n);
+        }
+        return new File([u8arr], filename, { type: mime });
+      } catch (err) {
+        console.error("base64ToFile conversion error:", err);
+        return null;
+      }
+    };
+
+    if (data.image) {
+      if (data.image.startsWith('data:')) {
+        const fileObj = base64ToFile(data.image, 'cover_image.png');
+        if (fileObj) formData.append('coverImageUrl', fileObj);
+      } else {
+        formData.append('coverImageUrl', data.image); // URL fallback
+      }
+    }
+
+    if (data.video) {
+      if (data.video.startsWith('data:')) {
+        const fileObj = base64ToFile(data.video, 'video.mp4');
+        if (fileObj) formData.append('videoUrl', fileObj);
+      } else {
+        formData.append('videoUrl', data.video); // URL fallback
+      }
+    }
+
+    // Gallery images
+    if (data.gallery && data.gallery.length > 0) {
+      data.gallery.forEach((img, idx) => {
+        if (img.startsWith('data:')) {
+          const fileObj = base64ToFile(img, `gallery_image_${idx}.png`);
+          if (fileObj) formData.append('galleryImages', fileObj);
+        } else {
+          formData.append('galleryImages', img); // URL fallback
+        }
+      });
+    }
+
+    // Debug print Form Data keys and values
+    console.log("HotelForm generated FormData entries:");
+    for (let pair of formData.entries()) {
+      console.log(pair[0] + ': ', pair[1]);
+    }
+
+    onSave(formData);
   };
+
+  const onError = (formErrors) => {
+    console.error("HotelForm Validation Errors:", formErrors);
+  };
+
+
 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8 shadow-sm">
@@ -192,7 +289,7 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
         {hotel ? `Edit Hotel: ${hotel.title}` : 'Add New Hotel'}
       </h2>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormInput
             label="Hotel Title"

@@ -8,6 +8,8 @@ import {
   useDeleteHotel,
 } from "../../../hooks/useHotels";
 
+import { toast } from "react-toastify";
+
 const ManageHotel = () => {
   // CMS view state
   const [cmsMode, setCmsMode] = useState("list"); // 'list' | 'add' | 'edit'
@@ -26,13 +28,16 @@ const ManageHotel = () => {
           id: editingHotel.id,
           hotelData: formattedHotel,
         });
+        toast.success("Hotel updated successfully!");
       } else {
         await addHotelMutation.mutateAsync(formattedHotel);
+        toast.success("Hotel created successfully!");
       }
       setCmsMode("list");
       setEditingHotel(null);
     } catch (err) {
       console.error("Error saving hotel:", err);
+      toast.error(err.message || "Failed to save hotel.");
     }
   };
 

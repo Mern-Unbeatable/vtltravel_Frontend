@@ -6,17 +6,29 @@ export const hotelService = {
     return api.get(API_ENDPOINTS.HOTELS);
   },
 
+  getAdminHotels: async () => {
+    return api.get(API_ENDPOINTS.ADMIN_HOTELS);
+  },
+
+
   getHotelById: async (id) => {
     return api.get(API_ENDPOINTS.HOTEL_DETAILS(id));
   },
 
   addHotel: async (hotelData) => {
-    return api.post(API_ENDPOINTS.HOTELS, hotelData);
+    const config = hotelData instanceof FormData 
+      ? { headers: { 'Content-Type': 'multipart/form-data' } } 
+      : {};
+    return api.post(API_ENDPOINTS.HOTELS, hotelData, config);
   },
 
   updateHotel: async (id, hotelData) => {
-    return api.put(API_ENDPOINTS.HOTEL_DETAILS(id), hotelData);
+    const config = hotelData instanceof FormData 
+      ? { headers: { 'Content-Type': 'multipart/form-data' } } 
+      : {};
+    return api.put(API_ENDPOINTS.HOTEL_DETAILS(id), hotelData, config);
   },
+
 
   deleteHotel: async (id) => {
     return api.delete(API_ENDPOINTS.HOTEL_DETAILS(id));

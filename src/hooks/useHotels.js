@@ -5,7 +5,7 @@ export const useHotels = () => {
   return useQuery({
     queryKey: ['hotels'],
     queryFn: async () => {
-      const response = await hotelService.getHotels();
+      const response = await hotelService.getAdminHotels();
       if (response && response.success && response.data && Array.isArray(response.data.items)) {
         return response.data.items;
       }
@@ -13,6 +13,7 @@ export const useHotels = () => {
     },
   });
 };
+
 
 export const useHotel = (id) => {
   return useQuery({

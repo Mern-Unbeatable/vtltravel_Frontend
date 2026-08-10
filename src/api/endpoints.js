@@ -5,6 +5,8 @@ export const API_ENDPOINTS = {
   ROOMS: '/rooms',
   ADMIN_STATS: '/v1/admin/stats',
   BOOKINGS: '/v1/bookings',
+  ADMIN_HOTELS: '/v1/hotels/admin/list/all',
 };
+
 
 
