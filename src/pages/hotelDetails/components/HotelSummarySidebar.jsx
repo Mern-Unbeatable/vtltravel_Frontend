@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { IoCalendarOutline, IoPersonOutline, IoChevronUp, IoChevronDown } from 'react-icons/io5'
+import { toast } from 'react-toastify'
+
 
 const HotelSummarySidebar = ({ title = 'Pullman Hanoi', selectedRoom = null, extraPrice = 0 }) => {
   const navigate = useNavigate()
@@ -8,12 +10,17 @@ const HotelSummarySidebar = ({ title = 'Pullman Hanoi', selectedRoom = null, ext
   const [showDetails, setShowDetails] = useState(true)
 
   const handleNext = () => {
+    if (location.pathname.includes('/book-ferry')) {
+      toast.info("Please fill out the passenger details and complete the booking below.");
+      return;
+    }
     if (location.pathname.includes('/customize')) {
       navigate('/home/search/1/book-ferry', { state: { selectedRoom, title, extraPrice } })
     } else {
       navigate('/home/search/1/customize', { state: { selectedRoom, title } })
     }
   }
+
 
   // 1. DEFAULT STATE: When no room is selected yet
   if (!selectedRoom) {
