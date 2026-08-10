@@ -41,7 +41,36 @@ const HotelDetailsPage = () => {
 
   const title = hotel.title || 'Pullman Hanoi'
   const galleryImages = hotel.gallery && hotel.gallery.length > 0 ? hotel.gallery : galleryFallback
-  const roomsList = hotel.rooms || []
+
+  const dummyRooms = [
+    {
+      id: 'dummy-room-1',
+      name: 'Deluxe Suite, 1 King Size Bed, Ocean View',
+      price: 300,
+      capacity: '2 Adults',
+      amenities: ['Ocean View', 'Wi-Fi', 'Air Conditioning', 'Mini Bar'],
+      images: ['https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=600&q=80']
+    },
+    {
+      id: 'dummy-room-2',
+      name: 'Executive Room, 2 Single Beds',
+      price: 200,
+      capacity: '2 Adults, 1 Child',
+      amenities: ['City View', 'Wi-Fi', 'Coffee Maker', 'Work Desk'],
+      images: ['https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=600&q=80']
+    },
+    {
+      id: 'dummy-room-3',
+      name: 'Presidential Penthouse Suite',
+      price: 750,
+      capacity: '4 Adults',
+      amenities: ['Panoramic View', 'Private Jacuzzi', 'Wi-Fi', 'Kitchenette'],
+      images: ['https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80']
+    }
+  ]
+
+  const roomsList = hotel.rooms && hotel.rooms.length > 0 ? hotel.rooms : dummyRooms
+
 
   return (
     <div className="">

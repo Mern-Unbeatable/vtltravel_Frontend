@@ -4,19 +4,20 @@ import HotelGalleryModal from '../../searchResultsPage/components/HotelGalleryMo
 
 const RoomCard = ({ room, onSelectRoom, onOpenDetails }) => {
   const [isGalleryOpen, setIsGalleryOpen] = useState(false)
-  const roomGallery = room?.gallery || [
-    room.image,
-    'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=80',
+  const roomImage = room?.image || room?.images?.[0] || 'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=80'
+  const roomGallery = room?.gallery || room?.images || [
+    roomImage,
     'https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=800&q=80',
     'https://images.unsplash.com/photo-1591088398332-8a7791972843?auto=format&fit=crop&w=800&q=80',
   ]
+  const roomTags = room?.tags || room?.amenities || []
 
   return (
     <article className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md">
       <div className="flex flex-col lg:flex-row">
         {/* Room Image */}
         <div className="relative h-[220px] w-full shrink-0 lg:h-auto lg:w-[320px]">
-          <img src={room.image} alt={room.name} className="h-full w-full object-cover" />
+          <img src={roomImage} alt={room?.name} className="h-full w-full object-cover" />
           <button
             type="button"
             onClick={() => onOpenDetails && onOpenDetails(room)}
@@ -30,13 +31,13 @@ const RoomCard = ({ room, onSelectRoom, onOpenDetails }) => {
         {/* Room Details */}
         <div className="flex flex-1 flex-col justify-between p-5 md:p-6">
           <div>
-            <h3 className="text-xl font-bold tracking-tight text-slate-900">{room.name}</h3>
+            <h3 className="text-xl font-bold tracking-tight text-slate-900">{room?.name}</h3>
             <p className="mt-1 text-xs font-medium text-gray-500">
-              {room.bedInfo} | {room.capacity} | {room.size}
+              {room?.bedInfo || 'King size bed'} | {room?.capacity || '2 Adults'} | {room?.size || '32 m²'}
             </p>
 
             <div className="mt-3 flex flex-wrap gap-2">
-              {room.tags.map((tag) => (
+              {roomTags.map((tag) => (
                 <span
                   key={tag}
                   className="rounded-md bg-sky-50 px-2.5 py-1 text-[11px] font-semibold text-[#3ea5dc]"
@@ -46,6 +47,7 @@ const RoomCard = ({ room, onSelectRoom, onOpenDetails }) => {
               ))}
             </div>
           </div>
+
 
           <div className="mt-6 flex flex-col items-start gap-4 border-t border-gray-100 pt-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
