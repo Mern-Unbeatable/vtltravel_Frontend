@@ -6,26 +6,29 @@ import {
   IoArrowBackOutline,
 } from "react-icons/io5";
 import { useAuth } from "../../context/AuthContext";
+import { toast } from "react-toastify";
 
 const Login = () => {
-  const [email, setEmail] = useState("admin@vtltravel.com");
-  const [password, setPassword] = useState("admin123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError("");
+    console.log("Login form submitted. Email:", email);
     setIsLoading(true);
 
     try {
       await login(email, password);
+      console.log("Login successful! Navigating to /admin");
       navigate("/admin");
     } catch (err) {
-      setError(typeof err === "string" ? err : "Authentication failed.");
+      console.error("Login component caught error:", err);
+      const errorMsg = err?.message || (typeof err === "string" ? err : "Authentication failed.");
+      toast.error(errorMsg);
     } finally {
       setIsLoading(false);
     }
@@ -51,11 +54,6 @@ const Login = () => {
         </div>
 
         <form onSubmit={handleLogin} className="space-y-6">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 text-xs p-3 rounded-lg flex items-center">
-              <span>{error}</span>
-            </div>
-          )}
 
           <div>
             <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
@@ -67,7 +65,7 @@ const Login = () => {
               onChange={(e) => setEmail(e.target.value)}
               required
               className="w-full bg-white border border-gray-300 text-slate-900 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
-              placeholder="admin@vtltravel.com"
+              placeholder="email"
             />
           </div>
 
@@ -133,23 +131,6 @@ const Login = () => {
           </button>
         </form>
 
-        <div className="mt-8 pt-6 border-t border-gray-100 text-center">
-          <div className="inline-block bg-[#f7f8fa] rounded-lg p-3 text-left border border-gray-200/60">
-            <span className="text-[11px] font-bold text-primary uppercase tracking-wider block mb-1">
-              Dummy Credentials:
-            </span>
-            <div className="text-xs text-gray-600 space-y-0.5">
-              <p>
-                <span className="font-semibold text-gray-700">Email:</span>{" "}
-                admin@vtltravel.com
-              </p>
-              <p>
-                <span className="font-semibold text-gray-700">Password:</span>{" "}
-                admin123
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

@@ -31,10 +31,12 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Handle unauthorized access, e.g., clear cookies and redirect
-      Cookies.remove('admin_token');
-      localStorage.removeItem('isAdminLoggedIn');
-      window.location.href = '/login';
+      if (window.location.pathname !== '/login') {
+        // Handle unauthorized access, e.g., clear cookies and redirect
+        Cookies.remove('admin_token');
+        localStorage.removeItem('isAdminLoggedIn');
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

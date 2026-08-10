@@ -2,35 +2,21 @@ import { api } from '../apiMethods';
 import { API_ENDPOINTS } from '../endpoints';
 import Cookies from 'js-cookie';
 
-const USE_MOCK = import.meta.env.VITE_USE_MOCK_API !== 'false';
 
 export const authService = {
   login: async (email, password) => {
-    if (USE_MOCK) {
-      // Mock Login behaviour
-      return new Promise((resolve, reject) => {
-        setTimeout(() => {
-          if (email === 'admin@vtltravel.com' && password === 'admin123') {
-            const mockToken = 'mock_jwt_token_for_admin_portal_123';
-            Cookies.set('admin_token', mockToken, { expires: 1 });
-            localStorage.setItem('isAdminLoggedIn', 'true');
-            resolve({ success: true, token: mockToken });
-          } else {
-            reject('Invalid email or password. Use the dummy credentials provided.');
-          }
-        }, 1000);
-      });
-    }
-
     // Real API Call
+    console.log('Sending login request to:', API_ENDPOINTS.LOGIN, { email });
     try {
       const response = await api.post(API_ENDPOINTS.LOGIN, { email, password });
-      if (response && response.token) {
-        Cookies.set('admin_token', response.token, { expires: 1 });
+      console.log('Login API response:', response);
+      if (response && response.success && response.data && response.data.token) {
+        Cookies.set('admin_token', response.data.token, { expires: 1 });
         localStorage.setItem('isAdminLoggedIn', 'true');
       }
       return response;
     } catch (error) {
+      console.error('Login API error:', error);
       throw error;
     }
   },
