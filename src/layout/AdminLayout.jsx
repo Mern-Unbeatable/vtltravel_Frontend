@@ -24,7 +24,7 @@ const AdminLayout = () => {
   // Determine active title based on path
   const getPageTitle = () => {
     if (location.pathname === "/admin/hotels") {
-      return "Hotels & Resort CMS";
+      return "Manage Hotel Inventory";
     }
     if (location.pathname === "/admin/bookings") {
       return "Manage All Bookings";
