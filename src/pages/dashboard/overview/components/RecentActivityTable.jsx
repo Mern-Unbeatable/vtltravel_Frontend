@@ -13,7 +13,7 @@ const mockBookings = [
 
 const RecentActivityTable = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 3;
+  const itemsPerPage = 7;
 
   const totalPages = Math.ceil(mockBookings.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
