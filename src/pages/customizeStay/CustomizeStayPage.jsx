@@ -189,7 +189,24 @@ const CustomizeStayPage = () => {
 
           {/* Right Column - Summary Sidebar */}
           <div>
-            <HotelSummarySidebar title={hotelTitle} selectedRoom={selectedRoom} />
+            {(() => {
+              const extrasTotal = selectedExtras.reduce((sum, id) => {
+                const extra = mockExtras.find((e) => e.id === id)
+                if (extra) {
+                  const priceNum = parseFloat(extra.price.replace('$', '')) || 0
+                  return sum + priceNum
+                }
+                return sum
+              }, 0)
+
+              return (
+                <HotelSummarySidebar
+                  title={hotelTitle}
+                  selectedRoom={selectedRoom}
+                  extraPrice={extrasTotal}
+                />
+              )
+            })()}
           </div>
         </div>
       </div>

@@ -2,14 +2,14 @@ import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { IoCalendarOutline, IoPersonOutline, IoChevronUp, IoChevronDown } from 'react-icons/io5'
 
-const HotelSummarySidebar = ({ title = 'Pullman Hanoi', selectedRoom = null }) => {
+const HotelSummarySidebar = ({ title = 'Pullman Hanoi', selectedRoom = null, extraPrice = 0 }) => {
   const navigate = useNavigate()
   const location = useLocation()
   const [showDetails, setShowDetails] = useState(true)
 
   const handleNext = () => {
     if (location.pathname.includes('/customize')) {
-      navigate('/home/search/1/book-ferry', { state: { selectedRoom, title } })
+      navigate('/home/search/1/book-ferry', { state: { selectedRoom, title, extraPrice } })
     } else {
       navigate('/home/search/1/customize', { state: { selectedRoom, title } })
     }
@@ -91,52 +91,72 @@ const HotelSummarySidebar = ({ title = 'Pullman Hanoi', selectedRoom = null }) =
       </div>
 
       {/* Expanded Breakdown Box */}
-      {showDetails && (
-        <div className="mt-3 rounded-xl bg-[#f8fbfe] p-3.5 space-y-3">
-          <div>
-            <div className="flex items-start justify-between gap-2">
-              <span className="text-xs font-bold text-slate-900 leading-snug">{roomData.name}</span>
-              <span className="text-xs font-bold text-slate-900 shrink-0">{roomData.price}</span>
+      {(() => {
+        const basePriceNum = parseFloat(roomData.price.replace(/[$,]/g, '')) || 0
+        const taxesNum = parseFloat((roomData.taxes || '').replace(/[$,]/g, '')) || 0
+        const finalTotal = basePriceNum + taxesNum + extraPrice
+        const finalTotalStr = '$' + finalTotal.toFixed(2)
+        const vndPrice = Math.round(finalTotal * 26317)
+        const vndPriceStr = 'i.e. ₫' + vndPrice.toLocaleString()
+
+        return (
+          <>
+            {showDetails && (
+              <div className="mt-3 rounded-xl bg-[#f8fbfe] p-3.5 space-y-3">
+                <div>
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-xs font-bold text-slate-900 leading-snug">{roomData.name}</span>
+                    <span className="text-xs font-bold text-slate-900 shrink-0">{roomData.price}</span>
+                  </div>
+                  <p className="mt-1 text-[10px] uppercase tracking-wider font-semibold text-gray-400">
+                    Flexible Rate
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-[#3ea5dc]">
+                    Included: $6.36 savings thanks to the member rate.
+                  </p>
+                </div>
+
+                {extraPrice > 0 && (
+                  <div className="border-t border-gray-200/60 pt-2 flex items-center justify-between text-xs font-bold text-slate-900">
+                    <span>Extras (Add-ons)</span>
+                    <span>${extraPrice.toFixed(2)}</span>
+                  </div>
+                )}
+
+                <div className="border-t border-gray-200/60 pt-2">
+                  <div className="flex items-center justify-between text-xs font-bold text-slate-900">
+                    <span>Total room</span>
+                    <span>${(basePriceNum + extraPrice).toFixed(2)}</span>
+                  </div>
+                  <button type="button" className="mt-0.5 text-[11px] text-[#3ea5dc] hover:underline">
+                    Pricing conditions
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Taxes */}
+            <div className="mt-4 flex items-center justify-between text-xs text-gray-600">
+              <span>Taxes</span>
+              <span className="font-semibold text-gray-800">{roomData.taxes || '$14.27'}</span>
             </div>
-            <p className="mt-1 text-[10px] uppercase tracking-wider font-semibold text-gray-400">
-              Flexible Rate
-            </p>
-            <p className="mt-0.5 text-[11px] text-[#3ea5dc]">
-              Included: $6.36 savings thanks to the member rate.
-            </p>
-          </div>
 
-          <div className="border-t border-gray-200/60 pt-2">
-            <div className="flex items-center justify-between text-xs font-bold text-slate-900">
-              <span>Total room</span>
-              <span>{roomData.price}</span>
+            {/* Total */}
+            <div className="mt-4 border-t border-gray-100 pt-3">
+              <div className="flex items-baseline justify-between">
+                <div>
+                  <span className="text-sm font-bold text-slate-900">Total</span>
+                  <p className="text-[10px] text-gray-400">Fees and taxes included</p>
+                </div>
+                <div className="text-right">
+                  <span className="text-xl font-extrabold text-slate-900">{finalTotalStr}</span>
+                  <p className="text-[10px] text-gray-400">{vndPriceStr}</p>
+                </div>
+              </div>
             </div>
-            <button type="button" className="mt-0.5 text-[11px] text-[#3ea5dc] hover:underline">
-              Pricing conditions
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Taxes */}
-      <div className="mt-4 flex items-center justify-between text-xs text-gray-600">
-        <span>Taxes</span>
-        <span className="font-semibold text-gray-800">{roomData.taxes || '$14.27'}</span>
-      </div>
-
-      {/* Total */}
-      <div className="mt-4 border-t border-gray-100 pt-3">
-        <div className="flex items-baseline justify-between">
-          <div>
-            <span className="text-sm font-bold text-slate-900">Total</span>
-            <p className="text-[10px] text-gray-400">Fees and taxes included</p>
-          </div>
-          <div className="text-right">
-            <span className="text-xl font-extrabold text-slate-900">{roomData.totalPrice || '$120.76'}</span>
-            <p className="text-[10px] text-gray-400">i.e. ₫3,178,035</p>
-          </div>
-        </div>
-      </div>
+          </>
+        )
+      })()}
 
       {/* Action Buttons */}
       <div className="mt-5 space-y-2.5">
