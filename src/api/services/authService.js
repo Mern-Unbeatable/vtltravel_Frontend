@@ -11,7 +11,7 @@ export const authService = {
       const response = await api.post(API_ENDPOINTS.LOGIN, { email, password });
       console.log('Login API response:', response);
       if (response && response.success && response.data && response.data.token) {
-        Cookies.set('admin_token', response.data.token, { expires: 1 });
+        Cookies.set('admin_token', response.data.token, { expires: 1, path: '/' });
         localStorage.setItem('isAdminLoggedIn', 'true');
       }
       return response;
@@ -22,7 +22,7 @@ export const authService = {
   },
 
   logout: () => {
-    Cookies.remove('admin_token');
+    Cookies.remove('admin_token', { path: '/' });
     localStorage.removeItem('isAdminLoggedIn');
   },
 

@@ -33,7 +33,7 @@ axiosInstance.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       if (window.location.pathname !== '/login') {
         // Handle unauthorized access, e.g., clear cookies and redirect
-        Cookies.remove('admin_token');
+        Cookies.remove('admin_token', { path: '/' });
         localStorage.removeItem('isAdminLoggedIn');
         window.location.href = '/login';
       }
