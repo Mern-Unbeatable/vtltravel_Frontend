@@ -20,6 +20,7 @@ import Login from "../pages/auth/Login";
 import Admindashboard from "../pages/dashboard/overview/Admindashboard";
 import ManageHotel from "../pages/dashboard/manageHotel/ManageHotel";
 import AllBookings from "../pages/dashboard/allBookings/AllBookings";
+import AllPayments from "../pages/dashboard/allPayments/AllPayments";
 import AdminLayout from "../layout/AdminLayout";
 import NotFound from "../pages/NotFound";
 
@@ -45,6 +46,7 @@ const AppRouter = () => {
           <Route index element={<Admindashboard />} />
           <Route path="hotels" element={<ManageHotel />} />
           <Route path="bookings" element={<AllBookings />} />
+          <Route path="payments" element={<AllPayments />} />
         </Route>
 
         {/* Public Website routes */}

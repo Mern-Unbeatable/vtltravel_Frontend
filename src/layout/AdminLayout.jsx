@@ -29,6 +29,9 @@ const AdminLayout = () => {
     if (location.pathname === "/admin/bookings") {
       return "Manage All Bookings";
     }
+    if (location.pathname === "/admin/payments") {
+      return "Payment History";
+    }
     return "Operations Dashboard";
   };
 
@@ -39,6 +42,9 @@ const AdminLayout = () => {
     if (location.pathname === "/admin/bookings") {
       return "Track, confirm, or cancel passenger bookings and resort bookings.";
     }
+    if (location.pathname === "/admin/payments") {
+      return "Monitor transaction logs, invoice statuses, and financial summaries.";
+    }
     return "Track real-time reservation statistics, service performance, and system activities.";
   };
 
@@ -48,6 +54,9 @@ const AdminLayout = () => {
     }
     if (location.pathname === "/admin/bookings") {
       return "bookings";
+    }
+    if (location.pathname === "/admin/payments") {
+      return "payments";
     }
     return "overview";
   };
