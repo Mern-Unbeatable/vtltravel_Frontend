@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Pagination from '../../../../components/Pagination';
+import TablePagination from '../../../../components/TablePagination';
 
 const mockAllBookingsData = [
   { id: 1, customer: "Farhan Ahmed", email: "farhan@example.com", service: "Saint Martin Ferry", hotelName: "Keari Sinbad Ferry", roomType: "Royal Class Cabin (3 Seats)", date: "Aug 8, 2026", amount: "$120.00", status: "Confirmed" },
@@ -155,7 +155,7 @@ const BookingList = () => {
       </div>
 
       {/* Pagination */}
-      <Pagination
+      <TablePagination
         currentPage={currentPage}
         totalPages={totalPages}
         totalEntries={bookings.length}

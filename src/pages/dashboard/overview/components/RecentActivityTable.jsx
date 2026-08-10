@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Pagination from '../../../../components/Pagination';
+import TablePagination from '../../../../components/TablePagination';
 
 const mockBookings = [
   { id: 1, customer: "Farhan Ahmed", service: "Saint Martin Ferry", date: "Aug 8, 2026", amount: "$120.00", status: "Confirmed" },
@@ -106,7 +106,7 @@ const RecentActivityTable = () => {
       </div>
 
       {/* Pagination Controls */}
-      <Pagination
+      <TablePagination
         currentPage={currentPage}
         totalPages={totalPages}
         totalEntries={mockBookings.length}

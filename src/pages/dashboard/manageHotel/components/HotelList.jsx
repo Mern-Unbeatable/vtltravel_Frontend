@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Pagination from "../../../../components/Pagination";
+import TablePagination from "../../../../components/TablePagination";
 
 const HotelList = ({ hotels, onEdit, onDelete, onAddNew }) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -183,7 +183,7 @@ const HotelList = ({ hotels, onEdit, onDelete, onAddNew }) => {
           </div>
 
           {/* Reusable Pagination Component */}
-          <Pagination
+          <TablePagination
             currentPage={currentPage}
             totalPages={totalPages}
             totalEntries={hotels.length}
