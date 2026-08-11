@@ -46,12 +46,13 @@ const formatDateInput = (dateObj) => {
 }
 
 const parseDateInput = (str) => {
-  if (!str) return new Date()
+  if (!str) return null
   const parts = str.split('-')
   if (parts.length === 3) {
     return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10))
   }
-  return new Date(str)
+  const parsed = new Date(str)
+  return Number.isNaN(parsed.getTime()) ? null : parsed
 }
 
 const SearchCard = ({
@@ -69,14 +70,14 @@ const SearchCard = ({
   hideDestination = false,
 }) => {
   // Helper to parse dates securely
-  const parseDateProp = (dateVal, defaultDate) => {
-    if (!dateVal) return defaultDate;
+  const parseDateProp = (dateVal) => {
+    if (!dateVal) return null
     try {
-      const d = new Date(dateVal);
-      if (!isNaN(d.getTime())) return d;
+      const d = new Date(dateVal)
+      if (!Number.isNaN(d.getTime())) return d
     } catch (e) {}
-    return defaultDate;
-  };
+    return null
+  }
 
   // 1. Destination Input State
   const [destValue, setDestValue] = useState(initialDestination)
@@ -86,11 +87,9 @@ const SearchCard = ({
 
   // 2. Dates State
   const today = new Date()
-  const defaultCheckIn = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 2)
-  const defaultCheckOut = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7)
 
-  const [checkInDate, setCheckInDate] = useState(parseDateProp(initialCheckIn, defaultCheckIn))
-  const [checkOutDate, setCheckOutDate] = useState(parseDateProp(initialCheckOut, defaultCheckOut))
+  const [checkInDate, setCheckInDate] = useState(() => parseDateProp(initialCheckIn))
+  const [checkOutDate, setCheckOutDate] = useState(() => parseDateProp(initialCheckOut))
 
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [activeDateTab, setActiveDateTab] = useState('checkIn')
@@ -125,16 +124,12 @@ const SearchCard = ({
   }, [initialSearchBy]);
 
   useEffect(() => {
-    if (initialCheckIn) {
-      setCheckInDate(parseDateProp(initialCheckIn, defaultCheckIn));
-    }
-  }, [initialCheckIn]);
+    setCheckInDate(parseDateProp(initialCheckIn))
+  }, [initialCheckIn])
 
   useEffect(() => {
-    if (initialCheckOut) {
-      setCheckOutDate(parseDateProp(initialCheckOut, defaultCheckOut));
-    }
-  }, [initialCheckOut]);
+    setCheckOutDate(parseDateProp(initialCheckOut))
+  }, [initialCheckOut])
 
   useEffect(() => {
     if (initialRooms) setRooms(Number(initialRooms));
@@ -188,23 +183,22 @@ const SearchCard = ({
 
     if (activeDateTab === 'checkIn') {
       setCheckInDate(selected)
-      if (selected >= checkOutDate) {
-        const newOut = new Date(selected)
-        newOut.setDate(selected.getDate() + 1)
-        setCheckOutDate(newOut)
+      if (checkOutDate && selected >= checkOutDate) {
+        setCheckOutDate(null)
       }
       setActiveDateTab('checkOut')
-    } else {
-      if (selected <= checkInDate) {
-        setCheckInDate(selected)
-        const newOut = new Date(selected)
-        newOut.setDate(selected.getDate() + 1)
-        setCheckOutDate(newOut)
-      } else {
-        setCheckOutDate(selected)
-        setShowDatePicker(false)
-      }
+      return
     }
+
+    if (!checkInDate || selected > checkInDate) {
+      setCheckOutDate(selected)
+      setShowDatePicker(false)
+      return
+    }
+
+    setCheckInDate(selected)
+    setCheckOutDate(null)
+    setActiveDateTab('checkOut')
   }
 
   const isSameDay = (d1, d2) => {
@@ -367,8 +361,8 @@ const SearchCard = ({
                 <IoCalendarOutline className="text-xl text-primary shrink-0" />
                 <div>
                   <p className="text-[11px] font-medium text-gray-400">Check in</p>
-                  <p className="mt-0.5 text-xs font-semibold text-gray-800 md:text-sm">
-                    {formatDateDisplay(checkInDate)}
+                  <p className={`mt-0.5 text-xs font-semibold md:text-sm ${checkInDate ? 'text-gray-800' : 'text-gray-400'}`}>
+                    {formatDateDisplay(checkInDate) || 'Add date'}
                   </p>
                 </div>
               </div>
@@ -377,8 +371,8 @@ const SearchCard = ({
 
               <div className="text-right">
                 <p className="text-[11px] font-medium text-gray-400">Check out</p>
-                <p className="mt-0.5 text-xs font-semibold text-gray-800 md:text-sm">
-                  {formatDateDisplay(checkOutDate)}
+                <p className={`mt-0.5 text-xs font-semibold md:text-sm ${checkOutDate ? 'text-gray-800' : 'text-gray-400'}`}>
+                  {formatDateDisplay(checkOutDate) || 'Add date'}
                 </p>
               </div>
             </div>
@@ -397,7 +391,7 @@ const SearchCard = ({
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
                   >
-                    Check-in: {formatDateDisplay(checkInDate)}
+                    Check-in: {formatDateDisplay(checkInDate) || 'Select'}
                   </button>
                   <button
                     type="button"
@@ -408,7 +402,7 @@ const SearchCard = ({
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
                   >
-                    Check-out: {formatDateDisplay(checkOutDate)}
+                    Check-out: {formatDateDisplay(checkOutDate) || 'Select'}
                   </button>
                 </div>
 
