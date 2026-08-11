@@ -553,13 +553,13 @@ const FerryBookingPage = () => {
               </label>
             </div>
 
-            <button
+            {/* <button
               type="submit"
               disabled={isPending}
               className="w-full rounded-full bg-[#3ea5dc] py-3 text-sm font-bold text-white shadow-md transition hover:bg-[#3296cc] active:scale-95 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:px-10"
             >
               {isPending ? 'Confirming...' : 'Confirm booking'}
-            </button>
+            </button> */}
           </form>
 
           {/* Right Column - Summary Sidebar */}
