@@ -9,6 +9,7 @@ import {
   IoRemove,
 } from 'react-icons/io5'
 import RoomCard from './RoomCard'
+import { formatDateISO, getNightsBetween, parseLocalDate } from '../../../utils/hotelSearchParams'
 
 const MONTH_NAMES = [
   'January',
@@ -34,28 +35,36 @@ const formatDateDisplay = (dateObj) => {
   return `${month} ${day}`
 }
 
-const HotelRoomsSection = ({ rooms = [], onSelectRoom, onOpenDetails }) => {
-  // 1. Date states
+const HotelRoomsSection = ({
+  rooms = [],
+  initialCheckIn,
+  initialCheckOut,
+  initialRooms = 1,
+  initialAdults = 1,
+  initialChildren = 0,
+  stay = null,
+  onStaySearch,
+  onSelectRoom,
+  onOpenDetails,
+}) => {
   const today = new Date()
-  const defaultCheckIn = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 2)
-  const defaultCheckOut = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7)
+  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
 
-  const [checkInDate, setCheckInDate] = useState(defaultCheckIn)
-  const [checkOutDate, setCheckOutDate] = useState(defaultCheckOut)
+  const [checkInDate, setCheckInDate] = useState(
+    parseLocalDate(initialCheckIn) || startOfToday,
+  )
+  const [checkOutDate, setCheckOutDate] = useState(parseLocalDate(initialCheckOut))
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [activeDateTab, setActiveDateTab] = useState('checkIn')
   const [currentCalendarMonth, setCurrentCalendarMonth] = useState(
-    new Date(today.getFullYear(), today.getMonth(), 1)
+    new Date(today.getFullYear(), today.getMonth(), 1),
   )
 
-  // 2. Guest states
-  const [roomsCount, setRoomsCount] = useState(1)
-  const [adultsCount, setAdultsCount] = useState(1)
-  const [childrenCount, setChildrenCount] = useState(0)
+  const [roomsCount, setRoomsCount] = useState(Number(initialRooms) || 1)
+  const [adultsCount, setAdultsCount] = useState(Number(initialAdults) || 1)
+  const [childrenCount, setChildrenCount] = useState(Number(initialChildren) || 0)
   const [showGuestsPicker, setShowGuestsPicker] = useState(false)
-
-  // 3. Special rates state
-  const [hasSpecialRate, setHasSpecialRate] = useState(true)
+  const [hasSpecialRate, setHasSpecialRate] = useState(false)
 
   // Refs for click outside
   const datePickerRef = useRef(null)
@@ -93,22 +102,34 @@ const HotelRoomsSection = ({ rooms = [], onSelectRoom, onOpenDetails }) => {
 
     if (activeDateTab === 'checkIn') {
       setCheckInDate(selected)
-      if (selected >= checkOutDate) {
-        const newOut = new Date(selected)
-        newOut.setDate(selected.getDate() + 1)
-        setCheckOutDate(newOut)
+      if (checkOutDate && selected >= checkOutDate) {
+        setCheckOutDate(null)
       }
       setActiveDateTab('checkOut')
-    } else {
-      if (selected <= checkInDate) {
-        setCheckInDate(selected)
-        const newOut = new Date(selected)
-        newOut.setDate(selected.getDate() + 1)
-        setCheckOutDate(newOut)
-      } else {
-        setCheckOutDate(selected)
-        setShowDatePicker(false)
-      }
+      return
+    }
+
+    if (!checkInDate || selected > checkInDate) {
+      setCheckOutDate(selected)
+      setShowDatePicker(false)
+      return
+    }
+
+    setCheckInDate(selected)
+    setCheckOutDate(null)
+    setActiveDateTab('checkOut')
+  }
+
+  const handleSearchStay = () => {
+    if (!checkInDate || !checkOutDate) return
+    if (onStaySearch) {
+      onStaySearch({
+        checkIn: formatDateISO(checkInDate),
+        checkOut: formatDateISO(checkOutDate),
+        adults: adultsCount,
+        rooms: roomsCount,
+        children: childrenCount,
+      })
     }
   }
 
@@ -151,7 +172,7 @@ const HotelRoomsSection = ({ rooms = [], onSelectRoom, onOpenDetails }) => {
           >
             <IoCalendarOutline className="text-[#3ea5dc] text-base" />
             <span className="font-semibold text-gray-800">
-              {formatDateDisplay(checkInDate)} → {formatDateDisplay(checkOutDate)}
+              {formatDateDisplay(checkInDate) || 'Select'} → {formatDateDisplay(checkOutDate) || 'Select'}
             </span>
           </div>
 
@@ -169,7 +190,7 @@ const HotelRoomsSection = ({ rooms = [], onSelectRoom, onOpenDetails }) => {
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  In: {formatDateDisplay(checkInDate)}
+                  In: {formatDateDisplay(checkInDate) || 'Select'}
                 </button>
                 <button
                   type="button"
@@ -180,7 +201,7 @@ const HotelRoomsSection = ({ rooms = [], onSelectRoom, onOpenDetails }) => {
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  Out: {formatDateDisplay(checkOutDate)}
+                  Out: {formatDateDisplay(checkOutDate) || 'Select'}
                 </button>
               </div>
 
@@ -394,7 +415,13 @@ const HotelRoomsSection = ({ rooms = [], onSelectRoom, onOpenDetails }) => {
         {/* Search Button */}
         <button
           type="button"
-          className="ml-auto rounded-full bg-[#3ea5dc] px-6 py-2 font-semibold text-white transition hover:bg-[#3296cc] cursor-pointer active:scale-95"
+          onClick={handleSearchStay}
+          disabled={!checkInDate || !checkOutDate}
+          className={`ml-auto rounded-full px-6 py-2 font-semibold text-white transition ${
+            checkInDate && checkOutDate
+              ? 'bg-[#3ea5dc] hover:bg-[#3296cc] cursor-pointer active:scale-95'
+              : 'bg-[#A3A6C5] cursor-not-allowed'
+          }`}
         >
           Search
         </button>
@@ -417,16 +444,25 @@ const HotelRoomsSection = ({ rooms = [], onSelectRoom, onOpenDetails }) => {
         </label>
       </div> */}
 
-      {/* Room Cards List */}
       <div className="mt-6 space-y-5">
-        {rooms.map((room) => (
-          <RoomCard
-            key={room.id}
-            room={room}
-            onSelectRoom={onSelectRoom}
-            onOpenDetails={onOpenDetails}
-          />
-        ))}
+        {rooms.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center">
+            <p className="text-sm font-semibold text-gray-700">No rooms available</p>
+          </div>
+        ) : (
+          rooms.map((room) => (
+            <RoomCard
+              key={room.id}
+              room={room}
+              stay={{
+                nights: getNightsBetween(stay?.checkIn, stay?.checkOut),
+                adults: stay?.adults || adultsCount,
+              }}
+              onSelectRoom={onSelectRoom}
+              onOpenDetails={onOpenDetails}
+            />
+          ))
+        )}
       </div>
     </div>
   )

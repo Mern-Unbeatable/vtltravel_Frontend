@@ -1,94 +1,171 @@
 import { useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation, useParams } from 'react-router-dom'
 import { IoCalendarOutline, IoPersonOutline, IoChevronUp, IoChevronDown } from 'react-icons/io5'
 import { toast } from 'react-toastify'
+import FallbackImage from '../../../components/FallbackImage'
+import {
+  formatStayDate,
+  formatClockTime,
+  getNightsBetween,
+} from '../../../utils/hotelSearchParams'
 
-
-const HotelSummarySidebar = ({ title = 'Pullman Hanoi', selectedRoom = null, extraPrice = 0 }) => {
+const HotelSummarySidebar = ({
+  hotel,
+  title: titleProp = '',
+  stay = null,
+  selectedRoom = null,
+  extraPrice = 0,
+  selectedAddOns = [],
+  onConfirmBooking = null,
+  isSubmitting = false,
+}) => {
   const navigate = useNavigate()
   const location = useLocation()
+  const { hotelId } = useParams()
   const [showDetails, setShowDetails] = useState(true)
 
-  const handleNext = () => {
-    if (location.pathname.includes('/book-ferry')) {
-      toast.info("Please fill out the passenger details and complete the booking below.");
-      return;
+  const title = hotel?.name || titleProp || ''
+  const checkInTime = formatClockTime(hotel?.checkInTime)
+  const checkOutTime = formatClockTime(hotel?.checkOutTime)
+  const checkInLabel = formatStayDate(stay?.checkIn)
+  const checkOutLabel = formatStayDate(stay?.checkOut)
+  const nights = getNightsBetween(stay?.checkIn, stay?.checkOut)
+  const adults = Number(stay?.adults) || 1
+  const rooms = Number(stay?.rooms) || 1
+  const children = Number(stay?.children) || 0
+  const targetId = hotel?.id || hotel?.slug || hotelId
+  const isFerryPage = location.pathname.includes('/book-ferry')
+
+  const goToNext = (ferrySkipped) => {
+    if (isFerryPage) {
+      if (onConfirmBooking) {
+        onConfirmBooking({ ferrySkipped })
+        return
+      }
+      toast.info('Please fill out the passenger details and complete the booking below.')
+      return
     }
     if (location.pathname.includes('/customize')) {
-      navigate('/home/search/1/book-ferry', { state: { selectedRoom, title, extraPrice } })
-    } else {
-      navigate('/home/search/1/customize', { state: { selectedRoom, title } })
+      navigate(`/home/search/${targetId}/book-ferry`, {
+        state: {
+          selectedRoom,
+          title,
+          extraPrice,
+          stay,
+          hotel,
+          selectedAddOns,
+          ferrySkipped,
+        },
+      })
+      return
     }
+    navigate(`/home/search/${targetId}/customize`, {
+      state: { selectedRoom, title, stay, hotel },
+    })
   }
 
+  const stayDates = (
+    <div className="mt-4 space-y-2">
+      {(checkInLabel || checkOutLabel) ? (
+        <>
+          <div className="flex items-center gap-2 text-[#3ea5dc] font-medium text-xs">
+            <IoCalendarOutline className="text-sm shrink-0" />
+            <span>
+              {checkInLabel || 'Select check-in'}
+              {checkOutLabel ? ` → ${checkOutLabel}` : ''}
+            </span>
+          </div>
+          {nights > 0 ? (
+            <p className="pl-6 text-[11px] text-gray-400">
+              {nights} night{nights !== 1 ? 's' : ''}
+            </p>
+          ) : null}
+        </>
+      ) : null}
 
-  // 1. DEFAULT STATE: When no room is selected yet
+      <div className="mt-3 flex items-center gap-2 text-[#3ea5dc] font-medium text-xs">
+        <IoPersonOutline className="text-sm shrink-0" />
+        <span>
+          {adults} adult{adults !== 1 ? 's' : ''}
+          {children > 0 ? ` - ${children} child${children !== 1 ? 'ren' : ''}` : ''}
+          {` - ${rooms} room${rooms !== 1 ? 's' : ''}`}
+        </span>
+      </div>
+    </div>
+  )
+
   if (!selectedRoom) {
     return (
       <aside className="sticky top-24 rounded-2xl border border-gray-200 bg-white p-5 text-xs shadow-2xs">
         <h3 className="text-sm font-bold text-slate-900">{title}</h3>
-        <p className="mt-2.5 flex items-center gap-2 text-gray-500">
-          <span className="text-gray-400">🔗</span>
-          <span>Check-in 2:00 PM | Check-out 12:00 PM</span>
-        </p>
-
-        <div className="mt-4 space-y-2">
-          <div className="flex items-center gap-2 text-[#3ea5dc] font-medium text-xs">
-            <IoCalendarOutline className="text-sm shrink-0" />
-            <span>July 27, 2026 → July 29, 2026</span>
-          </div>
-          <p className="pl-6 text-[11px] text-gray-400">2 nights</p>
-
-          <div className="mt-3 flex items-center gap-2 text-[#3ea5dc] font-medium text-xs">
-            <IoPersonOutline className="text-sm shrink-0" />
-            <span>1 adult - 1 room</span>
-          </div>
-        </div>
+        {(checkInTime || checkOutTime) ? (
+          <p className="mt-2.5 flex items-center gap-2 text-gray-500">
+            <span className="text-gray-400">🔗</span>
+            <span>
+              {checkInTime ? `Check-in ${checkInTime}` : ''}
+              {checkInTime && checkOutTime ? ' | ' : ''}
+              {checkOutTime ? `Check-out ${checkOutTime}` : ''}
+            </span>
+          </p>
+        ) : null}
+        {stayDates}
       </aside>
     )
   }
 
-  // 2. SELECTED ROOM STATE: When user clicks "Choose this room"
   const roomData = selectedRoom
-  const roomImage = roomData.image || roomData.images?.[0] || 'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=80'
+  const roomImage =
+    roomData.image ||
+    (typeof roomData.images?.[0] === 'string' ? roomData.images[0] : roomData.images?.[0]?.url) ||
+    ''
+  const basePriceNum = Number(roomData.priceNum ?? roomData.discountPrice ?? roomData.basePrice) || 0
+  const taxesNum = Number(roomData.taxNum ?? roomData.taxPerNight) || 0
+  const publicRateNum = Number(roomData.basePrice) || 0
+  const savings = publicRateNum > basePriceNum ? publicRateNum - basePriceNum : 0
+  const finalTotal = basePriceNum + taxesNum + extraPrice
 
   return (
     <aside className="sticky top-24 rounded-2xl border border-gray-200 bg-white p-5 text-xs shadow-sm">
-      {/* Header Info */}
       <h3 className="text-sm font-bold text-slate-900">{title}</h3>
-      <p className="mt-2 flex items-center gap-1.5 text-gray-500">
-        <span className="text-gray-400">🔗</span>
-        <span>Check-in 2:00 PM | Check-out 12:00 PM</span>
-      </p>
- 
-      <div className="mt-3 flex items-center gap-2 text-[#3ea5dc] font-medium text-xs">
-        <IoCalendarOutline className="text-sm shrink-0" />
-        <span>July 27, 2026 → July 29, 2026</span>
-      </div>
- 
+      {(checkInTime || checkOutTime) ? (
+        <p className="mt-2 flex items-center gap-1.5 text-gray-500">
+          <span className="text-gray-400">🔗</span>
+          <span>
+            {checkInTime ? `Check-in ${checkInTime}` : ''}
+            {checkInTime && checkOutTime ? ' | ' : ''}
+            {checkOutTime ? `Check-out ${checkOutTime}` : ''}
+          </span>
+        </p>
+      ) : null}
+
+      {stayDates}
+
       <div className="my-4 border-t border-gray-100" />
- 
-      {/* Selected Room Preview */}
+
       <div className="flex items-start gap-3">
-        <img
-          src={roomImage}
-          alt={roomData.name}
-          className="h-16 w-16 shrink-0 rounded-xl object-cover"
-        />
+        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-[#f3f4f6]">
+          <FallbackImage
+            src={roomImage}
+            alt={roomData.name}
+            className="h-16 w-16 object-cover"
+            dummyClassName="h-16 w-16 object-contain p-2"
+          />
+        </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <h4 className="text-xs font-bold leading-snug text-slate-900 line-clamp-2">
               {roomData.name}
             </h4>
-            <span className="text-base font-bold text-[#3ea5dc] shrink-0">
-              {typeof roomData.price === 'number' ? `$${roomData.price}` : roomData.price}
-            </span>
+            {basePriceNum ? (
+              <span className="text-base font-bold text-[#3ea5dc] shrink-0">${basePriceNum}</span>
+            ) : null}
           </div>
-          <p className="mt-1 text-[11px] text-gray-400">{roomData.capacity || '1 adult'}</p>
+          {roomData.capacity ? (
+            <p className="mt-1 text-[11px] text-gray-400">{roomData.capacity}</p>
+          ) : null}
         </div>
       </div>
- 
-      {/* Hide / Show Details Button */}
+
       <div className="mt-3 flex justify-end">
         <button
           type="button"
@@ -99,100 +176,84 @@ const HotelSummarySidebar = ({ title = 'Pullman Hanoi', selectedRoom = null, ext
           {showDetails ? <IoChevronUp className="text-sm" /> : <IoChevronDown className="text-sm" />}
         </button>
       </div>
- 
-      {/* Expanded Breakdown Box */}
-      {(() => {
-        const rawPrice = typeof roomData.price === 'number' 
-          ? roomData.price 
-          : parseFloat((roomData.price || '').replace(/[$,]/g, '')) || 0;
-        const basePriceNum = isNaN(rawPrice) ? 0 : rawPrice;
 
-        const rawTaxes = typeof roomData.taxes === 'number'
-          ? roomData.taxes
-          : parseFloat((roomData.taxes || '').replace(/[$,]/g, '')) || 0;
-        const taxesNum = isNaN(rawTaxes) ? 0 : rawTaxes;
-
-        const finalTotal = basePriceNum + taxesNum + extraPrice
-        const finalTotalStr = '$' + finalTotal.toFixed(2)
-        const vndPrice = Math.round(finalTotal * 26317)
-        const vndPriceStr = 'i.e. ₫' + vndPrice.toLocaleString()
-
-        return (
-          <>
-            {showDetails && (
-              <div className="mt-3 rounded-xl bg-[#f8fbfe] p-3.5 space-y-3">
-                <div>
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="text-xs font-bold text-slate-900 leading-snug">{roomData.name}</span>
-                    <span className="text-xs font-bold text-slate-900 shrink-0">
-                      {typeof roomData.price === 'number' ? `$${roomData.price}` : roomData.price}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-[10px] uppercase tracking-wider font-semibold text-gray-400">
-                    Flexible Rate
-                  </p>
-                  <p className="mt-0.5 text-[11px] text-[#3ea5dc]">
-                    Included: $6.36 savings thanks to the member rate.
-                  </p>
-                </div>
-
-                {extraPrice > 0 && (
-                  <div className="border-t border-gray-200/60 pt-2 flex items-center justify-between text-xs font-bold text-slate-900">
-                    <span>Extras (Add-ons)</span>
-                    <span>${extraPrice.toFixed(2)}</span>
-                  </div>
-                )}
-
-                <div className="border-t border-gray-200/60 pt-2">
-                  <div className="flex items-center justify-between text-xs font-bold text-slate-900">
-                    <span>Total room</span>
-                    <span>${(basePriceNum + extraPrice).toFixed(2)}</span>
-                  </div>
-                  <button type="button" className="mt-0.5 text-[11px] text-[#3ea5dc] hover:underline">
-                    Pricing conditions
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Taxes */}
-            <div className="mt-4 flex items-center justify-between text-xs text-gray-600">
-              <span>Taxes</span>
-              <span className="font-semibold text-gray-800">{roomData.taxes || '$14.27'}</span>
+      {showDetails ? (
+        <div className="mt-3 rounded-xl bg-[#f8fbfe] p-3.5 space-y-3">
+          <div>
+            <div className="flex items-start justify-between gap-2">
+              <span className="text-xs font-bold text-slate-900 leading-snug">{roomData.name}</span>
+              {basePriceNum ? (
+                <span className="text-xs font-bold text-slate-900 shrink-0">${basePriceNum}</span>
+              ) : null}
             </div>
+            {savings > 0 ? (
+              <p className="mt-0.5 text-[11px] text-[#3ea5dc]">
+                Included: ${savings.toFixed(2)} savings
+              </p>
+            ) : null}
+          </div>
 
-            {/* Total */}
-            <div className="mt-4 border-t border-gray-100 pt-3">
-              <div className="flex items-baseline justify-between">
-                <div>
-                  <span className="text-sm font-bold text-slate-900">Total</span>
-                  <p className="text-[10px] text-gray-400">Fees and taxes included</p>
-                </div>
-                <div className="text-right">
-                  <span className="text-xl font-extrabold text-slate-900">{finalTotalStr}</span>
-                  <p className="text-[10px] text-gray-400">{vndPriceStr}</p>
-                </div>
-              </div>
+          {extraPrice > 0 ? (
+            <div className="border-t border-gray-200/60 pt-2 flex items-center justify-between text-xs font-bold text-slate-900">
+              <span>Extras (Add-ons)</span>
+              <span>${extraPrice.toFixed(2)}</span>
             </div>
-          </>
-        )
-      })()}
+          ) : null}
 
-      {/* Action Buttons */}
+          <div className="border-t border-gray-200/60 pt-2">
+            <div className="flex items-center justify-between text-xs font-bold text-slate-900">
+              <span>Total room</span>
+              <span>${(basePriceNum + extraPrice).toFixed(2)}</span>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {taxesNum > 0 ? (
+        <div className="mt-4 flex items-center justify-between text-xs text-gray-600">
+          <span>Taxes</span>
+          <span className="font-semibold text-gray-800">
+            ${taxesNum.toFixed(2)}
+          </span>
+        </div>
+      ) : null}
+
+      <div className="mt-4 border-t border-gray-100 pt-3">
+        <div className="flex items-baseline justify-between">
+          <div>
+            <span className="text-sm font-bold text-slate-900">Total</span>
+            <p className="text-[10px] text-gray-400">Fees and taxes included</p>
+          </div>
+          <div className="text-right">
+            <span className="text-xl font-extrabold text-slate-900">${finalTotal.toFixed(2)}</span>
+          </div>
+        </div>
+      </div>
+
       <div className="mt-5 space-y-2.5">
         <button
           type="button"
-          onClick={handleNext}
-          className="w-full rounded-full bg-[#3ea5dc] py-3 text-xs font-bold text-white shadow-md transition hover:bg-[#3296cc] active:scale-95 cursor-pointer"
+          onClick={() => goToNext(false)}
+          disabled={isSubmitting}
+          className="w-full rounded-full bg-[#3ea5dc] py-3 text-xs font-bold text-white shadow-md transition hover:bg-[#3296cc] active:scale-95 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Continue to ferry booking
+          {isFerryPage
+            ? isSubmitting
+              ? 'Confirming...'
+              : 'Confirm booking'
+            : 'Continue to ferry booking'}
         </button>
         <button
           type="button"
-          onClick={handleNext}
-          className="w-full rounded-full border border-[#3ea5dc] py-3 text-xs font-bold text-[#3ea5dc] transition hover:bg-sky-50 active:scale-95 cursor-pointer"
+          onClick={() => goToNext(true)}
+          disabled={isSubmitting}
+          className="w-full rounded-full border border-[#3ea5dc] py-3 text-xs font-bold text-[#3ea5dc] transition hover:bg-sky-50 active:scale-95 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Skip ferry booking
+          {isFerryPage
+            ? isSubmitting
+              ? 'Confirming...'
+              : 'Confirm without ferry'
+            : 'Skip ferry booking'}
         </button>
       </div>
     </aside>

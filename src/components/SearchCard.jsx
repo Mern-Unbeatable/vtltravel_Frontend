@@ -8,7 +8,9 @@ import {
   IoAdd,
   IoRemove,
   IoLocationOutline,
+  IoBusinessOutline,
 } from 'react-icons/io5'
+import { useHotelSuggestions } from '../hooks/useHotels'
 
 const MONTH_NAMES = [
   'January',
@@ -53,7 +55,8 @@ const parseDateInput = (str) => {
 }
 
 const SearchCard = ({
-  destination: initialDestination = 'Destination, hotel name',
+  destination: initialDestination = '',
+  initialSearchBy = 'location',
   initialCheckIn,
   initialCheckOut,
   initialRooms = 1,
@@ -77,6 +80,9 @@ const SearchCard = ({
 
   // 1. Destination Input State
   const [destValue, setDestValue] = useState(initialDestination)
+  const [searchBy, setSearchBy] = useState(initialSearchBy)
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [debouncedQuery, setDebouncedQuery] = useState('')
 
   // 2. Dates State
   const today = new Date()
@@ -98,10 +104,25 @@ const SearchCard = ({
   const [childrenCount, setChildrenCount] = useState(Number(initialChildren))
   const [showGuestsPicker, setShowGuestsPicker] = useState(false)
 
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(destValue.trim()), 300)
+    return () => clearTimeout(timer)
+  }, [destValue])
+
+  const { data: suggestions, isFetching } = useHotelSuggestions(debouncedQuery)
+  const isSuggestionsLoading = isFetching || destValue.trim() !== debouncedQuery
+  const locationSuggestions = suggestions?.locations || []
+  const hotelSuggestions = suggestions?.hotels || []
+  const hasSuggestions = locationSuggestions.length > 0 || hotelSuggestions.length > 0
+
   // Sync state if props change (e.g. from routing)
   useEffect(() => {
-    if (initialDestination) setDestValue(initialDestination);
+    setDestValue(initialDestination || '');
   }, [initialDestination]);
+
+  useEffect(() => {
+    setSearchBy(initialSearchBy);
+  }, [initialSearchBy]);
 
   useEffect(() => {
     if (initialCheckIn) {
@@ -130,6 +151,7 @@ const SearchCard = ({
   // Refs for click outside
   const datePickerRef = useRef(null)
   const guestsPickerRef = useRef(null)
+  const destPickerRef = useRef(null)
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -138,6 +160,9 @@ const SearchCard = ({
       }
       if (guestsPickerRef.current && !guestsPickerRef.current.contains(event.target)) {
         setShowGuestsPicker(false)
+      }
+      if (destPickerRef.current && !destPickerRef.current.contains(event.target)) {
+        setShowSuggestions(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -201,12 +226,19 @@ const SearchCard = ({
     return d < startOfToday
   }
 
+  const handleSelectSuggestion = (suggestion) => {
+    setDestValue(suggestion.value)
+    setSearchBy(suggestion.type === 'hotel' ? 'hotel' : 'location')
+    setShowSuggestions(false)
+  }
+
   const handleSearchSubmit = () => {
     if (onSearch) {
       onSearch({
-        destination: destValue,
-        checkIn: formatDateDisplay(checkInDate),
-        checkOut: formatDateDisplay(checkOutDate),
+        destination: destValue.trim(),
+        searchBy,
+        checkIn: formatDateInput(checkInDate),
+        checkOut: formatDateInput(checkOutDate),
         rooms,
         adults,
         children: childrenCount,
@@ -230,25 +262,93 @@ const SearchCard = ({
         >
           {/* 1. Destination Input */}
           {!hideDestination && (
-            <div
-              className={`flex flex-1 items-center gap-3 rounded-xl border border-gray-200 bg-white transition hover:border-primary/50 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 ${
-                compact ? 'px-3 py-2' : 'px-4 py-2.5'
-              }`}
-            >
-              <IoLocationOutline className="text-xl text-primary shrink-0" />
-              <div className="min-w-0 flex-1">
-                <label htmlFor="destination-input" className="block text-[11px] font-medium text-gray-400">
-                  Destination
-                </label>
-                <input
-                  id="destination-input"
-                  type="text"
-                  value={destValue}
-                  onChange={(e) => setDestValue(e.target.value)}
-                  placeholder="Destination, hotel name"
-                  className="w-full border-0 bg-transparent p-0 text-xs font-semibold text-gray-800 outline-none placeholder:font-normal placeholder:text-gray-400 md:text-sm"
-                />
+            <div ref={destPickerRef} className="relative flex-1">
+              <div
+                className={`flex items-center gap-3 rounded-xl border border-gray-200 bg-white transition hover:border-primary/50 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 ${
+                  compact ? 'px-3 py-2' : 'px-4 py-2.5'
+                }`}
+              >
+                <IoLocationOutline className="text-xl text-primary shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <label htmlFor="destination-input" className="block text-[11px] font-medium text-gray-400">
+                    Destination
+                  </label>
+                  <input
+                    id="destination-input"
+                    type="text"
+                    autoComplete="off"
+                    value={destValue}
+                    onChange={(e) => {
+                      setDestValue(e.target.value)
+                      setSearchBy('location')
+                      setShowSuggestions(true)
+                    }}
+                    onFocus={() => destValue.trim().length >= 2 && setShowSuggestions(true)}
+                    placeholder="Destination, hotel name"
+                    className="w-full border-0 bg-transparent p-0 text-xs font-semibold text-gray-800 outline-none placeholder:font-normal placeholder:text-gray-400 md:text-sm"
+                  />
+                </div>
               </div>
+
+              {showSuggestions && destValue.trim().length >= 2 && (
+                <div className="absolute left-0 top-full z-[100] mt-2 w-full min-w-[260px] overflow-hidden rounded-2xl border border-gray-100 bg-white py-2 shadow-2xl">
+                  {isSuggestionsLoading && (
+                    <p className="px-4 py-2 text-xs text-gray-400">Searching destinations...</p>
+                  )}
+
+                  {!isSuggestionsLoading && !hasSuggestions && (
+                    <p className="px-4 py-2 text-xs text-gray-400">No matching destinations found</p>
+                  )}
+
+                  {locationSuggestions.length > 0 && (
+                    <div>
+                      <p className="px-4 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                        Locations
+                      </p>
+                      {locationSuggestions.map((item) => (
+                        <button
+                          key={`loc-${item.label}`}
+                          type="button"
+                          onClick={() => handleSelectSuggestion(item)}
+                          className="flex w-full items-start gap-3 px-4 py-2 text-left hover:bg-sky-50"
+                        >
+                          <IoLocationOutline className="mt-0.5 text-base text-primary shrink-0" />
+                          <span className="min-w-0">
+                            <span className="block text-xs font-semibold text-gray-800">{item.label}</span>
+                            {item.subtitle && (
+                              <span className="mt-0.5 block truncate text-[11px] text-gray-400">{item.subtitle}</span>
+                            )}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {hotelSuggestions.length > 0 && (
+                    <div>
+                      <p className="px-4 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                        Hotels
+                      </p>
+                      {hotelSuggestions.map((item) => (
+                        <button
+                          key={`hotel-${item.label}`}
+                          type="button"
+                          onClick={() => handleSelectSuggestion(item)}
+                          className="flex w-full items-start gap-3 px-4 py-2 text-left hover:bg-sky-50"
+                        >
+                          <IoBusinessOutline className="mt-0.5 text-base text-primary shrink-0" />
+                          <span className="min-w-0">
+                            <span className="block text-xs font-semibold text-gray-800">{item.label}</span>
+                            {item.subtitle && (
+                              <span className="mt-0.5 block truncate text-[11px] text-gray-400">{item.subtitle}</span>
+                            )}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 

@@ -2,17 +2,16 @@ import { useState, useRef, useEffect } from 'react'
 import { IoChevronBack, IoChevronForward } from 'react-icons/io5'
 import { HiOutlinePhotograph } from 'react-icons/hi'
 import HotelGalleryModal from '../../searchResultsPage/components/HotelGalleryModal'
+import FallbackImage from '../../../components/FallbackImage'
 
 const HotelHeaderGallery = ({ images = [], title = 'Hotel' }) => {
   const sliderRef = useRef(null)
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isGalleryOpen, setIsGalleryOpen] = useState(false)
+  const displayImages = images.length > 0 ? images.slice(0, 4) : ['']
 
-  const displayImages = images.length > 4 ? images.slice(0, 4) : images
-
-  // Auto-play slider on mobile/tablet
   useEffect(() => {
-    if (!displayImages || displayImages.length === 0) return
+    if (displayImages.length <= 1) return undefined
 
     const timer = setInterval(() => {
       setCurrentSlide((prev) => {
@@ -29,10 +28,10 @@ const HotelHeaderGallery = ({ images = [], title = 'Hotel' }) => {
     }, 3500)
 
     return () => clearInterval(timer)
-  }, [displayImages])
+  }, [displayImages.length])
 
   const scrollSlider = (direction) => {
-    if (!displayImages || displayImages.length === 0) return
+    if (displayImages.length <= 1) return
     setCurrentSlide((prev) => {
       let next = direction === 'left' ? prev - 1 : prev + 1
       if (next < 0) next = displayImages.length - 1
@@ -48,7 +47,6 @@ const HotelHeaderGallery = ({ images = [], title = 'Hotel' }) => {
     })
   }
 
-  // Dynamic grid cols based on visible image count
   const getGridColsClass = () => {
     const count = displayImages.length
     if (count === 1) return 'md:grid-cols-1'
@@ -59,7 +57,6 @@ const HotelHeaderGallery = ({ images = [], title = 'Hotel' }) => {
 
   return (
     <div className="relative w-full overflow-hidden bg-white p-0">
-      {/* Navigation Arrows for Mobile/Tablet */}
       {displayImages.length > 1 && (
         <>
           <button
@@ -82,7 +79,6 @@ const HotelHeaderGallery = ({ images = [], title = 'Hotel' }) => {
         </>
       )}
 
-      {/* Gallery Row / Grid */}
       <div
         ref={sliderRef}
         className={`flex w-full overflow-x-auto snap-x snap-mandatory scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:grid ${getGridColsClass()} md:gap-3`}
@@ -90,15 +86,15 @@ const HotelHeaderGallery = ({ images = [], title = 'Hotel' }) => {
         {displayImages.map((image, index) => (
           <div
             key={`${image}-${index}`}
-            className="relative h-[250px] w-full min-w-full shrink-0 snap-center sm:h-[300px] md:h-[260px] md:w-auto md:min-w-0 lg:h-[320px]"
+            className="relative h-[250px] w-full min-w-full shrink-0 snap-center bg-[#f3f4f6] sm:h-[300px] md:h-[260px] md:w-auto md:min-w-0 lg:h-[320px]"
           >
-            <img
+            <FallbackImage
               src={image}
               alt={`${title} photo ${index + 1}`}
               className="h-full w-full object-cover"
+              dummyClassName="h-full w-full object-contain p-12"
             />
-            {/* Gallery trigger overlay on the last image if more than 4 images exist */}
-            {index === 3 && images.length > 4 && (
+            {index === Math.min(3, displayImages.length - 1) && images.length > 0 && (
               <button
                 type="button"
                 onClick={() => setIsGalleryOpen(true)}
@@ -112,7 +108,6 @@ const HotelHeaderGallery = ({ images = [], title = 'Hotel' }) => {
         ))}
       </div>
 
-      {/* Dots Indicator for Mobile */}
       {displayImages.length > 1 && (
         <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1.5 md:hidden">
           {displayImages.map((_, idx) => (
@@ -137,11 +132,11 @@ const HotelHeaderGallery = ({ images = [], title = 'Hotel' }) => {
         </div>
       )}
 
-      {/* Hotel Gallery Modal */}
       <HotelGalleryModal
         open={isGalleryOpen}
         onClose={() => setIsGalleryOpen(false)}
         hotelTitle={title}
+        images={images}
       />
     </div>
   )
