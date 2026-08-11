@@ -106,8 +106,7 @@ const HotelSummarySidebar = ({
   const taxesNum = Number(roomData.taxNum ?? roomData.taxPerNight) || 0
   const publicRateNum = Number(roomData.basePrice) || 0
   const savings = publicRateNum > basePriceNum ? publicRateNum - basePriceNum : 0
-  const stayNights = nights > 0 ? nights : 1
-  const finalTotal = basePriceNum * stayNights + taxesNum * stayNights + extraPrice
+  const finalTotal = basePriceNum + taxesNum + extraPrice
 
   return (
     <aside className="sticky top-24 rounded-2xl border border-gray-200 bg-white p-5 text-xs shadow-sm">
@@ -188,7 +187,7 @@ const HotelSummarySidebar = ({
           <div className="border-t border-gray-200/60 pt-2">
             <div className="flex items-center justify-between text-xs font-bold text-slate-900">
               <span>Total room</span>
-              <span>${(basePriceNum * stayNights + extraPrice).toFixed(2)}</span>
+              <span>${(basePriceNum + extraPrice).toFixed(2)}</span>
             </div>
           </div>
         </div>
@@ -198,7 +197,7 @@ const HotelSummarySidebar = ({
         <div className="mt-4 flex items-center justify-between text-xs text-gray-600">
           <span>Taxes</span>
           <span className="font-semibold text-gray-800">
-            ${(taxesNum * stayNights).toFixed(2)}
+            ${taxesNum.toFixed(2)}
           </span>
         </div>
       ) : null}
