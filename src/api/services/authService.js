@@ -31,6 +31,14 @@ export const authService = {
     const isLoggedIn = localStorage.getItem('isAdminLoggedIn');
     return !!token && isLoggedIn === 'true';
   },
+
+  getProfile: async () => {
+    return api.get(API_ENDPOINTS.PROFILE);
+  },
+
+  updateProfile: async (profileData) => {
+    return api.put(API_ENDPOINTS.PROFILE, profileData);
+  },
 };
 
 export default authService;

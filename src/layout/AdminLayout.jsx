@@ -32,6 +32,9 @@ const AdminLayout = () => {
     if (location.pathname === "/admin/payments") {
       return "Payment History";
     }
+    if (location.pathname === "/admin/profile") {
+      return "Admin Profile Settings";
+    }
     return "Operations Dashboard";
   };
 
@@ -45,6 +48,9 @@ const AdminLayout = () => {
     if (location.pathname === "/admin/payments") {
       return "Monitor transaction logs, invoice statuses, and financial summaries.";
     }
+    if (location.pathname === "/admin/profile") {
+      return "Manage your administrator account credentials and personal details.";
+    }
     return "Track real-time reservation statistics, service performance, and system activities.";
   };
 
@@ -57,6 +63,9 @@ const AdminLayout = () => {
     }
     if (location.pathname === "/admin/payments") {
       return "payments";
+    }
+    if (location.pathname === "/admin/profile") {
+      return "profile";
     }
     return "overview";
   };

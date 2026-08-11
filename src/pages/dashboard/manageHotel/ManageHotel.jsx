@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import HotelList from "./components/HotelList";
 import HotelForm from "./components/HotelForm";
 import {
-  useHotels,
+  useAdminHotels,
   useAddHotel,
   useUpdateHotel,
   useDeleteHotel,
@@ -16,7 +16,7 @@ const ManageHotel = () => {
   const [editingHotel, setEditingHotel] = useState(null);
 
   // TanStack Query hooks
-  const { data: hotels = [], isLoading, isError } = useHotels();
+  const { data: hotels = [], isLoading, isError } = useAdminHotels();
   const addHotelMutation = useAddHotel();
   const updateHotelMutation = useUpdateHotel();
   const deleteHotelMutation = useDeleteHotel();

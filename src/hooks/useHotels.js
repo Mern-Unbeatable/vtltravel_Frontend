@@ -5,6 +5,19 @@ export const useHotels = () => {
   return useQuery({
     queryKey: ['hotels'],
     queryFn: async () => {
+      const response = await hotelService.getHotels();
+      if (response && response.success && response.data && Array.isArray(response.data.items)) {
+        return response.data.items;
+      }
+      return Array.isArray(response) ? response : [];
+    },
+  });
+};
+
+export const useAdminHotels = () => {
+  return useQuery({
+    queryKey: ['admin_hotels'],
+    queryFn: async () => {
       const response = await hotelService.getAdminHotels();
       if (response && response.success && response.data && Array.isArray(response.data.items)) {
         return response.data.items;
