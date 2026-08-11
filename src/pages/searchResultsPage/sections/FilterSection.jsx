@@ -114,13 +114,7 @@ const FilterSection = ({ onFilterChange }) => {
     setSelectedOptions({});
     setOnlyAvailable(false);
     if (onFilterChange) {
-      onFilterChange({
-        minBudget: MIN_PRICE,
-        maxBudget: MAX_PRICE,
-        selectedStars: [],
-        selectedOptions: {},
-        onlyAvailable: false,
-      });
+      onFilterChange(null);
     }
   };
 

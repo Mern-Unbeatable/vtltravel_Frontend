@@ -2,32 +2,55 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { HiOutlinePhotograph } from 'react-icons/hi'
 import HotelGalleryModal from './HotelGalleryModal'
+import FallbackImage from '../../../components/FallbackImage'
 
-const HotelResultCard = ({ hotel }) => {
+const formatStyle = (style) => {
+  if (!style) return ''
+  return style
+    .replace(/_/g, ' ')
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase())
+}
+
+const HotelResultCard = ({ hotel, nights = 1, adults = 1, rooms = 1 }) => {
   const navigate = useNavigate()
   const [isGalleryOpen, setIsGalleryOpen] = useState(false)
-  const title = hotel?.title || 'Holiday Inn Resort Batam'
-  const stars = hotel?.stars || '4 Hotels'
+
+  const title = hotel?.name || hotel?.title || ''
+  const shortDescription = hotel?.shortDescription || ''
   const imageUrl =
-    hotel?.image ||
-    'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80'
-  const price = hotel?.price || '$87'
-  const brandText = hotel?.brandText || 'Brand '
-  const hotelId = hotel?.id || 1
+    hotel?.primaryImage || hotel?.coverImageUrl || hotel?.images?.[0]?.url || hotel?.image || ''
+  const galleryImages =
+    hotel?.images?.map((img) => img.url).filter(Boolean) || hotel?.gallery || []
+  const priceValue = hotel?.fromPrice ?? hotel?.startingPrice ?? hotel?.price
+  const hasPrice = priceValue !== null && priceValue !== undefined && priceValue !== ''
+  const publicRate = hotel?.roomTypes?.[0]?.basePrice
+  const brandText =
+    formatStyle(hotel?.accommodationStyle) || hotel?.city || hotel?.location || ''
+  const hotelId = hotel?.id || hotel?.slug
+  const roomCount = hotel?._count?.roomTypes || hotel?.roomTypes?.length || hotel?.rooms?.length || 0
 
   const handleHotelClick = () => {
+    if (!hotelId) return
     navigate(`/home/search/${hotelId}`, { state: { hotel } })
   }
 
   return (
     <>
       <article className="flex w-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm md:flex-row">
-        <div className="relative h-[240px] w-full shrink-0 md:h-[280px] md:w-[320px]">
-          <img src={imageUrl} alt={title} className="h-full w-full object-cover" />
+        <div className="relative h-[220px] w-full shrink-0 overflow-hidden bg-[#f3f4f6] sm:h-[240px] md:h-auto md:min-h-[280px] md:w-[42%] lg:w-[320px]">
+          <FallbackImage
+            src={imageUrl}
+            alt={title || 'Hotel'}
+            className="absolute inset-0 h-full w-full object-cover"
+            dummyClassName="absolute inset-0 h-full w-full object-contain p-10 sm:p-12"
+          />
 
-          <div className="absolute left-3 top-3 rounded-lg bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-xs">
-            {brandText}
-          </div>
+          {brandText ? (
+            <div className="absolute left-3 top-3 rounded-lg bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-xs">
+              {brandText}
+            </div>
+          ) : null}
 
           <button
             type="button"
@@ -35,16 +58,23 @@ const HotelResultCard = ({ hotel }) => {
             className="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-md bg-black/60 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-xs transition-colors hover:bg-black/75"
           >
             <HiOutlinePhotograph className="h-4 w-4" />
-            <span>1/{hotel?.gallery?.length || 6}</span>
+            <span>1/{galleryImages.length || 1}</span>
           </button>
         </div>
 
-        <div className="flex flex-1 flex-col justify-between p-5 md:p-6">
+        <div className="flex flex-1 flex-col justify-between p-4 sm:p-5 md:p-6">
           <div className="mb-4 md:mb-0">
-            <h3 className="text-xl font-bold tracking-tight text-slate-900 md:text-2xl">{title}</h3>
-            <p className="mt-1 text-sm font-medium text-gray-500">
-              {hotel?.rooms?.length || 0} room{(hotel?.rooms?.length || 0) !== 1 ? 's' : ''}
-            </p>
+            {title ? (
+              <h3 className="text-xl font-bold tracking-tight text-slate-900 md:text-2xl">{title}</h3>
+            ) : null}
+            {shortDescription ? (
+              <p className="mt-1 text-sm text-gray-500">{shortDescription}</p>
+            ) : null}
+            {roomCount > 0 ? (
+              <p className="mt-1 text-sm font-medium text-gray-500">
+                {roomCount} room{roomCount !== 1 ? 's' : ''}
+              </p>
+            ) : null}
           </div>
 
           <div className="flex flex-col-reverse gap-5 md:flex-row md:items-end md:justify-between md:gap-0">
@@ -53,23 +83,29 @@ const HotelResultCard = ({ hotel }) => {
             </a>
 
             <div className="flex flex-col items-start text-left md:items-end md:text-right">
-              <div className="flex items-baseline gap-1">
-                <span className="text-base text-gray-500">From</span>
-                <span className="text-2xl font-extrabold text-[#2d9cdb] ">{price}</span>
-              </div>
+              {hasPrice ? (
+                <div className="flex items-baseline gap-1">
+                  <span className="text-base text-gray-500">From</span>
+                  <span className="text-2xl font-extrabold text-[#2d9cdb] ">${priceValue}</span>
+                </div>
+              ) : null}
 
-              <p className="mt-1 text-base font-medium text-slate-900">
-                Public rate from <span className="font-bold">$96</span>
-              </p>
+              {publicRate ? (
+                <p className="mt-1 text-base font-medium text-slate-900">
+                  Public rate from <span className="font-bold">${publicRate}</span>
+                </p>
+              ) : null}
 
               <p className="mt-0.5 text-base text-gray-400">
-                1 night - 1 adult - Taxes not included : $15
+                {nights} night{nights !== 1 ? 's' : ''} - {adults} adult{adults !== 1 ? 's' : ''}
+                {rooms > 1 ? ` - ${rooms} rooms` : ''}
               </p>
 
               <button
                 type="button"
                 onClick={handleHotelClick}
-                className="mt-4 w-full rounded-full bg-[#2d9cdb] px-7 py-3 text-sm font-semibold text-white transition-all hover:bg-[#2680b4] active:scale-95 md:w-auto"
+                disabled={!hotelId}
+                className="mt-4 w-full rounded-full bg-[#2d9cdb] px-7 py-3 text-sm font-semibold text-white transition-all hover:bg-[#2680b4] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 md:w-auto"
               >
                 See the hotel
               </button>
@@ -82,6 +118,7 @@ const HotelResultCard = ({ hotel }) => {
         open={isGalleryOpen}
         onClose={() => setIsGalleryOpen(false)}
         hotelTitle={title}
+        images={galleryImages}
       />
     </>
   )

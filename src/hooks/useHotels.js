@@ -1,16 +1,45 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { hotelService } from '../api/services/hotelService';
+import { buildDestinationSuggestions } from '../utils/hotelSearchParams';
 
-export const useHotels = () => {
+const emptyHotelsResult = {
+  items: [],
+  pagination: { page: 1, limit: 12, total: 0, totalPages: 0 },
+};
+
+export const useHotels = (params = {}) => {
   return useQuery({
-    queryKey: ['hotels'],
+    queryKey: ['hotels', params],
     queryFn: async () => {
-      const response = await hotelService.getHotels();
-      if (response && response.success && response.data && Array.isArray(response.data.items)) {
-        return response.data.items;
+      const response = await hotelService.getHotels(params);
+      if (response && response.success && response.data) {
+        return {
+          items: Array.isArray(response.data.items) ? response.data.items : [],
+          pagination: response.data.pagination || emptyHotelsResult.pagination,
+        };
       }
-      return Array.isArray(response) ? response : [];
+      if (Array.isArray(response)) {
+        return { items: response, pagination: emptyHotelsResult.pagination };
+      }
+      return emptyHotelsResult;
     },
+    placeholderData: (previousData) => previousData,
+  });
+};
+
+export const useHotelSuggestions = (query) => {
+  const trimmed = (query || '').trim();
+
+  return useQuery({
+    queryKey: ['hotel-suggestions', trimmed],
+    queryFn: async () => {
+      const response = await hotelService.getHotels({ q: trimmed, limit: 12 });
+      const items = response?.data?.items || [];
+      return buildDestinationSuggestions(items, trimmed);
+    },
+    enabled: trimmed.length >= 2,
+    staleTime: 60_000,
+    placeholderData: (previousData) => previousData,
   });
 };
 

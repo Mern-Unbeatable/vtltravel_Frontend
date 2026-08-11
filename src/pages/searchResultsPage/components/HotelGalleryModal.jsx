@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { IoClose } from 'react-icons/io5'
+import FallbackImage from '../../../components/FallbackImage'
 
 const CATEGORIES = [
   'Videos',
@@ -17,28 +18,9 @@ const CATEGORIES = [
   'Spa',
 ]
 
-const GALLERY_IMAGES = [
-  'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=900&q=80',
-  'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=900&q=80',
-  'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=900&q=80',
-  'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=900&q=80',
-  'https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=900&q=80',
-  'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=900&q=80',
-  'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&w=900&q=80',
-  'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=900&q=80',
-  'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&w=900&q=80',
-  'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=900&q=80',
-  'https://images.unsplash.com/photo-1439066615861-d1af74d74000?auto=format&fit=crop&w=900&q=80',
-  'https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=900&q=80',
-  'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=900&q=80',
-  'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=900&q=80',
-  'https://images.unsplash.com/photo-1480074568708-e7b720bb3f09?auto=format&fit=crop&w=900&q=80',
-  'https://images.unsplash.com/photo-1502005229762-fc1b2b812ca5?auto=format&fit=crop&w=900&q=80',
-]
-
 const HotelGalleryModal = ({ open, onClose, hotelTitle, images }) => {
   const [activeCategory, setActiveCategory] = useState('Hotel')
-  const imagesList = images && images.length > 0 ? images : GALLERY_IMAGES
+  const imagesList = images && images.length > 0 ? images : ['']
 
   useEffect(() => {
     if (!open) return undefined
@@ -137,12 +119,13 @@ const HotelGalleryModal = ({ open, onClose, hotelTitle, images }) => {
               {imagesList.map((image, index) => (
                 <div
                   key={`${activeCategory}-${image}-${index}`}
-                  className="overflow-hidden rounded-xl"
+                  className="overflow-hidden rounded-xl bg-[#f3f4f6]"
                 >
-                  <img
+                  <FallbackImage
                     src={image}
                     alt={`${activeCategory} ${index + 1}`}
-                    className="h-[220px] w-full object-cover"
+                    className="h-[180px] w-full object-cover sm:h-[200px] md:h-[220px]"
+                    dummyClassName="h-[180px] w-full object-contain p-8 sm:h-[200px] md:h-[220px]"
                   />
                 </div>
               ))}

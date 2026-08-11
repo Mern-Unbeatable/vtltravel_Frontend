@@ -1,19 +1,45 @@
-import React, { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import HotelResultCard from "../components/HotelResultCard";
 import { useHotels } from "../../../hooks/useHotels";
 import Pagination from "../../../components/Pagination";
+import { getNightsBetween } from "../../../utils/hotelSearchParams";
+
+const SORT_LABELS = {
+  recommended: "Sorted by recommended for you",
+  price_asc: "Sorted by price (low to high)",
+  price_desc: "Sorted by price (high to low)",
+  rating: "Sorted by guest rating",
+  stars: "Sorted by star rating",
+};
 
 const HotelCardsSection = ({ filters }) => {
-  const { data: hotels = [], isLoading, isError } = useHotels();
-  const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 5;
+  const [, setSearchParams] = useSearchParams();
+  const { data, isLoading, isError } = useHotels(filters || {});
 
-  // Reset to page 1 when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [filters]);
+  const hotels = data?.items || [];
+  const pagination = data?.pagination || {
+    page: 1,
+    limit: 12,
+    total: 0,
+    totalPages: 0,
+  };
+  const currentPage = Number(pagination.page || filters?.page || 1);
+  const totalPages = Number(pagination.totalPages || 0);
+  const totalHotels = Number(pagination.total || hotels.length);
+  const nights = getNightsBetween(filters?.checkIn, filters?.checkOut);
+  const adults = Number(filters?.adults || 1);
+  const rooms = Number(filters?.rooms || 1);
+  const sortLabel = SORT_LABELS[filters?.sort] || SORT_LABELS.recommended;
 
-  if (isLoading) {
+  const handlePageChange = (page) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set("page", String(page));
+      return next;
+    });
+  };
+
+  if (isLoading && hotels.length === 0) {
     return (
       <div className="flex justify-center items-center py-12">
         <svg
@@ -47,63 +73,41 @@ const HotelCardsSection = ({ filters }) => {
     );
   }
 
-  const filteredHotels = hotels.filter((hotel) => {
-    if (filters) {
-      const { minBudget, maxBudget, selectedStars, onlyAvailable } = filters;
-
-      if (minBudget !== undefined && hotel.priceNum < minBudget) return false;
-      if (maxBudget !== undefined && hotel.priceNum > maxBudget) return false;
-
-      if (selectedStars && selectedStars.length > 0) {
-        const starMatches = selectedStars.some((s) =>
-          s.includes(String(hotel.starNum)),
-        );
-        if (!starMatches) return false;
-      }
-
-      if (onlyAvailable && !hotel.available) return false;
-    }
-
-    return true;
-  });
-
-  const totalEntries = filteredHotels.length;
-  const totalPages = Math.ceil(totalEntries / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const paginatedHotels = filteredHotels.slice(startIndex, endIndex);
-
   return (
     <div>
       <p className="text-xl text-gray-500">
-        {filteredHotels.length} hotels available.
+        {totalHotels} hotel{totalHotels !== 1 ? "s" : ""} available.
       </p>
-      <p className="mb-3 text-base text-gray-400">
-        Sorted by recommended for you
-      </p>
+      <p className="mb-3 text-base text-gray-400">{sortLabel}</p>
 
-      {filteredHotels.length === 0 ? (
+      {hotels.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center">
           <p className="text-base font-semibold text-gray-700">
             No hotels match your filters
           </p>
           <p className="mt-1 text-xs text-gray-400">
-            Try adjusting your budget range or star rating filters.
+            Try adjusting your destination, dates, or filters.
           </p>
         </div>
       ) : (
         <div className="space-y-4">
           <div className="space-y-3">
-            {paginatedHotels.map((hotel) => (
-              <HotelResultCard key={hotel.id} hotel={hotel} />
+            {hotels.map((hotel) => (
+              <HotelResultCard
+                key={hotel.id}
+                hotel={hotel}
+                nights={nights}
+                adults={adults}
+                rooms={rooms}
+              />
             ))}
           </div>
 
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={(page) => setCurrentPage(page)}
-            />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
         </div>
       )}
     </div>

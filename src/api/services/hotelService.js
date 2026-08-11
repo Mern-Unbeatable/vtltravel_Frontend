@@ -2,8 +2,8 @@ import { api } from '../apiMethods';
 import { API_ENDPOINTS } from '../endpoints';
 
 export const hotelService = {
-  getHotels: async () => {
-    return api.get(API_ENDPOINTS.HOTELS);
+  getHotels: async (params = {}) => {
+    return api.get(API_ENDPOINTS.HOTELS, { params });
   },
 
   getAdminHotels: async () => {
