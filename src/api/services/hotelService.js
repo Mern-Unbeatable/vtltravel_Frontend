@@ -40,6 +40,20 @@ export const hotelService = {
     });
   },
 
+  getRoomById: async (roomId) => {
+    return api.get(`/v1/rooms/${roomId}`);
+  },
+
+  updateRoom: async (roomId, roomData) => {
+    return api.put(`/v1/rooms/${roomId}`, roomData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
+
+  deleteRoom: async (roomId) => {
+    return api.delete(`/v1/rooms/${roomId}`);
+  },
+
   uploadGalleryImages: async (hotelId, formData) => {
     return api.post(`/v1/hotels/${hotelId}/images`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }

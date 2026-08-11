@@ -33,30 +33,30 @@ const RoomTypesTable = ({ hotel, roomsVal, onAddClick, onEditClick, onDeleteClic
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {roomsVal.map(room => (
-                <tr key={room.id || room._id} className="hover:bg-gray-50/50">
-                  <td className="px-4 py-3 font-semibold text-slate-800">{room.name}</td>
-                  <td className="px-4 py-3">{room.bedInfo || room.bedInformation}</td>
-                  <td className="px-4 py-3">{room.size || room.roomSize}</td>
-                  <td className="px-4 py-3 font-bold text-slate-950">${room.price || room.pricePerNight}/night</td>
-                  <td className="px-4 py-3 text-right space-x-2">
-                    <button
-                      type="button"
-                      onClick={() => onEditClick(room)}
-                      className="text-xs text-primary font-bold hover:underline cursor-pointer"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onDeleteClick(room.id || room._id)}
-                      className="text-xs text-red-500 font-bold hover:underline cursor-pointer"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {roomsVal.map(room => {
+                const priceVal = room.price || room.pricePerNight || room.basePrice || '';
+                const sizeVal = room.size || room.roomSize || room.sizeLabel || (room.sizesSqm ? String(room.sizesSqm) : '') || 'N/A';
+                const bedInfoVal = room.bedInfo || room.bedInformation || 'N/A';
+                return (
+                  <tr key={room.id || room._id} className="hover:bg-gray-50/50">
+                    <td className="px-4 py-3 font-semibold text-slate-800">{room.name}</td>
+                    <td className="px-4 py-3">{bedInfoVal}</td>
+                    <td className="px-4 py-3">{sizeVal}</td>
+                    <td className="px-4 py-3 font-bold text-slate-950">
+                      {priceVal ? `$${priceVal}/night` : 'N/A'}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        type="button"
+                        onClick={() => onDeleteClick(room.id || room._id)}
+                        className="text-xs text-red-500 font-bold hover:underline cursor-pointer"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

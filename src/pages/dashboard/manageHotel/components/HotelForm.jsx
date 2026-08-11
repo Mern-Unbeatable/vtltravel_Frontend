@@ -24,6 +24,8 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
   const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState(null);
   const [activeGalleryTab, setActiveGalleryTab] = useState('Hotel');
+  const [roomDeleteId, setRoomDeleteId] = useState(null);
+  const [isDeletingRoom, setIsDeletingRoom] = useState(false);
 
   const {
     register,
@@ -140,10 +142,10 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
     if (files.length === 0) return;
 
     const activeHotelId = hotel?.id || hotel?._id;
-    if (!activeHotelId) {
-      toast.error("Please save the hotel details first before uploading gallery media.");
-      return;
-    }
+    // if (!activeHotelId) {
+    //   toast.error("Please save the hotel details first before uploading gallery media.");
+    //   return;
+    // }
 
     try {
       const formData = new FormData();
@@ -254,36 +256,57 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
         });
       }
 
-      // Perform POST API call to create room
-      const res = await hotelService.addRoom(activeHotelId, formData);
+      // Perform API call to create or update room
+      let res;
+      const editingRoomId = editingRoom?.id || editingRoom?._id;
+      if (editingRoomId) {
+        res = await hotelService.updateRoom(editingRoomId, formData);
+      } else {
+        res = await hotelService.addRoom(activeHotelId, formData);
+      }
 
-      const successMsg = res?.message || "Room added successfully!";
+      const successMsg = res?.message || (editingRoomId ? "Room updated successfully!" : "Room added successfully!");
       toast.success(successMsg);
 
-      // Add to local form state to display it
+      // Add/update local form state to display it
       const newRoom = res?.data || savedRoom;
-      setValue('rooms', [...roomsVal, {
+      const normalizedRoom = {
         ...newRoom,
         id: newRoom.id || newRoom._id || Date.now()
-      }]);
+      };
+
+      if (editingRoomId) {
+        setValue('rooms', roomsVal.map(r => (r.id === editingRoomId || r._id === editingRoomId) ? normalizedRoom : r));
+      } else {
+        setValue('rooms', [...roomsVal, normalizedRoom]);
+      }
     } catch (err) {
-      console.error("Error creating room:", err);
-      toast.error(err?.message || "Failed to add room to database.");
+      console.error("Error saving room:", err);
+      toast.error(err?.message || "Failed to save room details.");
       throw err;
     }
   };
 
-  const handleEditRoom = (room) => {
-    setEditingRoom(room);
-    setIsRoomModalOpen(true);
+  const handleEditRoom = async (room) => {
+    const roomId = room.id || room._id;
+    if (!roomId) return;
+
+    try {
+      const res = await hotelService.getRoomById(roomId);
+      const fullRoomData = res?.data || res;
+      setEditingRoom(fullRoomData);
+      setIsRoomModalOpen(true);
+    } catch (err) {
+      console.error("Error fetching room details:", err);
+      toast.error(err?.message || "Failed to fetch room details.");
+    }
   };
 
   const handleDeleteRoom = (roomId) => {
-    setValue('rooms', roomsVal.filter(r => r.id !== roomId));
+    setRoomDeleteId(roomId);
   };
 
   const onSubmit = (data) => {
-    console.log("HotelForm raw onSubmit data:", data);
     // We will build a FormData object as the backend expects multipart/form-data
     const formData = new FormData();
     
@@ -384,12 +407,6 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
     // Append rooms list
     if (data.rooms && data.rooms.length > 0) {
       formData.append('rooms', JSON.stringify(data.rooms));
-    }
-
-    // Debug print Form Data keys and values
-    console.log("HotelForm generated FormData entries:");
-    for (let pair of formData.entries()) {
-      console.log(pair[0] + ': ', pair[1]);
     }
 
     onSave(formData);
@@ -641,6 +658,53 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
         onSave={handleSaveRoom}
         room={editingRoom}
       />
+      {/* Premium Room Deletion Confirmation Modal */}
+      {roomDeleteId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl w-full max-w-md border border-gray-200 shadow-xl overflow-hidden p-6 text-center space-y-4">
+            <div className="mx-auto w-12 h-12 bg-red-50 rounded-full flex items-center justify-center text-red-500">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-bold text-slate-900">Delete Room Type?</h3>
+            <p className="text-sm text-slate-500">
+              Are you sure you want to delete this room type? This action cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end pt-3">
+              <button
+                type="button"
+                disabled={isDeletingRoom}
+                onClick={() => setRoomDeleteId(null)}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm text-slate-700 hover:bg-gray-50 font-semibold cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isDeletingRoom}
+                onClick={async () => {
+                  setIsDeletingRoom(true);
+                  try {
+                    const res = await hotelService.deleteRoom(roomDeleteId);
+                    toast.success(res?.message || "Room deleted successfully!");
+                    setValue('rooms', roomsVal.filter(r => r.id !== roomDeleteId && r._id !== roomDeleteId));
+                    setRoomDeleteId(null);
+                  } catch (err) {
+                    console.error("Error deleting room:", err);
+                    toast.error(err?.message || "Failed to delete room.");
+                  } finally {
+                    setIsDeletingRoom(false);
+                  }
+                }}
+                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold shadow-sm cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isDeletingRoom ? "Deleting..." : "Confirm Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

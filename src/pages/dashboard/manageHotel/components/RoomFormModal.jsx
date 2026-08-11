@@ -55,17 +55,25 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
 
   useEffect(() => {
     if (room && isOpen) {
-      const initialImages = Array.isArray(room.image) 
-        ? room.image 
-        : (room.image ? [room.image] : []);
+      const rawImage = room.image || room.imageUrl;
+      const initialImages = Array.isArray(rawImage) 
+        ? rawImage 
+        : (rawImage ? [rawImage] : []);
       
+      const priceVal = room.price || room.pricePerNight || room.basePrice || '';
+      const sizeVal = room.size || room.roomSize || room.sizeLabel || (room.sizesSqm ? String(room.sizesSqm) : '') || '';
+      const capacityVal = room.capacity || room.maxCapacity || '';
+      const bedInfoVal = room.bedInfo || room.bedInformation || '';
+      const bathsVal = room.baths || room.bathrooms || '';
+      const roomsLeftVal = room.roomsLeft || room.roomsLeftAlert || '';
+
       reset({
         name: room.name || '',
-        price: room.price ? String(room.price).replace('$', '') : '',
-        size: room.size || '',
-        capacity: room.capacity || '3 pers. max',
-        bedInfo: room.bedInfo || '1 King size bed(s)',
-        baths: room.baths || '1 Bath(s)',
+        price: priceVal ? String(priceVal).replace('$', '') : '',
+        size: sizeVal || '',
+        capacity: capacityVal || '3 pers. max',
+        bedInfo: bedInfoVal || '1 King size bed(s)',
+        baths: bathsVal || '1 Bath(s)',
         description: room.description || '',
         foodBeverage: room.foodBeverage ? (Array.isArray(room.foodBeverage) ? room.foodBeverage.join(', ') : room.foodBeverage) : '',
         bathroom: room.bathroom ? (Array.isArray(room.bathroom) ? room.bathroom.join(', ') : room.bathroom) : '',
@@ -73,7 +81,7 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
         serviceEquipment: room.serviceEquipment ? (Array.isArray(room.serviceEquipment) ? room.serviceEquipment.join(', ') : room.serviceEquipment) : '',
         tags: room.tags ? (Array.isArray(room.tags) ? room.tags.join(', ') : room.tags) : '',
         image: initialImages,
-        roomsLeft: room.roomsLeft || 'Only 2 rooms left',
+        roomsLeft: roomsLeftVal || 'Only 2 rooms left',
       });
       setPreviewUrls(initialImages);
       setImageFiles([]);
