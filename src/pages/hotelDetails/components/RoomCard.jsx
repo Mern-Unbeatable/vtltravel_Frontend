@@ -110,6 +110,7 @@ const RoomCard = ({ room, stay, onSelectRoom, onOpenDetails }) => {
                 onClick={() => onSelectRoom && onSelectRoom(room)}
                 className="mt-3 rounded-full bg-[#3ea5dc] px-7 py-2.5 text-xs font-bold text-white shadow-md transition hover:bg-[#3296cc] active:scale-95 cursor-pointer"
               >
+                
                 Choose this room
               </button>
             </div>
