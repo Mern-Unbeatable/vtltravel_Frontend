@@ -15,6 +15,9 @@ const HotelSummarySidebar = ({
   stay = null,
   selectedRoom = null,
   extraPrice = 0,
+  selectedAddOns = [],
+  onConfirmBooking = null,
+  isSubmitting = false,
 }) => {
   const navigate = useNavigate()
   const location = useLocation()
@@ -31,21 +34,34 @@ const HotelSummarySidebar = ({
   const rooms = Number(stay?.rooms) || 1
   const children = Number(stay?.children) || 0
   const targetId = hotel?.id || hotel?.slug || hotelId
+  const isFerryPage = location.pathname.includes('/book-ferry')
 
-  const handleNext = () => {
-    if (location.pathname.includes('/book-ferry')) {
+  const goToNext = (ferrySkipped) => {
+    if (isFerryPage) {
+      if (onConfirmBooking) {
+        onConfirmBooking({ ferrySkipped })
+        return
+      }
       toast.info('Please fill out the passenger details and complete the booking below.')
       return
     }
     if (location.pathname.includes('/customize')) {
       navigate(`/home/search/${targetId}/book-ferry`, {
-        state: { selectedRoom, title, extraPrice, stay, hotel },
+        state: {
+          selectedRoom,
+          title,
+          extraPrice,
+          stay,
+          hotel,
+          selectedAddOns,
+          ferrySkipped,
+        },
       })
-    } else {
-      navigate(`/home/search/${targetId}/customize`, {
-        state: { selectedRoom, title, stay, hotel },
-      })
+      return
     }
+    navigate(`/home/search/${targetId}/customize`, {
+      state: { selectedRoom, title, stay, hotel },
+    })
   }
 
   const stayDates = (
@@ -217,17 +233,27 @@ const HotelSummarySidebar = ({
       <div className="mt-5 space-y-2.5">
         <button
           type="button"
-          onClick={handleNext}
-          className="w-full rounded-full bg-[#3ea5dc] py-3 text-xs font-bold text-white shadow-md transition hover:bg-[#3296cc] active:scale-95 cursor-pointer"
+          onClick={() => goToNext(false)}
+          disabled={isSubmitting}
+          className="w-full rounded-full bg-[#3ea5dc] py-3 text-xs font-bold text-white shadow-md transition hover:bg-[#3296cc] active:scale-95 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Continue to ferry booking
+          {isFerryPage
+            ? isSubmitting
+              ? 'Confirming...'
+              : 'Confirm booking'
+            : 'Continue to ferry booking'}
         </button>
         <button
           type="button"
-          onClick={handleNext}
-          className="w-full rounded-full border border-[#3ea5dc] py-3 text-xs font-bold text-[#3ea5dc] transition hover:bg-sky-50 active:scale-95 cursor-pointer"
+          onClick={() => goToNext(true)}
+          disabled={isSubmitting}
+          className="w-full rounded-full border border-[#3ea5dc] py-3 text-xs font-bold text-[#3ea5dc] transition hover:bg-sky-50 active:scale-95 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Skip ferry booking
+          {isFerryPage
+            ? isSubmitting
+              ? 'Confirming...'
+              : 'Confirm without ferry'
+            : 'Skip ferry booking'}
         </button>
       </div>
     </aside>

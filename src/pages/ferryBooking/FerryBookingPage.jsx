@@ -1,29 +1,51 @@
 import { useState } from 'react'
-import { useLocation, Link, useNavigate } from 'react-router-dom'
-import { IoArrowBackOutline, IoArrowForwardOutline, IoPersonOutline } from 'react-icons/io5'
+import { useLocation, Link, useNavigate, useParams } from 'react-router-dom'
+import { IoPersonOutline } from 'react-icons/io5'
+import { toast } from 'react-toastify'
 import HotelSummarySidebar from '../hotelDetails/components/HotelSummarySidebar'
+import { useHotel } from '../../hooks/useHotels'
+import { useCreateBooking } from '../../hooks/useBookings'
+import { getStoredHotelSearch } from '../../utils/hotelSearchStorage'
+import { formatDateISO } from '../../utils/hotelSearchParams'
+
+const MONTHS = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+]
+
+const toIsoDate = (day, monthName, year) => {
+  if (!day || !monthName || !year) return ''
+  const monthIndex = MONTHS.indexOf(monthName) + 1
+  if (monthIndex < 1) return ''
+  return `${year}-${String(monthIndex).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+}
+
+const extractPhoneCode = (value) => {
+  const match = String(value || '').match(/\+\d+/)
+  return match ? match[0] : '+65'
+}
+
+const getErrorMessage = (error) => {
+  if (typeof error === 'string') return error
+  return error?.message || error?.error || 'Failed to create booking.'
+}
 
 const FerryBookingPage = () => {
+  const { hotelId: hotelIdParam } = useParams()
   const { state } = useLocation()
   const navigate = useNavigate()
+  const { data: hotelData } = useHotel(hotelIdParam)
+  const { mutateAsync: createBooking, isPending } = useCreateBooking()
 
-  const selectedRoom = state?.selectedRoom || {
-    name: 'SUPERIOR ROOM, 2 Single Size Beds, City View',
-    price: '$87',
-    image: 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=400&q=80',
-    capacity: '1 adult',
-    taxes: '$14.27',
-    totalPrice: '$120.76',
-  }
-  const hotelTitle = state?.title || state?.hotel?.name || ''
+  const hotel = hotelData || state?.hotel || null
+  const selectedRoom = state?.selectedRoom || null
+  const stay = state?.stay || getStoredHotelSearch()
   const extraPrice = state?.extraPrice || 0
-  const stay = state?.stay || null
-  const hotel = state?.hotel || null
+  const selectedAddOns = Array.isArray(state?.selectedAddOns) ? state.selectedAddOns : []
+  const hotelTitle = hotel?.name || state?.title || ''
 
-  // Form State
   const [gender, setGender] = useState('Male')
   const [agreed, setAgreed] = useState(true)
-
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -49,12 +71,111 @@ const FerryBookingPage = () => {
   }
 
   const days = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0'))
-  const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ]
   const years = Array.from({ length: 50 }, (_, i) => String(2026 - i))
   const expYears = Array.from({ length: 20 }, (_, i) => String(2026 + i))
+
+  const buildPayload = (ferrySkipped) => {
+    const hotelId = hotel?.id
+    const roomTypeId = selectedRoom?.id
+    const checkIn = formatDateISO(stay?.checkIn) || stay?.checkIn || ''
+    const checkOut = formatDateISO(stay?.checkOut) || stay?.checkOut || ''
+    const numAdults = Number(stay?.adults) || 1
+    const numChildren = Number(stay?.children) || 0
+    const numRooms = Number(stay?.rooms) || 1
+    const guestName = formData.fullName.trim()
+    const guestEmail = formData.email.trim()
+    const guestPhone = formData.phone.trim()
+    const passengerName = (formData.passportName || formData.fullName).trim()
+    const dateOfBirth = toIsoDate(formData.dobDay, formData.dobMonth, formData.dobYear)
+    const passportIssuanceDate = toIsoDate(formData.issueDay, formData.issueMonth, formData.issueYear)
+    const passportExpiryDate = toIsoDate(formData.expDay, formData.expMonth, formData.expYear)
+
+    if (!hotelId) return { error: 'Hotel information is missing. Please go back and try again.' }
+    if (!roomTypeId) return { error: 'Please select a room before completing your booking.' }
+    if (!checkIn || !checkOut) return { error: 'Check-in and check-out dates are required.' }
+    if (!guestName) return { error: 'Please enter your full name.' }
+    if (!guestEmail) return { error: 'Please enter your email address.' }
+    if (!guestPhone) return { error: 'Please enter your phone number.' }
+    if (!formData.passportNo.trim()) return { error: 'Please enter the passport number.' }
+    if (!formData.nationality) return { error: 'Please select nationality.' }
+    if (!passengerName) return { error: 'Please enter the name as in the passport.' }
+    if (!dateOfBirth) return { error: 'Please enter the date of birth.' }
+    if (!formData.issuanceCountry) return { error: 'Please select the issuance country.' }
+    if (!passportIssuanceDate) return { error: 'Please enter the passport issuance date.' }
+    if (!passportExpiryDate) return { error: 'Please enter the passport expiry date.' }
+    if (!agreed) return { error: 'Please confirm that passenger details are accurate.' }
+
+    return {
+      payload: {
+        hotelId,
+        checkIn,
+        checkOut,
+        numAdults,
+        numChildren,
+        numRooms,
+        guestName,
+        guestEmail,
+        guestPhoneCode: extractPhoneCode(formData.countryCode),
+        guestPhone,
+        rooms: [{ roomTypeId, quantity: numRooms }],
+        addOns: selectedAddOns
+          .filter((item) => item?.addOnId)
+          .map((item) => ({
+            addOnId: item.addOnId,
+            quantity: Number(item.quantity) || 1,
+          })),
+        ferrySkipped: Boolean(ferrySkipped),
+        confirm: true,
+        passengers: [
+          {
+            type: 'adult',
+            fullName: passengerName,
+            passportNo: formData.passportNo.trim(),
+            nationality: formData.nationality,
+            dateOfBirth,
+            gender,
+            issuanceCountry: formData.issuanceCountry,
+            passportIssuanceDate,
+            passportExpiryDate,
+          },
+        ],
+        notes: 'Checkout from Complete Your Ferry Booking form',
+      },
+    }
+  }
+
+  const handleConfirmBooking = async ({ ferrySkipped } = {}) => {
+    const skipped = ferrySkipped ?? state?.ferrySkipped ?? true
+    const { payload, error } = buildPayload(skipped)
+
+    if (error) {
+      toast.error(error)
+      return
+    }
+
+    try {
+      const response = await createBooking(payload)
+      const booking = response?.data || response
+      const paymentUrl =
+        booking?.paymentUrl ||
+        booking?.payment?.url ||
+        response?.paymentUrl
+
+      if (!paymentUrl) {
+        toast.error('Booking created but payment link is missing.')
+        return
+      }
+
+      if (/^https?:\/\//i.test(paymentUrl)) {
+        window.location.assign(paymentUrl)
+        return
+      }
+
+      navigate(paymentUrl, { replace: true })
+    } catch (err) {
+      toast.error(getErrorMessage(err))
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#fafafa] pb-24 pt-6 text-slate-800">
@@ -100,7 +221,13 @@ const FerryBookingPage = () => {
         {/* 2-Column Grid */}
         <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_340px]">
           {/* Left Column - Forms */}
-          <div className="space-y-6">
+          <form
+            className="space-y-6"
+            onSubmit={(e) => {
+              e.preventDefault()
+              handleConfirmBooking({ ferrySkipped: state?.ferrySkipped ?? true })
+            }}
+          >
             {/* 1. Booking Details Card */}
             <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-2xs space-y-4">
               <h2 className="text-xl font-bold text-slate-900">Booking Details</h2>
@@ -198,11 +325,11 @@ const FerryBookingPage = () => {
                       className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-xs text-gray-600 outline-none cursor-pointer focus:border-[#3ea5dc]"
                     >
                       <option value="">Select Nationality</option>
-                      <option value="Singaporean">Singaporean</option>
-                      <option value="Indonesian">Indonesian</option>
-                      <option value="Malaysian">Malaysian</option>
-                      <option value="Vietnamese">Vietnamese</option>
-                      <option value="American">American</option>
+                      <option value="Singapore">Singapore</option>
+                      <option value="Indonesia">Indonesia</option>
+                      <option value="Malaysia">Malaysia</option>
+                      <option value="Vietnam">Vietnam</option>
+                      <option value="United States">United States</option>
                     </select>
                   </div>
                 </div>
@@ -246,7 +373,7 @@ const FerryBookingPage = () => {
                         className="rounded-xl border border-gray-200 bg-gray-50/50 px-2 py-3 text-xs text-gray-600 outline-none cursor-pointer"
                       >
                         <option value="">Month</option>
-                        {months.map((m) => (
+                        {MONTHS.map((m) => (
                           <option key={m} value={m}>
                             {m}
                           </option>
@@ -344,7 +471,7 @@ const FerryBookingPage = () => {
                         className="rounded-xl border border-gray-200 bg-gray-50/50 px-2 py-3 text-xs text-gray-600 outline-none cursor-pointer"
                       >
                         <option value="">Month</option>
-                        {months.map((m) => (
+                        {MONTHS.map((m) => (
                           <option key={m} value={m}>
                             {m}
                           </option>
@@ -389,7 +516,7 @@ const FerryBookingPage = () => {
                         className="rounded-xl border border-gray-200 bg-gray-50/50 px-2 py-3 text-xs text-gray-600 outline-none cursor-pointer"
                       >
                         <option value="">Month</option>
-                        {months.map((m) => (
+                        {MONTHS.map((m) => (
                           <option key={m} value={m}>
                             {m}
                           </option>
@@ -427,8 +554,14 @@ const FerryBookingPage = () => {
               </label>
             </div>
 
-      
-          </div>
+            <button
+              type="submit"
+              disabled={isPending}
+              className="w-full rounded-full bg-[#3ea5dc] py-3 text-sm font-bold text-white shadow-md transition hover:bg-[#3296cc] active:scale-95 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:px-10"
+            >
+              {isPending ? 'Confirming...' : 'Confirm booking'}
+            </button>
+          </form>
 
           {/* Right Column - Summary Sidebar */}
           <div>
@@ -438,6 +571,9 @@ const FerryBookingPage = () => {
               stay={stay}
               selectedRoom={selectedRoom}
               extraPrice={extraPrice}
+              selectedAddOns={selectedAddOns}
+              onConfirmBooking={handleConfirmBooking}
+              isSubmitting={isPending}
             />
           </div>
         </div>

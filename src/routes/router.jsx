@@ -12,6 +12,7 @@ import SearchResultsPage from "../pages/searchResultsPage/SearchResultsPage";
 import HotelDetailsPage from "../pages/hotelDetails/HotelDetailsPage";
 import CustomizeStayPage from "../pages/customizeStay/CustomizeStayPage";
 import FerryBookingPage from "../pages/ferryBooking/FerryBookingPage";
+import BookingSuccessPage from "../pages/bookingSuccess/BookingSuccessPage";
 import About from "../pages/About";
 import Destinations from "../pages/Destinations";
 import TravelInfo from "../pages/TravelInfo";
@@ -64,6 +65,10 @@ const AppRouter = () => {
           <Route
             path="home/search/:hotelId/book-ferry"
             element={<FerryBookingPage />}
+          />
+          <Route
+            path="bookings/ref/:bookingRef/confirm-payment"
+            element={<BookingSuccessPage />}
           />
           <Route path="about" element={<About />} />
           <Route path="destinations" element={<Destinations />} />

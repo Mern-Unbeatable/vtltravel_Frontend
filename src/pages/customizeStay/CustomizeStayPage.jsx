@@ -24,6 +24,7 @@ const mapAddOn = (item) => {
   const priceValue = Number(addOn?.price)
   return {
     id: item?.id || addOn?.id,
+    addOnId: item?.addOnId || addOn?.id || item?.id,
     title: addOn?.name || '',
     description: addOn?.description || '',
     price: Number.isNaN(priceValue) ? 0 : priceValue,
@@ -53,6 +54,11 @@ const CustomizeStayPage = () => {
     const extra = extras.find((item) => item.id === id)
     return extra ? sum + extra.price : sum
   }, 0)
+
+  const selectedAddOns = selectedExtras
+    .map((id) => extras.find((item) => item.id === id))
+    .filter(Boolean)
+    .map((item) => ({ addOnId: item.addOnId, quantity: 1 }))
 
   const toggleExtra = (id) => {
     setSelectedExtras((prev) =>
@@ -217,6 +223,7 @@ const CustomizeStayPage = () => {
               stay={stay}
               selectedRoom={selectedRoom}
               extraPrice={extrasTotal}
+              selectedAddOns={selectedAddOns}
             />
           </div>
         </div>
