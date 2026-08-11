@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { IoClose } from 'react-icons/io5'
 import FallbackImage from '../../../components/FallbackImage'
+import Spinner from '../../../components/Spinner'
+import { useHotelImages } from '../../../hooks/useHotels'
 
 const CATEGORIES = [
   'Videos',
@@ -18,9 +20,111 @@ const CATEGORIES = [
   'Spa',
 ]
 
-const HotelGalleryModal = ({ open, onClose, hotelTitle, images }) => {
+const CATEGORY_KEYS = {
+  Videos: ['VIDEOS', 'VIDEO'],
+  Hotel: ['HOTEL'],
+  Rooms: ['ROOMS', 'ROOM'],
+  Suite: ['SUITE', 'SUITES'],
+  Restaurant: ['RESTAURANT', 'RESTAURANTS'],
+  Bar: ['BAR', 'BARS'],
+  Breakfast: ['BREAKFAST'],
+  Family: ['FAMILY'],
+  Weddings: ['WEDDINGS', 'WEDDING'],
+  'Meetings and events': ['MEETINGS_AND_EVENTS', 'MEETINGS', 'EVENTS'],
+  Services: ['SERVICES', 'SERVICE'],
+  'Hotel advantages': ['HOTEL_ADVANTAGES', 'ADVANTAGES'],
+  Spa: ['SPA'],
+}
+
+const VIDEO_EXT = /\.(mp4|webm|mov|m4v)(\?|$)/i
+
+const normalizeCategory = (value) =>
+  String(value || '')
+    .trim()
+    .toUpperCase()
+    .replace(/[\s-]+/g, '_')
+
+const isVideoItem = (item) =>
+  CATEGORY_KEYS.Videos.includes(normalizeCategory(item?.category)) ||
+  VIDEO_EXT.test(item?.url || '')
+
+const uniqueByUrl = (items = []) => {
+  const seen = new Set()
+  return items.filter((item) => {
+    const key = item?.url || item?.id
+    if (!key || seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
+
+const sortMedia = (items = []) =>
+  [...items].sort((a, b) => {
+    if (Boolean(b?.isPrimary) !== Boolean(a?.isPrimary)) {
+      return a?.isPrimary ? -1 : 1
+    }
+    return (a?.sortOrder || 0) - (b?.sortOrder || 0)
+  })
+
+const filterByCategory = (items, category) => {
+  if (category === 'Videos') {
+    return sortMedia(uniqueByUrl(items.filter(isVideoItem)))
+  }
+
+  const keys = CATEGORY_KEYS[category] || [normalizeCategory(category)]
+  return sortMedia(
+    uniqueByUrl(
+      items.filter(
+        (item) =>
+          !isVideoItem(item) && keys.includes(normalizeCategory(item?.category)),
+      ),
+    ),
+  )
+}
+
+const GalleryMedia = ({ item, alt }) => {
+  if (isVideoItem(item)) {
+    return (
+      <video
+        src={item.url}
+        controls
+        preload="metadata"
+        className="h-[180px] w-full object-cover sm:h-[200px] md:h-[220px]"
+      >
+        <track kind="captions" />
+      </video>
+    )
+  }
+
+  return (
+    <FallbackImage
+      src={item?.url}
+      alt={item?.altText || item?.caption || alt}
+      className="h-[180px] w-full object-cover sm:h-[200px] md:h-[220px]"
+      dummyClassName="h-[180px] w-full object-contain p-8 sm:h-[200px] md:h-[220px]"
+    />
+  )
+}
+
+const HotelGalleryModal = ({ open, onClose, hotelTitle, images, hotelId }) => {
   const [activeCategory, setActiveCategory] = useState('Hotel')
-  const imagesList = images && images.length > 0 ? images : ['']
+  const { data: apiImages, isLoading, isFetching } = useHotelImages(hotelId, open)
+
+  const mediaItems = useMemo(() => {
+    if (hotelId) return Array.isArray(apiImages) ? apiImages : []
+    return (images || [])
+      .map((image, index) =>
+        typeof image === 'string'
+          ? { id: `local-${index}`, url: image, category: 'HOTEL' }
+          : image,
+      )
+      .filter((item) => item?.url)
+  }, [hotelId, apiImages, images])
+
+  const filteredItems = useMemo(() => {
+    if (!hotelId) return mediaItems
+    return filterByCategory(mediaItems, activeCategory)
+  }, [hotelId, mediaItems, activeCategory])
 
   useEffect(() => {
     if (!open) return undefined
@@ -38,7 +142,13 @@ const HotelGalleryModal = ({ open, onClose, hotelTitle, images }) => {
     }
   }, [open, onClose])
 
+  useEffect(() => {
+    if (open) setActiveCategory('Hotel')
+  }, [open])
+
   if (!open) return null
+
+  const showLoader = Boolean(hotelId) && (isLoading || (isFetching && !apiImages))
 
   return (
     <div
@@ -91,7 +201,6 @@ const HotelGalleryModal = ({ open, onClose, hotelTitle, images }) => {
             </button>
           </div>
 
-          {/* Horizontal Category Selector for Mobile */}
           <div className="border-b border-gray-100 px-5 py-3 md:hidden overflow-x-auto whitespace-nowrap [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] shrink-0">
             <div className="flex gap-2">
               {CATEGORIES.map((category) => {
@@ -115,21 +224,34 @@ const HotelGalleryModal = ({ open, onClose, hotelTitle, images }) => {
           </div>
 
           <div className="flex-1 overflow-y-auto p-5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 hover:[&::-webkit-scrollbar-thumb]:bg-gray-400 [&::-webkit-scrollbar-track]:bg-transparent">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {imagesList.map((image, index) => (
-                <div
-                  key={`${activeCategory}-${image}-${index}`}
-                  className="overflow-hidden rounded-xl bg-[#f3f4f6]"
-                >
-                  <FallbackImage
-                    src={image}
-                    alt={`${activeCategory} ${index + 1}`}
-                    className="h-[180px] w-full object-cover sm:h-[200px] md:h-[220px]"
-                    dummyClassName="h-[180px] w-full object-contain p-8 sm:h-[200px] md:h-[220px]"
-                  />
-                </div>
-              ))}
-            </div>
+            {showLoader ? (
+              <Spinner />
+            ) : (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {filteredItems.length > 0 ? (
+                  filteredItems.map((item, index) => (
+                    <div
+                      key={item.id || `${activeCategory}-${item.url}-${index}`}
+                      className="overflow-hidden rounded-xl bg-[#f3f4f6]"
+                    >
+                      <GalleryMedia
+                        item={item}
+                        alt={`${activeCategory} ${index + 1}`}
+                      />
+                    </div>
+                  ))
+                ) : (
+                  <div className="overflow-hidden rounded-xl bg-[#f3f4f6] sm:col-span-2">
+                    <FallbackImage
+                      src=""
+                      alt={`${activeCategory} placeholder`}
+                      className="h-[180px] w-full object-cover sm:h-[200px] md:h-[220px]"
+                      dummyClassName="h-[180px] w-full object-contain p-8 sm:h-[200px] md:h-[220px]"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

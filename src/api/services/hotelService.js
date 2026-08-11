@@ -15,6 +15,10 @@ export const hotelService = {
     return api.get(API_ENDPOINTS.HOTEL_DETAILS(id), { params });
   },
 
+  getHotelImages: async (id) => {
+    return api.get(API_ENDPOINTS.HOTEL_IMAGES(id));
+  },
+
   addHotel: async (hotelData) => {
     const config = hotelData instanceof FormData 
       ? { headers: { 'Content-Type': 'multipart/form-data' } } 

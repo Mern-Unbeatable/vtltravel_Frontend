@@ -104,7 +104,7 @@ const HotelDetailsPage = () => {
   const todayIso = formatDateISO(new Date())
   return (
     <div className="">
-      <HotelHeaderGallery images={galleryImages} title={title} />
+      <HotelHeaderGallery images={galleryImages} title={title} hotelId={hotel.id} />
 
       <div className="mx-auto container px-4 pt-8 md:px-6">
         <HotelOverviewSection hotel={hotel} />

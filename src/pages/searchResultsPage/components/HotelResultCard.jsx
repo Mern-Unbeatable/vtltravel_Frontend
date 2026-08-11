@@ -54,7 +54,10 @@ const HotelResultCard = ({ hotel, nights = 1, adults = 1, rooms = 1 }) => {
 
           <button
             type="button"
-            onClick={() => setIsGalleryOpen(true)}
+            onClick={(event) => {
+              event.stopPropagation()
+              setIsGalleryOpen(true)
+            }}
             className="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-md bg-black/60 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-xs transition-colors hover:bg-black/75"
           >
             <HiOutlinePhotograph className="h-4 w-4" />
@@ -118,6 +121,7 @@ const HotelResultCard = ({ hotel, nights = 1, adults = 1, rooms = 1 }) => {
         open={isGalleryOpen}
         onClose={() => setIsGalleryOpen(false)}
         hotelTitle={title}
+        hotelId={hotel?.id || hotelId}
         images={galleryImages}
       />
     </>

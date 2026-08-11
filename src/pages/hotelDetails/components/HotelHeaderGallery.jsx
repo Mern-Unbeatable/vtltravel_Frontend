@@ -4,7 +4,7 @@ import { HiOutlinePhotograph } from 'react-icons/hi'
 import HotelGalleryModal from '../../searchResultsPage/components/HotelGalleryModal'
 import FallbackImage from '../../../components/FallbackImage'
 
-const HotelHeaderGallery = ({ images = [], title = 'Hotel' }) => {
+const HotelHeaderGallery = ({ images = [], title = 'Hotel', hotelId }) => {
   const sliderRef = useRef(null)
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isGalleryOpen, setIsGalleryOpen] = useState(false)
@@ -136,6 +136,7 @@ const HotelHeaderGallery = ({ images = [], title = 'Hotel' }) => {
         open={isGalleryOpen}
         onClose={() => setIsGalleryOpen(false)}
         hotelTitle={title}
+        hotelId={hotelId}
         images={images}
       />
     </div>

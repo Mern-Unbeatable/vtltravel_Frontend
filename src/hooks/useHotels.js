@@ -69,6 +69,19 @@ export const useAdminHotels = () => {
 };
 
 
+export const useHotelImages = (hotelId, enabled = false) => {
+  return useQuery({
+    queryKey: ['hotel-images', hotelId],
+    queryFn: async () => {
+      const response = await hotelService.getHotelImages(hotelId);
+      const items = response?.data || response;
+      return Array.isArray(items) ? items : [];
+    },
+    enabled: Boolean(hotelId) && enabled,
+    staleTime: 60_000,
+  });
+};
+
 export const useHotel = (id, params = {}) => {
   return useQuery({
     queryKey: ['hotel', id, params],
