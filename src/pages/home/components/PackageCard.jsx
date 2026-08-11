@@ -6,7 +6,7 @@ const PackageCard = ({ item }) => {
 
   return (
     <article
-      onClick={() => navigate(`/home/search/${item.id}`)}
+      // onClick={() => navigate(`/home/search/${item.id}`)}
       className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm  hover:cursor-pointer"
     >
       <img
