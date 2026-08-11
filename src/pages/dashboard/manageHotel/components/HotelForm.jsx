@@ -229,7 +229,11 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
       formData.append('totalInventory', '5');
       formData.append('roomsLeftAlert', savedRoom.roomsLeft || 'Only 2 rooms left');
       
-      formData.append('tags', JSON.stringify(savedRoom.tags));
+      if (savedRoom.tags && savedRoom.tags.length > 0) {
+        savedRoom.tags.forEach(tag => {
+          formData.append('tags', tag);
+        });
+      }
       formData.append('amenityIds', JSON.stringify([]));
       
       const allAmenities = [

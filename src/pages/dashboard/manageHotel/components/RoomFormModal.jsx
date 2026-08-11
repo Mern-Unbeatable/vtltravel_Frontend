@@ -79,7 +79,7 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
         bathroom: room.bathroom ? (Array.isArray(room.bathroom) ? room.bathroom.join(', ') : room.bathroom) : '',
         mediaTech: room.mediaTech ? (Array.isArray(room.mediaTech) ? room.mediaTech.join(', ') : room.mediaTech) : '',
         serviceEquipment: room.serviceEquipment ? (Array.isArray(room.serviceEquipment) ? room.serviceEquipment.join(', ') : room.serviceEquipment) : '',
-        tags: room.tags ? (Array.isArray(room.tags) ? room.tags.join(', ') : room.tags) : '',
+        tags: room.tags ? (Array.isArray(room.tags) ? room.tags.join(' ') : room.tags) : '',
         image: initialImages,
         roomsLeft: roomsLeftVal || 'Only 2 rooms left',
       });
@@ -156,7 +156,7 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
       bathroom: data.bathroom.split(',').map(t => t.trim()).filter(Boolean),
       mediaTech: data.mediaTech.split(',').map(t => t.trim()).filter(Boolean),
       serviceEquipment: data.serviceEquipment.split(',').map(t => t.trim()).filter(Boolean),
-      tags: data.tags.split(',').map(t => t.trim()).filter(Boolean),
+      tags: data.tags.split(/[\s,]+/).map(t => t.trim()).filter(Boolean),
       existingImages: previewUrls.filter(url => url.startsWith('http')),
       roomsLeft: data.roomsLeft,
       imageFiles: imageFiles, // pass multiple binary files
