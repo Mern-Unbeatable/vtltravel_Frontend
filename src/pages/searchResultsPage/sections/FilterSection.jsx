@@ -66,8 +66,8 @@ const FilterSection = ({ onFilterChange }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   // 1. Budget State
-  const MIN_PRICE = 48;
-  const MAX_PRICE = 466;
+  const MIN_PRICE = 00;
+  const MAX_PRICE = 00;
 
   const [minBudget, setMinBudget] = useState(MIN_PRICE);
   const [maxBudget, setMaxBudget] = useState(MAX_PRICE);
@@ -106,6 +106,14 @@ const FilterSection = ({ onFilterChange }) => {
     }
     setIsOpen(false);
   };
+
+  const hasSelectedOptions = Object.values(selectedOptions).some(Boolean);
+  const hasCreatedFilter =
+    minBudget !== MIN_PRICE ||
+    maxBudget !== MAX_PRICE ||
+    selectedStars.length > 0 ||
+    hasSelectedOptions ||
+    onlyAvailable;
 
   const handleClearFilters = () => {
     setMinBudget(MIN_PRICE);
@@ -345,7 +353,12 @@ const FilterSection = ({ onFilterChange }) => {
           <button
             type="button"
             onClick={handleApplyFilter}
-            className="rounded-full bg-[#A3A6C5] hover:bg-[#9194b5] text-white px-8 py-2.5 text-sm font-semibold transition-all cursor-pointer shadow-sm active:scale-95"
+            disabled={!hasCreatedFilter}
+            className={`rounded-full px-8 py-2.5 text-sm font-semibold shadow-sm transition-all ${
+              hasCreatedFilter
+                ? "bg-primary text-white hover:bg-primary/90 cursor-pointer active:scale-95"
+                : "bg-[#A3A6C5] text-white cursor-not-allowed opacity-80"
+            }`}
           >
             Filter
           </button>
