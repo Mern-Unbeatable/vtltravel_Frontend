@@ -1,39 +1,12 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { IoFilterOutline, IoCloseOutline } from "react-icons/io5";
+import { useHotelFilterFacets } from "../../../hooks/useHotels";
+import { compactParams } from "../../../utils/hotelSearchParams";
 
 const starsList = ["5 ★", "4 ★", "3 ★", "1 ★", "Unclassified ★"];
 
 const featuredPackages = [{ name: "Packages of the Month", count: 1 }];
-
-const bestFor = [
-  { name: "Family-Friendly Getaway", count: 1 },
-  { name: "Couple's Getaway", count: 11 },
-  { name: "Honeymoon or Anniversary", count: 2 },
-  { name: "Romantic Escape", count: 5 },
-  { name: "Corporate Retreat", count: 5 },
-  { name: "Friends & Group Getaway", count: 5 },
-  { name: "Luxury Getaway", count: 5 },
-  { name: "Peaceful Nature Retreat", count: 5 },
-];
-
-const accommodationStyle = [
-  { name: "Luxury Hotel Room", count: 1 },
-  { name: "Glamping Tent", count: 11 },
-  { name: "Private Pool Villa", count: 2 },
-  { name: "Apartment with In-Room Kitchen", count: 2 },
-  { name: "Connecting Rooms Available", count: 2 },
-];
-
-const resortFeatures = [
-  { name: "Beachfront Resort", count: 1 },
-  { name: "Private Beach Access", count: 11 },
-  { name: "Swimming Pool", count: 5 },
-  { name: "Kids' Club", count: 5 },
-  { name: "Spa & Wellness Facilities", count: 5 },
-  { name: "Watersport or Lagoon Access", count: 5 },
-  { name: "Complimentary Resort Activities", count: 5 },
-  { name: "Walking Distance to Lagoi Bay & Plaza", count: 5 },
-];
 
 const FilterCheckboxRow = ({ label, count, checked, onChange }) => {
   return (
@@ -62,29 +35,53 @@ const FilterGroup = ({ title, children }) => {
 };
 
 const FilterSection = ({ onFilterChange }) => {
-  // Drawer Open/Close State (Mobile/Tablet)
+  const [searchParams] = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
 
-  // 1. Budget State
-  const MIN_PRICE = 00;
-  const MAX_PRICE = 00;
+  const facetParams = useMemo(
+    () =>
+      compactParams({
+        location: searchParams.get("location") || undefined,
+        q: searchParams.get("q") || undefined,
+        checkIn: searchParams.get("checkIn") || undefined,
+        checkOut: searchParams.get("checkOut") || undefined,
+        adults: searchParams.get("adults") || undefined,
+        rooms: searchParams.get("rooms") || undefined,
+      }),
+    [searchParams],
+  );
+
+  const { data: facets, isLoading: isFacetsLoading } =
+    useHotelFilterFacets(facetParams);
+  const bestFor = facets?.bestFor || [];
+  const accommodationStyles = facets?.accommodationStyles || [];
+  const resortFeatures = facets?.resortFeatures || [];
+
+  const MIN_PRICE = 48;
+  const MAX_PRICE = 466;
 
   const [minBudget, setMinBudget] = useState(MIN_PRICE);
   const [maxBudget, setMaxBudget] = useState(MAX_PRICE);
-
-  // 2. Stars State
   const [selectedStars, setSelectedStars] = useState([]);
-
-  // 3. Options Checkbox State
   const [selectedOptions, setSelectedOptions] = useState({});
-
-  // 4. Availability Toggle State
+  const [selectedTags, setSelectedTags] = useState([]);
+  const [selectedFacilities, setSelectedFacilities] = useState([]);
+  const [selectedStyles, setSelectedStyles] = useState([]);
   const [onlyAvailable, setOnlyAvailable] = useState(false);
 
   const toggleStar = (star) => {
     setSelectedStars((prev) =>
       prev.includes(star) ? prev.filter((s) => s !== star) : [...prev, star],
     );
+  };
+
+  const toggleSlug = (setter) => (slug, isChecked) => {
+    setter((prev) => {
+      if (isChecked) {
+        return prev.includes(slug) ? prev : [...prev, slug];
+      }
+      return prev.filter((item) => item !== slug);
+    });
   };
 
   const handleCheckboxChange = (name, isChecked) => {
@@ -101,6 +98,9 @@ const FilterSection = ({ onFilterChange }) => {
         maxBudget,
         selectedStars,
         selectedOptions,
+        selectedTags,
+        selectedFacilities,
+        selectedStyles,
         onlyAvailable,
       });
     }
@@ -113,6 +113,9 @@ const FilterSection = ({ onFilterChange }) => {
     maxBudget !== MAX_PRICE ||
     selectedStars.length > 0 ||
     hasSelectedOptions ||
+    selectedTags.length > 0 ||
+    selectedFacilities.length > 0 ||
+    selectedStyles.length > 0 ||
     onlyAvailable;
 
   const handleClearFilters = () => {
@@ -120,6 +123,9 @@ const FilterSection = ({ onFilterChange }) => {
     setMaxBudget(MAX_PRICE);
     setSelectedStars([]);
     setSelectedOptions({});
+    setSelectedTags([]);
+    setSelectedFacilities([]);
+    setSelectedStyles([]);
     setOnlyAvailable(false);
     if (onFilterChange) {
       onFilterChange(null);
@@ -283,41 +289,65 @@ const FilterSection = ({ onFilterChange }) => {
             ))}
           </FilterGroup>
 
-          <FilterGroup title="Best For">
-            {bestFor.map((item) => (
-              <FilterCheckboxRow
-                key={item.name}
-                label={item.name}
-                count={item.count}
-                checked={!!selectedOptions[item.name]}
-                onChange={handleCheckboxChange}
-              />
-            ))}
-          </FilterGroup>
+          {isFacetsLoading || bestFor.length > 0 ? (
+            <FilterGroup title="Best For">
+              {isFacetsLoading ? (
+                <p className="text-xs text-gray-400">Loading...</p>
+              ) : (
+                bestFor.map((item) => (
+                  <FilterCheckboxRow
+                    key={item.slug}
+                    label={item.name}
+                    count={item.count}
+                    checked={selectedTags.includes(item.slug)}
+                    onChange={(_, isChecked) =>
+                      toggleSlug(setSelectedTags)(item.slug, isChecked)
+                    }
+                  />
+                ))
+              )}
+            </FilterGroup>
+          ) : null}
 
-          <FilterGroup title="Accommodation Style">
-            {accommodationStyle.map((item) => (
-              <FilterCheckboxRow
-                key={item.name}
-                label={item.name}
-                count={item.count}
-                checked={!!selectedOptions[item.name]}
-                onChange={handleCheckboxChange}
-              />
-            ))}
-          </FilterGroup>
+          {isFacetsLoading || accommodationStyles.length > 0 ? (
+            <FilterGroup title="Accommodation Style">
+              {isFacetsLoading ? (
+                <p className="text-xs text-gray-400">Loading...</p>
+              ) : (
+                accommodationStyles.map((item) => (
+                  <FilterCheckboxRow
+                    key={item.slug}
+                    label={item.name}
+                    count={item.count}
+                    checked={selectedStyles.includes(item.slug)}
+                    onChange={(_, isChecked) =>
+                      toggleSlug(setSelectedStyles)(item.slug, isChecked)
+                    }
+                  />
+                ))
+              )}
+            </FilterGroup>
+          ) : null}
 
-          <FilterGroup title="Resort Features">
-            {resortFeatures.map((item) => (
-              <FilterCheckboxRow
-                key={item.name}
-                label={item.name}
-                count={item.count}
-                checked={!!selectedOptions[item.name]}
-                onChange={handleCheckboxChange}
-              />
-            ))}
-          </FilterGroup>
+          {isFacetsLoading || resortFeatures.length > 0 ? (
+            <FilterGroup title="Resort Features">
+              {isFacetsLoading ? (
+                <p className="text-xs text-gray-400">Loading...</p>
+              ) : (
+                resortFeatures.map((item) => (
+                  <FilterCheckboxRow
+                    key={item.slug}
+                    label={item.name}
+                    count={item.count}
+                    checked={selectedFacilities.includes(item.slug)}
+                    onChange={(_, isChecked) =>
+                      toggleSlug(setSelectedFacilities)(item.slug, isChecked)
+                    }
+                  />
+                ))
+              )}
+            </FilterGroup>
+          ) : null}
 
           {/* Availability Toggle */}
           <div className="border-t border-[#05588E29] pt-4">

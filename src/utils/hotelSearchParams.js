@@ -24,26 +24,55 @@ const STAR_SLUGS = {
   '1 ★': '1',
 }
 
-const TAG_SLUGS = {
-  'Family-Friendly Getaway': 'family-friendly',
-  "Couple's Getaway": 'couples',
-  'Honeymoon or Anniversary': 'honeymoon',
-  'Romantic Escape': 'romantic',
-  'Corporate Retreat': 'business',
-  'Friends & Group Getaway': 'group',
-  'Luxury Getaway': 'luxury',
-  'Peaceful Nature Retreat': 'nature',
+const formatAccommodationStyle = (style) => {
+  if (!style) return ''
+  return style
+    .replace(/_/g, ' ')
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase())
 }
 
-const FACILITY_SLUGS = {
-  'Beachfront Resort': 'beachfront',
-  'Private Beach Access': 'private-beach',
-  'Swimming Pool': 'swimming-pool',
-  "Kids' Club": 'kids-club',
-  'Spa & Wellness Facilities': 'spa',
-  'Watersport or Lagoon Access': 'watersports',
-  'Complimentary Resort Activities': 'resort-activities',
-  'Walking Distance to Lagoi Bay & Plaza': 'lagoi-bay',
+const incrementFacet = (map, slug, name) => {
+  const existing = map.get(slug) || { name, slug, count: 0 }
+  existing.count += 1
+  map.set(slug, existing)
+}
+
+export const buildFilterFacets = (hotels = []) => {
+  const tags = new Map()
+  const styles = new Map()
+  const facilities = new Map()
+
+  hotels.forEach((hotel) => {
+    ;(hotel.tags || []).forEach((item) => {
+      const tag = item?.tag || item
+      if (!tag?.slug) return
+      if (tag.category && tag.category !== 'best_for') return
+      incrementFacet(tags, tag.slug, tag.name || tag.slug)
+    })
+
+    if (hotel.accommodationStyle) {
+      incrementFacet(
+        styles,
+        hotel.accommodationStyle,
+        formatAccommodationStyle(hotel.accommodationStyle),
+      )
+    }
+
+    ;(hotel.facilities || []).forEach((item) => {
+      const facility = item?.facility || item
+      if (!facility?.slug) return
+      incrementFacet(facilities, facility.slug, facility.name || facility.slug)
+    })
+  })
+
+  const byCount = (a, b) => b.count - a.count || a.name.localeCompare(b.name)
+
+  return {
+    bestFor: [...tags.values()].sort(byCount),
+    accommodationStyles: [...styles.values()].sort(byCount),
+    resortFeatures: [...facilities.values()].sort(byCount),
+  }
 }
 
 const isEmpty = (value) =>
@@ -116,21 +145,12 @@ export const mapUiFiltersToApi = (filters) => {
     .map((star) => STAR_SLUGS[star])
     .filter(Boolean)
 
-  const tags = []
-  const facilities = []
-
-  Object.entries(filters.selectedOptions || {}).forEach(([name, checked]) => {
-    if (!checked) return
-    if (TAG_SLUGS[name]) tags.push(TAG_SLUGS[name])
-    if (FACILITY_SLUGS[name]) facilities.push(FACILITY_SLUGS[name])
-  })
-
   return compactParams({
     minPrice: filters.minBudget,
     maxPrice: filters.maxBudget,
     starRating: starRating.join(','),
-    tags: tags.join(','),
-    facilities: facilities.join(','),
+    tags: (filters.selectedTags || []).join(','),
+    facilities: (filters.selectedFacilities || []).join(','),
   })
 }
 
