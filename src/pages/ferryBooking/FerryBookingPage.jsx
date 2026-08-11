@@ -291,7 +291,6 @@ const FerryBookingPage = () => {
                 </p>
               </div>
 
-              {/* Passenger Badge Header */}
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-bold text-slate-900">Passenger 1</h3>
                 <span className="rounded-full bg-[#3ea5dc] px-2.5 py-0.5 text-[10px] font-bold text-white uppercase">
