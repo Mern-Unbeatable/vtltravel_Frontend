@@ -3,61 +3,21 @@ import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import RoomFormModal from './RoomFormModal';
+import AddOnOptions from './AddOnOptions';
+import RoomTypesTable from './RoomTypesTable';
 import { FormInput, FormTextarea, FormFileInput } from '../../../../components/FormFields';
 import { fileToBase64 } from '../../../../utils/fileHelpers';
 import { IoArrowBackOutline } from 'react-icons/io5';
+import { hotelService } from '../../../../api/services/hotelService';
+import { toast } from 'react-toastify';
 
-const availableFacilitiesList = [
-  'Free Wi-Fi',
-  'Swimming Pool',
-  'Private Pool',
-  'Fitness Center',
-  'Spa',
-  'Restaurant',
-  'Bar',
-  'Room Service',
-  'Beach Access',
-  'Kids Club',
-  'Free Parking'
-];
-
-const GALLERY_CATEGORIES = [
-  'Videos',
-  'Hotel',
-  'Rooms',
-  'Suite',
-  'Restaurant',
-  'Bar',
-  'Breakfast',
-  'Family',
-  'Weddings',
-  'Meetings and events',
-  'Services',
-  'Hotel advantages',
-  'Spa',
-];
-
-const hotelSchema = z.object({
-  title: z.string().min(1, 'Hotel title is required'),
-  starNum: z.number().min(1).max(5),
-  priceNum: z.string().min(1, 'Starting price is required'),
-  image: z.string().min(1, 'Cover image is required'),
-  video: z.string().optional().default(''),
-  description: z.string().min(1, 'Description is required'),
-  facilities: z.array(z.string()).default([]),
-  gallery: z.array(z.object({
-    url: z.string(),
-    category: z.string()
-  })).default([]),
-  rooms: z.array(z.any()).default([]),
-  available: z.boolean().default(true),
-  addOns: z.array(
-    z.object({
-      name: z.string().default(''),
-      price: z.string().default(''),
-    })
-  ).default([]),
-});
+import { 
+  availableFacilitiesList, 
+  GALLERY_CATEGORIES, 
+  isCategoryMatch, 
+  getBackendCategoryKey, 
+  hotelSchema 
+} from './addHotelHelper';
 
 const HotelForm = ({ hotel, onSave, onCancel }) => {
   // Room modal sub-states
@@ -177,22 +137,46 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
 
   const handleGalleryUpload = async (e) => {
     const files = Array.from(e.target.files);
-    if (files.length > 0) {
-      try {
-        const isVideoTab = activeGalleryTab.toLowerCase() === 'videos';
-        const promises = files.map(file => fileToBase64(file, { 
-          maxSizeMB: isVideoTab ? 20 : 5, 
-          allowedTypes: isVideoTab ? ['video/*'] : ['image/*'] 
-        }));
-        const base64Files = await Promise.all(promises);
-        const newGalleryItems = base64Files.map(base64 => ({
-          url: base64,
-          category: activeGalleryTab
-        }));
-        setValue('gallery', [...galleryVal, ...newGalleryItems].filter(Boolean));
-      } catch (err) {
-        alert(err.message);
+    if (files.length === 0) return;
+
+    const activeHotelId = hotel?.id || hotel?._id;
+    if (!activeHotelId) {
+      toast.error("Please save the hotel details first before uploading gallery media.");
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      files.forEach(file => {
+        formData.append('images', file);
+      });
+
+      const backendCategory = getBackendCategoryKey(activeGalleryTab);
+      formData.append('category', backendCategory);
+
+      if (backendCategory === 'VIDEOS') {
+        formData.append('setAsVideo', 'true');
       }
+
+      const res = await hotelService.uploadGalleryImages(activeHotelId, formData);
+
+      toast.success(res?.message || "Media uploaded successfully!");
+
+      const newMedia = res?.data || [];
+      const formattedMedia = Array.isArray(newMedia) 
+        ? newMedia.map(item => ({
+            url: item.url || item.imageUrl || item,
+            category: item.category || backendCategory
+          }))
+        : [{
+            url: newMedia.url || newMedia.imageUrl || newMedia,
+            category: newMedia.category || backendCategory
+          }];
+
+      setValue('gallery', [...galleryVal, ...formattedMedia]);
+    } catch (err) {
+      console.error("Gallery upload error:", err);
+      toast.error(err?.message || "Failed to upload gallery media.");
     }
   };
 
@@ -201,12 +185,91 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
   };
 
   // Rooms CRUD within Hotel Form
-  const handleSaveRoom = (savedRoom) => {
-    if (editingRoom) {
-      const updated = roomsVal.map(r => r.id === savedRoom.id ? savedRoom : r);
-      setValue('rooms', updated);
-    } else {
-      setValue('rooms', [...roomsVal, savedRoom]);
+  const handleSaveRoom = async (savedRoom) => {
+    const activeHotelId = hotel?.id || hotel?._id;
+    if (!activeHotelId) {
+      toast.error("Error: Hotel ID is missing. Save the hotel details first.");
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('name', savedRoom.name);
+      formData.append('slug', savedRoom.name.toLowerCase().replace(/\s+/g, '-'));
+      formData.append('description', savedRoom.description || '');
+      formData.append('pricePerNight', String(savedRoom.price));
+      formData.append('basePrice', String(savedRoom.price));
+      formData.append('discountPrice', String(Math.round(savedRoom.price * 0.9)));
+      formData.append('taxPerNight', '0');
+      formData.append('roomSize', savedRoom.size);
+      formData.append('sizeLabel', savedRoom.size);
+      formData.append('sizesSqm', String(parseInt(savedRoom.size) || 0));
+      
+      const isKing = savedRoom.bedInfo.toLowerCase().includes('king');
+      formData.append('bedType', isKing ? 'King' : 'Double');
+      
+      const bedCountMatch = savedRoom.bedInfo.match(/\d+/);
+      formData.append('bedCount', bedCountMatch ? bedCountMatch[0] : '1');
+      formData.append('bedInformation', savedRoom.bedInfo);
+      
+      const isOcean = savedRoom.tags.some(t => t.toLowerCase().includes('ocean'));
+      formData.append('viewType', isOcean ? 'Ocean View' : 'City View');
+      
+      const bathCountMatch = savedRoom.baths.match(/\d+/);
+      formData.append('bathrooms', bathCountMatch ? bathCountMatch[0] : '1');
+      
+      const capMatch = savedRoom.capacity.match(/\d+/);
+      formData.append('maxCapacity', capMatch ? capMatch[0] : '3');
+      formData.append('maxAdults', '2');
+      formData.append('maxChildren', '1');
+      formData.append('totalInventory', '5');
+      formData.append('roomsLeftAlert', savedRoom.roomsLeft || 'Only 2 rooms left');
+      
+      formData.append('tags', JSON.stringify(savedRoom.tags));
+      formData.append('amenityIds', JSON.stringify([]));
+      
+      const allAmenities = [
+        ...(savedRoom.foodBeverage || []),
+        ...(savedRoom.bathroom || []),
+        ...(savedRoom.mediaTech || []),
+        ...(savedRoom.serviceEquipment || [])
+      ].map(a => a.toLowerCase().replace(/\s+/g, '-'));
+      formData.append('amenitySlugs', JSON.stringify(allAmenities));
+      
+      formData.append('breakfastIncluded', 'true');
+      formData.append('freeCancellation', 'true');
+      formData.append('isMemberDeal', 'false');
+      formData.append('smokingAllowed', 'false');
+
+      // Append multiple binary files
+      if (savedRoom.imageFiles && savedRoom.imageFiles.length > 0) {
+        savedRoom.imageFiles.forEach(file => {
+          formData.append('imageUrl', file);
+        });
+      }
+      // Append existing image URLs
+      if (savedRoom.existingImages && savedRoom.existingImages.length > 0) {
+        savedRoom.existingImages.forEach(url => {
+          formData.append('imageUrl', url);
+        });
+      }
+
+      // Perform POST API call to create room
+      const res = await hotelService.addRoom(activeHotelId, formData);
+
+      const successMsg = res?.message || "Room added successfully!";
+      toast.success(successMsg);
+
+      // Add to local form state to display it
+      const newRoom = res?.data || savedRoom;
+      setValue('rooms', [...roomsVal, {
+        ...newRoom,
+        id: newRoom.id || newRoom._id || Date.now()
+      }]);
+    } catch (err) {
+      console.error("Error creating room:", err);
+      toast.error(err?.message || "Failed to add room to database.");
+      throw err;
     }
   };
 
@@ -464,7 +527,7 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
           {/* Horizontal scrollable tab buttons */}
           <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-thin">
             {GALLERY_CATEGORIES.map((cat) => {
-              const count = galleryVal.filter(img => (img.category || 'Hotel').toLowerCase() === cat.toLowerCase()).length;
+              const count = galleryVal.filter(img => isCategoryMatch(img.category, cat)).length;
               const isActive = activeGalleryTab.toLowerCase() === cat.toLowerCase();
               return (
                 <button
@@ -499,19 +562,20 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
             </div>
 
             {/* Filtered items display */}
-            {galleryVal.filter(img => (img.category || 'Hotel').toLowerCase() === activeGalleryTab.toLowerCase()).length === 0 ? (
+            {galleryVal.filter(img => isCategoryMatch(img.category, activeGalleryTab)).length === 0 ? (
               <div className="text-center py-8 text-xs font-semibold text-slate-400 border border-dashed border-slate-200 rounded-xl bg-white">
                 No items uploaded under {activeGalleryTab} category yet.
               </div>
             ) : (
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
                 {galleryVal
-                  .filter(img => (img.category || 'Hotel').toLowerCase() === activeGalleryTab.toLowerCase())
+                  .filter(img => isCategoryMatch(img.category, activeGalleryTab))
                   .map((img, idx) => {
-                    const isVideo = (img.category || 'Hotel').toLowerCase() === 'videos';
+                    const isVideo = (img.category || 'Hotel').toLowerCase() === 'videos' || (img.category || 'Hotel').toLowerCase() === 'videos';
+                    const hasVideoExtension = img.url.endsWith('.mp4') || img.url.endsWith('.mov') || img.url.startsWith('data:video/') || (img.category && img.category.toUpperCase() === 'VIDEOS');
                     return (
                       <div key={idx} className="relative group aspect-square rounded-lg overflow-hidden border border-gray-200 bg-white">
-                        {isVideo ? (
+                        {hasVideoExtension ? (
                           <video src={img.url} className="w-full h-full object-cover bg-black" />
                         ) : (
                           <img src={img.url} alt={`Gallery ${activeGalleryTab} ${idx + 1}`} className="w-full h-full object-cover" />
@@ -531,113 +595,23 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
           </div>
         </div>
 
-        {/* Add-on Options Section */}
-        <div className="border-t border-gray-200 pt-6">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-base font-bold text-slate-900">Add-on Options</h3>
-            <button
-              type="button"
-              onClick={() => appendAddOn({ name: '', price: '' })}
-              className="px-3.5 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-semibold hover:bg-slate-800 transition cursor-pointer"
-            >
-              + Add Option
-            </button>
-          </div>
-          <div className="space-y-3">
-            {addOnFields.map((field, idx) => (
-              <div key={field.id} className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center bg-gray-50/50 sm:bg-transparent p-3 sm:p-0 rounded-xl border border-gray-100 sm:border-0">
-                <input
-                  type="text"
-                  {...register(`addOns.${idx}.name`)}
-                  placeholder="Add-on Name (e.g. Airport Shuttle, Breakfast)"
-                  className="flex-1 bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-primary"
-                />
-                <div className="flex gap-2 items-center">
-                  <input
-                    type="text"
-                    {...register(`addOns.${idx}.price`)}
-                    placeholder="Price (e.g. $25)"
-                    className="w-full sm:w-32 bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-primary"
-                  />
-                  {addOnFields.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeAddOn(idx)}
-                      className="text-red-500 hover:text-red-700 text-xs font-bold px-2 py-1 cursor-pointer whitespace-nowrap"
-                    >
-                      Remove
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <AddOnOptions 
+          register={register} 
+          addOnFields={addOnFields} 
+          appendAddOn={appendAddOn} 
+          removeAddOn={removeAddOn} 
+        />
 
-        {/* Room Types Table */}
-        {hotel && (
-          <div className="border-t border-gray-200 pt-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-base font-bold text-slate-900">Room Types & Pricing</h3>
-              <button
-                type="button"
-                onClick={() => {
-                  setEditingRoom(null);
-                  setIsRoomModalOpen(true);
-                }}
-                className="px-3.5 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-semibold hover:bg-slate-800 transition cursor-pointer"
-              >
-                + Add Room Type
-              </button>
-            </div>
-
-            {roomsVal.length === 0 ? (
-              <div className="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-6 text-center text-sm text-gray-500 font-semibold">
-                No rooms configured for this hotel yet. Add at least one room type.
-              </div>
-            ) : (
-              <div className="border border-gray-200 rounded-xl overflow-x-auto">
-                <table className="w-full text-left text-xs text-slate-600 min-w-[600px]">
-                  <thead className="bg-gray-50 uppercase font-semibold text-gray-500 border-b border-gray-200">
-                    <tr>
-                      <th className="px-4 py-3">Room Name</th>
-                      <th className="px-4 py-3">Bed Info</th>
-                      <th className="px-4 py-3">Size</th>
-                      <th className="px-4 py-3">Price</th>
-                      <th className="px-4 py-3 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {roomsVal.map(room => (
-                      <tr key={room.id} className="hover:bg-gray-50/50">
-                        <td className="px-4 py-3 font-semibold text-slate-800">{room.name}</td>
-                        <td className="px-4 py-3">{room.bedInfo}</td>
-                        <td className="px-4 py-3">{room.size}</td>
-                        <td className="px-4 py-3 font-bold text-slate-950">{room.price}/night</td>
-                        <td className="px-4 py-3 text-right space-x-2">
-                          <button
-                            type="button"
-                            onClick={() => handleEditRoom(room)}
-                            className="text-xs text-primary font-bold hover:underline cursor-pointer"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteRoom(room.id)}
-                            className="text-xs text-red-500 font-bold hover:underline cursor-pointer"
-                          >
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        )}
+        <RoomTypesTable
+          hotel={hotel}
+          roomsVal={roomsVal}
+          onAddClick={() => {
+            setEditingRoom(null);
+            setIsRoomModalOpen(true);
+          }}
+          onEditClick={handleEditRoom}
+          onDeleteClick={handleDeleteRoom}
+        />
 
         {/* Action Buttons */}
         <div className="flex flex-col-reverse sm:flex-row gap-3 pt-6 border-t border-gray-200 justify-end">

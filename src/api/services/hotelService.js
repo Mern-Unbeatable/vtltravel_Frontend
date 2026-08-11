@@ -33,6 +33,18 @@ export const hotelService = {
   deleteHotel: async (id) => {
     return api.delete(API_ENDPOINTS.HOTEL_DETAILS(id));
   },
+
+  addRoom: async (hotelId, roomData) => {
+    return api.post(`/v1/rooms/hotel/${hotelId}`, roomData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
+
+  uploadGalleryImages: async (hotelId, formData) => {
+    return api.post(`/v1/hotels/${hotelId}/images`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
 };
 
 export default hotelService;

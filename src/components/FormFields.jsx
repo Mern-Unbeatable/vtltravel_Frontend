@@ -78,13 +78,17 @@ export const FormFileInput = ({
   placeholder,
   valueText,
   onTextChange,
+  onRemoveFile,
   previewContent,
   className = '',
+  multiple = false,
 }) => {
-  const isVideoData = valueText && valueText.startsWith('data:video/');
+  const isVideoData = valueText && typeof valueText === 'string' && valueText.startsWith('data:video/');
   const isVideoInput = accept && accept.includes('video') && !accept.includes('image');
   const isVideo = isVideoData || (isVideoInput && !valueText);
   const fileInputId = React.useId();
+
+  const isMultiple = Array.isArray(valueText);
 
   return (
     <div className={`w-full ${className}`}>
@@ -100,15 +104,40 @@ export const FormFileInput = ({
           type="file"
           accept={accept}
           onChange={onChange}
+          multiple={multiple}
           className="hidden"
         />
         
         {/* Dropzone container */}
         <label
           htmlFor={fileInputId}
-          className="relative flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-2xl p-6 bg-slate-50 hover:bg-slate-100/80 hover:border-primary/50 transition-all cursor-pointer group text-center min-h-[140px] overflow-hidden"
+          className="relative flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-2xl bg-slate-50 hover:bg-slate-100/80 hover:border-primary/50 transition-all cursor-pointer group text-center min-h-[140px] overflow-hidden"
         >
-          {valueText ? (
+          {isMultiple && valueText.length > 0 ? (
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 p-4 w-full h-full max-h-[250px] overflow-y-auto">
+              {valueText.map((url, idx) => (
+                <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 bg-white">
+                  <img src={url} alt={`Preview ${idx + 1}`} className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (onRemoveFile) onRemoveFile(idx);
+                    }}
+                    className="absolute inset-0 bg-slate-900/60 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity text-white text-xs font-bold cursor-pointer"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+              {/* Box overlay acting as dropzone link to add more */}
+              <div className="border border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center aspect-square hover:bg-slate-100 hover:border-primary/50 transition-all text-slate-500">
+                <span className="text-xl font-bold">+</span>
+                <span className="text-[10px] font-semibold uppercase">Add</span>
+              </div>
+            </div>
+          ) : !isMultiple && valueText ? (
             <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-slate-100">
               {isVideo ? (
                 <video src={valueText} className="w-full h-full object-cover" />
