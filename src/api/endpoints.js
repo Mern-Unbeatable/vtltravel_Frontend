@@ -6,7 +6,8 @@ export const API_ENDPOINTS = {
   ADMIN_STATS: '/v1/admin/stats',
   BOOKINGS: '/v1/bookings',
   ADMIN_HOTELS: '/v1/hotels/admin/list/all',
-  PROFILE: '/v1/auth/admin/profile',
+  PROFILE: '/v1/auth/me',
+  UPDATE_PASSWORD: '/v1/auth/me/password',
 };
 
 

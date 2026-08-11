@@ -107,7 +107,7 @@ const Profile = () => {
 
     setIsChangingPassword(true);
     try {
-      const response = await authService.updateProfile({
+      const response = await authService.updatePassword({
         currentPassword,
         newPassword,
       });

@@ -39,6 +39,10 @@ export const authService = {
   updateProfile: async (profileData) => {
     return api.put(API_ENDPOINTS.PROFILE, profileData);
   },
+
+  updatePassword: async (passwordData) => {
+    return api.put(API_ENDPOINTS.UPDATE_PASSWORD, passwordData);
+  },
 };
 
 export default authService;
