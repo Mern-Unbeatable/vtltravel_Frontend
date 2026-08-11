@@ -5,6 +5,7 @@ import * as z from 'zod';
 import RoomFormModal from './RoomFormModal';
 import { FormInput, FormTextarea, FormFileInput } from '../../../../components/FormFields';
 import { fileToBase64 } from '../../../../utils/fileHelpers';
+import { IoArrowBackOutline } from 'react-icons/io5';
 
 const availableFacilitiesList = [
   'Free Wi-Fi',
@@ -166,7 +167,7 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
     const file = e.target.files[0];
     if (file) {
       try {
-        const base64 = await fileToBase64(file, { maxSizeMB: 20, allowedTypes: ['video/*'] });
+        const base64 = await fileToBase64(file, { maxSizeMB: 20, allowedTypes: ['video/*', 'image/*'] });
         setValue('video', base64);
       } catch (err) {
         alert(err.message);
@@ -339,9 +340,19 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8 shadow-sm">
-      <h2 className="text-xl font-bold text-slate-900 mb-6">
-        {hotel ? `Edit Hotel: ${hotel.title}` : 'Add New Hotel'}
-      </h2>
+      <div className="flex items-center gap-3 mb-6">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="p-2 text-gray-500 hover:text-slate-900 rounded-lg hover:bg-gray-100 cursor-pointer flex items-center justify-center border border-gray-200"
+          title="Back to List"
+        >
+          <IoArrowBackOutline className="text-lg" />
+        </button>
+        <h2 className="text-xl font-bold text-slate-900">
+          {hotel ? `Edit Hotel: ${hotel.title || hotel.name}` : 'Add New Hotel'}
+        </h2>
+      </div>
 
       <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -382,31 +393,17 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
             label="Cover Image"
             accept="image/*"
             onChange={handleImageUpload}
-            placeholder="Or paste image URL (https://...)"
             valueText={imageVal}
-            onTextChange={(val) => setValue('image', val)}
             error={errors.image}
-            previewContent={
-              imageVal && (
-                <img src={imageVal} alt="Cover Preview" className="h-24 w-40 object-cover rounded-lg border" />
-              )
-            }
           />
 
           {/* Hotel Video */}
           <FormFileInput
             label="Hotel Video"
-            accept="video/*"
+            accept="video/*,image/*"
             onChange={handleVideoUpload}
-            placeholder="Or paste video URL (https://...)"
             valueText={videoVal}
-            onTextChange={(val) => setValue('video', val)}
             error={errors.video}
-            previewContent={
-              videoVal && (
-                <video src={videoVal} controls className="h-24 w-40 object-cover rounded-lg border bg-black"></video>
-              )
-            }
           />
         </div>
 

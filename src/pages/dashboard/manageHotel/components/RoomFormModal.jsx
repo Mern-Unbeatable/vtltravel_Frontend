@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -90,9 +90,12 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
     }
   }, [room, isOpen, reset]);
 
+  const [imageFile, setImageFile] = useState(null);
+
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
+      setImageFile(file);
       try {
         const base64 = await fileToBase64(file, { maxSizeMB: 5, allowedTypes: ['image/*'] });
         setValue('image', base64);
@@ -106,9 +109,9 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
 
   const onSubmit = (data) => {
     const formattedRoom = {
-      id: room ? room.id : Date.now(),
+      id: room ? (room.id || room._id) : Date.now(),
       name: data.name,
-      price: `$${data.price}`,
+      price: data.price,
       size: data.size,
       capacity: data.capacity,
       bedInfo: data.bedInfo,
@@ -121,6 +124,7 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
       tags: data.tags.split(',').map(t => t.trim()).filter(Boolean),
       image: data.image || 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=800&q=80',
       roomsLeft: data.roomsLeft,
+      imageFile: imageFile, // pass binary file
     };
     onSave(formattedRoom);
     onClose();
@@ -252,14 +256,7 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
             label="Room Photo"
             accept="image/*"
             onChange={handleImageUpload}
-            placeholder="Or paste direct image URL (https://...)"
             valueText={imageVal}
-            onTextChange={(val) => setValue('image', val)}
-            previewContent={
-              imageVal && (
-                <img src={imageVal} alt="Room Preview" className="h-24 w-40 object-cover rounded-lg border" />
-              )
-            }
           />
 
           <div className="pt-4 border-t border-gray-200 flex justify-end gap-3 bg-gray-50 -mx-6 -mb-6 p-4">

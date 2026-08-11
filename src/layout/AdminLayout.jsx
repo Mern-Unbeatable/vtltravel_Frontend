@@ -24,7 +24,7 @@ const AdminLayout = () => {
   // Determine active title based on path
   const getPageTitle = () => {
     if (location.pathname === "/admin/hotels") {
-      return "Manage Hotel Inventory";
+      return null;
     }
     if (location.pathname === "/admin/bookings") {
       return "Manage All Bookings";
@@ -130,12 +130,14 @@ const AdminLayout = () => {
         <div className="flex-1 overflow-y-auto w-full">
           <main className="p-2 py-6 px-4 md:px-8 w-full">
             {/* Header */}
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
-                {getPageTitle()}
-              </h1>
-              <p className="text-gray-500 mt-1">{getPageSubtitle()}</p>
-            </div>
+            {getPageTitle() && (
+              <div className="mb-8">
+                <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
+                  {getPageTitle()}
+                </h1>
+                <p className="text-gray-500 mt-1">{getPageSubtitle()}</p>
+              </div>
+            )}
 
             {/* Nested Page Content */}
             <Outlet />
