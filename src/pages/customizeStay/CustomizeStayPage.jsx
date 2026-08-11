@@ -1,73 +1,80 @@
 import { useState } from 'react'
-import { useLocation, Link, useNavigate } from 'react-router-dom'
+import { useLocation, Link, useNavigate, useParams } from 'react-router-dom'
 import { IoAdd, IoCheckmark } from 'react-icons/io5'
 import HotelSummarySidebar from '../hotelDetails/components/HotelSummarySidebar'
+import FallbackImage from '../../components/FallbackImage'
+import Spinner from '../../components/Spinner'
+import { useHotel } from '../../hooks/useHotels'
+import { getStoredHotelSearch } from '../../utils/hotelSearchStorage'
 
-const mockExtras = [
-  {
-    id: 1,
-    title: 'EARLY CHECK IN FROM 10AM',
-    price: '$36.10',
-    unit: 'Per room/stay',
-    image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    id: 2,
-    title: 'EARLY CHECK IN FROM 10AM',
-    price: '$36.10',
-    unit: 'Per room/stay',
-    image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    id: 3,
-    title: 'EARLY CHECK IN FROM 10AM',
-    price: '$36.10',
-    unit: 'Per room/stay',
-    image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    id: 4,
-    title: 'EARLY CHECK IN FROM 10AM',
-    price: '$36.10',
-    unit: 'Per room/stay',
-    image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    id: 5,
-    title: 'EARLY CHECK IN FROM 10AM',
-    price: '$36.10',
-    unit: 'Per room/stay',
-    image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=400&q=80',
-  },
-]
+const PRICE_UNIT_LABELS = {
+  per_room_per_stay: 'Per room/stay',
+  per_person_per_stay: 'Per person/stay',
+  per_room_per_night: 'Per room/night',
+  per_person_per_night: 'Per person/night',
+}
+
+const formatPriceUnit = (unit) => {
+  if (!unit) return ''
+  return PRICE_UNIT_LABELS[unit] || unit.replace(/_/g, ' ')
+}
+
+const mapAddOn = (item) => {
+  const addOn = item?.addOn || item
+  const priceValue = Number(addOn?.price)
+  return {
+    id: item?.id || addOn?.id,
+    title: addOn?.name || '',
+    description: addOn?.description || '',
+    price: Number.isNaN(priceValue) ? 0 : priceValue,
+    unit: formatPriceUnit(addOn?.priceUnit),
+    image: addOn?.imageUrl || '',
+    isActive: addOn?.isActive !== false,
+  }
+}
 
 const CustomizeStayPage = () => {
+  const { hotelId } = useParams()
   const { state } = useLocation()
   const navigate = useNavigate()
-  const selectedRoom = state?.selectedRoom || {
-    name: 'SUPERIOR ROOM, 2 Single Size Beds, City View',
-    price: '$87',
-    image: 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=400&q=80',
-    capacity: '1 adult',
-    taxes: '$14.27',
-    totalPrice: '$120.76',
-  }
-  const hotelTitle = state?.title || state?.hotel?.name || ''
-  const stay = state?.stay || null
-  const hotel = state?.hotel || null
-
+  const { data: hotelData, isLoading, isError } = useHotel(hotelId)
   const [selectedExtras, setSelectedExtras] = useState([])
+
+  const hotel = hotelData || state?.hotel || null
+  const selectedRoom = state?.selectedRoom || null
+  const stay = state?.stay || getStoredHotelSearch()
+  const hotelTitle = hotel?.name || state?.title || ''
+
+  const extras = (hotel?.addOns || [])
+    .map(mapAddOn)
+    .filter((item) => item.isActive && item.title)
+
+  const extrasTotal = selectedExtras.reduce((sum, id) => {
+    const extra = extras.find((item) => item.id === id)
+    return extra ? sum + extra.price : sum
+  }, 0)
 
   const toggleExtra = (id) => {
     setSelectedExtras((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
+    )
+  }
+
+  if (isLoading && !hotel) {
+    return <Spinner />
+  }
+
+  if (isError && !hotel) {
+    return (
+      <div className="max-w-4xl mx-auto my-12 p-8 border border-red-200 bg-red-50 text-red-600 rounded-2xl text-center font-bold">
+        Failed to load add-ons. Please try again.
+      </div>
     )
   }
 
   return (
     <div className="min-h-screen bg-white pb-20 pt-6">
       <div className="mx-auto container px-4 md:px-6">
-        {/* Breadcrumbs */}
         <nav className="flex items-center gap-2 text-xs font-medium text-gray-400">
           <Link to="/" className="hover:text-slate-900 transition">
             Home
@@ -84,70 +91,84 @@ const CustomizeStayPage = () => {
           <span className="font-semibold text-[#3ea5dc]">Add-on</span>
         </nav>
 
-        {/* Main Header */}
         <h1 className="mt-6 text-4xl font-extrabold tracking-tight text-slate-900">
           Customise Your Stay
         </h1>
 
-        {/* 2-Column Grid */}
         <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_340px]">
-          {/* Left Column - Extras List */}
           <div>
             <h2 className="text-2xl font-bold text-slate-900">Extras</h2>
 
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-              {mockExtras.map((extra) => {
-                const isAdded = selectedExtras.includes(extra.id)
-                return (
-                  <div
-                    key={extra.id}
-                    className="flex overflow-hidden rounded-2xl border border-gray-100 bg-white p-3.5 shadow-2xs transition hover:shadow-md"
-                  >
-                    <img
-                      src={extra.image}
-                      alt={extra.title}
-                      className="h-28 w-32 shrink-0 rounded-xl object-cover"
-                    />
+            {extras.length === 0 ? (
+              <div className="mt-6 rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-500">
+                No add-ons available for this hotel.
+              </div>
+            ) : (
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                {extras.map((extra) => {
+                  const isAdded = selectedExtras.includes(extra.id)
+                  return (
+                    <div
+                      key={extra.id}
+                      className="flex overflow-hidden rounded-2xl border border-gray-100 bg-white p-3.5 shadow-2xs transition hover:shadow-md"
+                    >
+                      <div className="h-28 w-32 shrink-0 overflow-hidden rounded-xl bg-[#f3f4f6]">
+                        <FallbackImage
+                          src={extra.image}
+                          alt={extra.title}
+                          className="h-28 w-32 object-cover"
+                          dummyClassName="h-28 w-32 object-contain p-4"
+                        />
+                      </div>
 
-                    <div className="ml-4 flex flex-1 flex-col justify-between py-1">
-                      <h3 className="text-xs font-bold uppercase leading-tight tracking-wide text-slate-900 line-clamp-2">
-                        {extra.title}
-                      </h3>
-
-                      <div className="flex items-end justify-between">
+                      <div className="ml-4 flex flex-1 flex-col justify-between py-1 min-w-0">
                         <div>
-                          <span className="text-xl font-bold text-slate-900">
-                            {extra.price}
-                          </span>
-                          <span className="ml-1 text-[11px] text-gray-400 font-normal">
-                            {extra.unit}
-                          </span>
+                          <h3 className="text-xs font-bold uppercase leading-tight tracking-wide text-slate-900 line-clamp-2">
+                            {extra.title}
+                          </h3>
+                          {extra.description ? (
+                            <p className="mt-1 text-[11px] text-gray-400 line-clamp-2">
+                              {extra.description}
+                            </p>
+                          ) : null}
                         </div>
 
-                        <button
-                          type="button"
-                          onClick={() => toggleExtra(extra.id)}
-                          className={`flex h-8 w-8 items-center justify-center rounded-full text-white transition cursor-pointer active:scale-95 ${
-                            isAdded
-                              ? 'bg-emerald-500 hover:bg-emerald-600'
-                              : 'bg-[#3ea5dc] hover:bg-[#3296cc]'
-                          }`}
-                          aria-label="Add extra"
-                        >
-                          {isAdded ? (
-                            <IoCheckmark className="text-lg" />
-                          ) : (
-                            <IoAdd className="text-lg" />
-                          )}
-                        </button>
+                        <div className="flex items-end justify-between gap-2">
+                          <div>
+                            <span className="text-xl font-bold text-slate-900">
+                              ${extra.price}
+                            </span>
+                            {extra.unit ? (
+                              <span className="ml-1 text-[11px] text-gray-400 font-normal">
+                                {extra.unit}
+                              </span>
+                            ) : null}
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => toggleExtra(extra.id)}
+                            className={`flex h-8 w-8 items-center justify-center rounded-full text-white transition cursor-pointer active:scale-95 ${
+                              isAdded
+                                ? 'bg-emerald-500 hover:bg-emerald-600'
+                                : 'bg-[#3ea5dc] hover:bg-[#3296cc]'
+                            }`}
+                            aria-label={isAdded ? 'Remove extra' : 'Add extra'}
+                          >
+                            {isAdded ? (
+                              <IoCheckmark className="text-lg" />
+                            ) : (
+                              <IoAdd className="text-lg" />
+                            )}
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )
-              })}
-            </div>
+                  )
+                })}
+              </div>
+            )}
 
-            {/* Disclaimer & Footer Terms */}
             <div className="mt-12 space-y-3.5 text-[11px] leading-relaxed text-gray-400">
               <p>These prices are the &quot;starting from&quot; prices.</p>
               <p>
@@ -189,28 +210,14 @@ const CustomizeStayPage = () => {
             </div>
           </div>
 
-          {/* Right Column - Summary Sidebar */}
           <div>
-            {(() => {
-              const extrasTotal = selectedExtras.reduce((sum, id) => {
-                const extra = mockExtras.find((e) => e.id === id)
-                if (extra) {
-                  const priceNum = parseFloat(extra.price.replace('$', '')) || 0
-                  return sum + priceNum
-                }
-                return sum
-              }, 0)
-
-              return (
-                <HotelSummarySidebar
-                  hotel={hotel}
-                  title={hotelTitle}
-                  stay={stay}
-                  selectedRoom={selectedRoom}
-                  extraPrice={extrasTotal}
-                />
-              )
-            })()}
+            <HotelSummarySidebar
+              hotel={hotel}
+              title={hotelTitle}
+              stay={stay}
+              selectedRoom={selectedRoom}
+              extraPrice={extrasTotal}
+            />
           </div>
         </div>
       </div>
