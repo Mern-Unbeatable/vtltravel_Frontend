@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import SearchCard from "../../components/SearchCard";
 import FilterSection from "./sections/FilterSection";
@@ -8,6 +8,7 @@ import {
   buildSearchUrlFromCard,
   mapUiFiltersToApi,
 } from "../../utils/hotelSearchParams";
+import { saveHotelSearch } from "../../utils/hotelSearchStorage";
 
 const SearchResultsPage = () => {
   const [filters, setFilters] = useState(null);
@@ -32,7 +33,21 @@ const SearchResultsPage = () => {
   const breakfastIncluded = searchParams.get("breakfastIncluded") || "";
   const freeCancellation = searchParams.get("freeCancellation") || "";
 
+  useEffect(() => {
+    if (checkIn || checkOut) {
+      saveHotelSearch({
+        checkIn,
+        checkOut,
+        adults,
+        rooms,
+        children,
+        location: destination,
+      });
+    }
+  }, [checkIn, checkOut, adults, rooms, children, destination]);
+
   const handleSearch = (searchData) => {
+    saveHotelSearch(searchData);
     setSearchParams({
       ...mapUiFiltersToApi(filters),
       ...buildSearchUrlFromCard(searchData),

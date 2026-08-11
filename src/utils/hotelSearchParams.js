@@ -154,13 +154,55 @@ export const mapUiFiltersToApi = (filters) => {
   })
 }
 
+export const parseLocalDate = (value) => {
+  if (!value) return null
+  if (value instanceof Date && !Number.isNaN(value.getTime())) return value
+  const str = String(value)
+  const parts = str.split('-')
+  if (parts.length === 3 && parts[0].length === 4) {
+    const date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]))
+    return Number.isNaN(date.getTime()) ? null : date
+  }
+  const date = new Date(str)
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+export const formatDateISO = (dateObj) => {
+  if (!dateObj) return ''
+  const date = parseLocalDate(dateObj)
+  if (!date) return ''
+  const yyyy = date.getFullYear()
+  const mm = String(date.getMonth() + 1).padStart(2, '0')
+  const dd = String(date.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+}
+
+export const formatStayDate = (value) => {
+  const date = parseLocalDate(value)
+  if (!date) return ''
+  return date.toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  })
+}
+
+export const formatClockTime = (time) => {
+  if (!time) return ''
+  const [hourStr, minuteStr = '00'] = String(time).split(':')
+  const hour = Number(hourStr)
+  if (Number.isNaN(hour)) return time
+  const period = hour >= 12 ? 'PM' : 'AM'
+  const displayHour = hour % 12 || 12
+  return `${displayHour}:${String(minuteStr).padStart(2, '0')} ${period}`
+}
+
 export const getNightsBetween = (checkIn, checkOut) => {
-  if (!checkIn || !checkOut) return 1
-  const start = new Date(checkIn)
-  const end = new Date(checkOut)
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return 1
+  const start = parseLocalDate(checkIn)
+  const end = parseLocalDate(checkOut)
+  if (!start || !end) return 0
   const nights = Math.round((end - start) / (1000 * 60 * 60 * 24))
-  return nights > 0 ? nights : 1
+  return nights > 0 ? nights : 0
 }
 
 export const buildDestinationSuggestions = (items = [], query = '') => {

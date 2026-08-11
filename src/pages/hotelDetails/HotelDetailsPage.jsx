@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { useLocation, useParams } from 'react-router-dom'
+import { useState } from 'react'
+import { useParams } from 'react-router-dom'
 import HotelHeaderGallery from './components/HotelHeaderGallery'
 import HotelOverviewSection from './components/HotelOverviewSection'
 import HotelFacilitiesCard from './components/HotelFacilitiesCard'
@@ -7,29 +7,60 @@ import HotelSummarySidebar from './components/HotelSummarySidebar'
 import HotelRoomsSection from './components/HotelRoomsSection'
 import RoomDetailsModal from './components/RoomDetailsModal'
 import { useHotel } from '../../hooks/useHotels'
-
 import Spinner from '../../components/Spinner'
+import { getStoredHotelSearch, saveHotelSearch } from '../../utils/hotelSearchStorage'
+import { formatDateISO } from '../../utils/hotelSearchParams'
 
-const galleryFallback = [
-  'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80',
-  'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80',
-  'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1200&q=80',
-  'https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=80',
-]
+const mapRoomType = (room) => {
+  const images = (room.images || []).map((img) => img.url).filter(Boolean)
+  const amenityNames = (room.amenities || [])
+    .map((item) => item?.amenity?.name || item?.name)
+    .filter(Boolean)
+  const tags = (room.tags || []).length > 0 ? room.tags : amenityNames
+  const priceValue = room.discountPrice || room.basePrice
+  const publicRate = room.basePrice
+  const adults = room.maxAdults || room.maxCapacity || 0
+  const size = room.sizeLabel || (room.sizeSqm ? `${room.sizeSqm}m²` : '')
+  const bedInfo =
+    room.bedInfo ||
+    [room.bedCount, room.bedType].filter(Boolean).join(' ') ||
+    ''
+
+  return {
+    ...room,
+    image: images[0] || '',
+    images,
+    gallery: images,
+    tags,
+    amenityNames,
+    price: priceValue ? `$${priceValue}` : '',
+    priceNum: Number(priceValue) || 0,
+    publicRate: publicRate ? `$${publicRate}` : '',
+    capacity: adults ? `${adults} Adult${adults !== 1 ? 's' : ''}` : '',
+    size,
+    bedInfo,
+    taxes: room.taxPerNight ? `$${room.taxPerNight}` : '',
+    taxNum: Number(room.taxPerNight) || 0,
+    roomsLeft: room.roomsLeftAlert || '',
+    memberRate: Boolean(room.isMemberDeal),
+  }
+}
 
 const HotelDetailsPage = () => {
   const { hotelId } = useParams()
-  const { state } = useLocation()
-  const hotelState = state?.hotel || {}
-  const targetId = hotelState.id || hotelId
-  const { data: hotel, isLoading, isError } = useHotel(targetId)
+  const { data: hotel, isLoading, isError } = useHotel(hotelId)
   const [selectedRoom, setSelectedRoom] = useState(null)
   const [modalRoom, setModalRoom] = useState(null)
+  const [stay, setStay] = useState(() => getStoredHotelSearch())
+
+  const handleStaySearch = (nextStay) => {
+    const saved = saveHotelSearch(nextStay)
+    setStay(saved)
+  }
 
   if (isLoading) {
     return <Spinner />
   }
-
 
   if (isError || !hotel) {
     return (
@@ -39,69 +70,52 @@ const HotelDetailsPage = () => {
     )
   }
 
-  const title = hotel.title || 'Pullman Hanoi'
-  const galleryImages = hotel.gallery && hotel.gallery.length > 0 ? hotel.gallery : galleryFallback
-
-  const dummyRooms = [
-    {
-      id: 'dummy-room-1',
-      name: 'Deluxe Suite, 1 King Size Bed, Ocean View',
-      price: 300,
-      capacity: '2 Adults',
-      amenities: ['Ocean View', 'Wi-Fi', 'Air Conditioning', 'Mini Bar'],
-      images: ['https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=600&q=80']
-    },
-    {
-      id: 'dummy-room-2',
-      name: 'Executive Room, 2 Single Beds',
-      price: 200,
-      capacity: '2 Adults, 1 Child',
-      amenities: ['City View', 'Wi-Fi', 'Coffee Maker', 'Work Desk'],
-      images: ['https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=600&q=80']
-    },
-    {
-      id: 'dummy-room-3',
-      name: 'Presidential Penthouse Suite',
-      price: 750,
-      capacity: '4 Adults',
-      amenities: ['Panoramic View', 'Private Jacuzzi', 'Wi-Fi', 'Kitchenette'],
-      images: ['https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80']
-    }
-  ]
-
-  const roomsList = hotel.rooms && hotel.rooms.length > 0 ? hotel.rooms : dummyRooms
-
+  const title = hotel.name || ''
+  const galleryImages = (hotel.images || [])
+    .slice()
+    .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+    .map((img) => img.url)
+    .filter(Boolean)
+  const roomsList = (hotel.roomTypes || []).filter((room) => room.isActive !== false).map(mapRoomType)
+  const todayIso = formatDateISO(new Date())
 
   return (
     <div className="">
-      {/* 1. Top Image Gallery Banner */}
       <HotelHeaderGallery images={galleryImages} title={title} />
 
-      {/* 2. Main Content Container */}
       <div className="mx-auto container px-4 pt-8 md:px-6">
-        {/* Title, Overview & "See the rooms" CTA */}
-        <HotelOverviewSection title={title} description={hotel.description} />
+        <HotelOverviewSection hotel={hotel} />
 
-        {/* 2-Column Grid: Left Column (Facilities & Rooms), Right Column (Summary Sidebar) */}
         <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_340px]">
-          {/* Left Column: Facilities Card + Rooms Section */}
           <div className="space-y-10">
-            <HotelFacilitiesCard facilities={hotel.facilities} />
+            <HotelFacilitiesCard
+              facilities={hotel.facilities}
+              whyBookWithUs={hotel.whyBookWithUs}
+            />
             <HotelRoomsSection
               rooms={roomsList}
+              initialCheckIn={todayIso}
+              initialCheckOut=""
+              initialRooms={stay?.rooms || 1}
+              initialAdults={stay?.adults || 1}
+              initialChildren={stay?.children || 0}
+              stay={stay}
+              onStaySearch={handleStaySearch}
               onSelectRoom={(room) => setSelectedRoom(room)}
               onOpenDetails={(room) => setModalRoom(room)}
             />
           </div>
 
-          {/* Right Column: Sticky Summary Box */}
           <div>
-            <HotelSummarySidebar title={title} selectedRoom={selectedRoom} />
+            <HotelSummarySidebar
+              hotel={hotel}
+              stay={stay}
+              selectedRoom={selectedRoom}
+            />
           </div>
         </div>
       </div>
 
-      {/* 3. Room Details Modal */}
       {modalRoom && (
         <RoomDetailsModal room={modalRoom} onClose={() => setModalRoom(null)} />
       )}
@@ -110,4 +124,3 @@ const HotelDetailsPage = () => {
 }
 
 export default HotelDetailsPage
-

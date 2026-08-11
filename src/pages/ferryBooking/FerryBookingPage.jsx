@@ -15,8 +15,10 @@ const FerryBookingPage = () => {
     taxes: '$14.27',
     totalPrice: '$120.76',
   }
-  const hotelTitle = state?.title || 'Pullman Hanoi'
+  const hotelTitle = state?.title || state?.hotel?.name || ''
   const extraPrice = state?.extraPrice || 0
+  const stay = state?.stay || null
+  const hotel = state?.hotel || null
 
   // Form State
   const [gender, setGender] = useState('Male')
@@ -430,7 +432,13 @@ const FerryBookingPage = () => {
 
           {/* Right Column - Summary Sidebar */}
           <div>
-            <HotelSummarySidebar title={hotelTitle} selectedRoom={selectedRoom} extraPrice={extraPrice} />
+            <HotelSummarySidebar
+              hotel={hotel}
+              title={hotelTitle}
+              stay={stay}
+              selectedRoom={selectedRoom}
+              extraPrice={extraPrice}
+            />
           </div>
         </div>
       </div>

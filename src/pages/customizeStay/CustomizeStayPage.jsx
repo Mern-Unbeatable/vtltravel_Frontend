@@ -52,7 +52,9 @@ const CustomizeStayPage = () => {
     taxes: '$14.27',
     totalPrice: '$120.76',
   }
-  const hotelTitle = state?.title || 'Pullman Hanoi'
+  const hotelTitle = state?.title || state?.hotel?.name || ''
+  const stay = state?.stay || null
+  const hotel = state?.hotel || null
 
   const [selectedExtras, setSelectedExtras] = useState([])
 
@@ -201,7 +203,9 @@ const CustomizeStayPage = () => {
 
               return (
                 <HotelSummarySidebar
+                  hotel={hotel}
                   title={hotelTitle}
+                  stay={stay}
                   selectedRoom={selectedRoom}
                   extraPrice={extrasTotal}
                 />

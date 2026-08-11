@@ -9,19 +9,35 @@ import {
   IoRestaurantOutline,
   IoShieldCheckmarkOutline,
   IoTvOutline,
+  IoSparklesOutline,
 } from 'react-icons/io5'
 import { HiOutlinePhotograph } from 'react-icons/hi'
+import FallbackImage from '../../../components/FallbackImage'
 
-const sampleGallery = [
-  'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1000&q=80',
-  'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1000&q=80',
-  'https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1000&q=80',
-]
+const CATEGORY_META = {
+  food_beverage: { title: 'Food And Beverage', icon: IoRestaurantOutline },
+  bathroom: { title: 'Bathroom', icon: IoWaterOutline },
+  media: { title: 'Media And Technology', icon: IoTvOutline },
+  service: { title: 'Service And Equipment', icon: IoShieldCheckmarkOutline },
+  general: { title: 'Comfort Features', icon: IoSparklesOutline },
+}
+
+const groupAmenities = (amenities = []) => {
+  const groups = {}
+  amenities.forEach((item) => {
+    const amenity = item?.amenity || item
+    const name = amenity?.name
+    if (!name) return
+    const category = amenity?.category || 'general'
+    if (!groups[category]) groups[category] = []
+    if (!groups[category].includes(name)) groups[category].push(name)
+  })
+  return groups
+}
 
 const RoomDetailsModal = ({ room, onClose }) => {
   const [currentSlide, setCurrentSlide] = useState(0)
 
-  // Lock background scroll when modal is open
   useEffect(() => {
     document.body.style.overflow = 'hidden'
     return () => {
@@ -31,32 +47,36 @@ const RoomDetailsModal = ({ room, onClose }) => {
 
   if (!room) return null
 
-  const images = room.image ? [room.image, ...sampleGallery] : sampleGallery
+  const images = (room.gallery || room.images || [])
+    .map((img) => (typeof img === 'string' ? img : img?.url))
+    .filter(Boolean)
+  const displayImages = images.length > 0 ? images : ['']
+  const amenityGroups = groupAmenities(room.amenities)
+  const tags = (room.tags || []).filter(Boolean)
+  const categoryEntries = Object.entries(amenityGroups)
 
   const scrollSlide = (dir) => {
+    if (displayImages.length <= 1) return
     if (dir === 'next') {
-      setCurrentSlide((prev) => (prev + 1) % images.length)
+      setCurrentSlide((prev) => (prev + 1) % displayImages.length)
     } else {
-      setCurrentSlide((prev) => (prev - 1 + images.length) % images.length)
+      setCurrentSlide((prev) => (prev - 1 + displayImages.length) % displayImages.length)
     }
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4 backdrop-blur-xs transition-opacity">
-      {/* Click outside backdrop */}
       <div className="fixed inset-0" onClick={onClose} />
 
-      {/* Modal Dialog Content - Hidden Scrollbar */}
       <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-[28px] bg-white p-6 shadow-2xl z-10 space-y-6 text-slate-800 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {/* Top Image Carousel */}
-        <div className="relative h-[260px] sm:h-[320px] w-full overflow-hidden rounded-2xl bg-gray-100">
-          <img
-            src={images[currentSlide]}
+        <div className="relative h-[260px] sm:h-[320px] w-full overflow-hidden rounded-2xl bg-[#f3f4f6]">
+          <FallbackImage
+            src={displayImages[currentSlide]}
             alt={room.name}
             className="h-full w-full object-cover transition-all duration-300"
+            dummyClassName="h-full w-full object-contain p-12"
           />
 
-          {/* Close Button Inside Top-Right Corner of Image */}
           <button
             type="button"
             onClick={onClose}
@@ -66,72 +86,82 @@ const RoomDetailsModal = ({ room, onClose }) => {
             <IoClose className="text-xl" />
           </button>
 
-          {/* Navigation Arrows */}
-          <button
-            type="button"
-            onClick={() => scrollSlide('prev')}
-            className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-gray-800 shadow-md backdrop-blur-xs transition hover:bg-white cursor-pointer"
-          >
-            <IoChevronBack className="text-lg" />
-          </button>
-          <button
-            type="button"
-            onClick={() => scrollSlide('next')}
-            className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-gray-800 shadow-md backdrop-blur-xs transition hover:bg-white cursor-pointer"
-          >
-            <IoChevronForward className="text-lg" />
-          </button>
+          {displayImages.length > 1 ? (
+            <>
+              <button
+                type="button"
+                onClick={() => scrollSlide('prev')}
+                className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-gray-800 shadow-md backdrop-blur-xs transition hover:bg-white cursor-pointer"
+              >
+                <IoChevronBack className="text-lg" />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollSlide('next')}
+                className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-gray-800 shadow-md backdrop-blur-xs transition hover:bg-white cursor-pointer"
+              >
+                <IoChevronForward className="text-lg" />
+              </button>
+            </>
+          ) : null}
 
-          {/* Photo Count Badge */}
           <div className="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-md bg-black/60 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-xs">
             <HiOutlinePhotograph className="h-4 w-4" />
             <span>
-              {currentSlide + 1}/{images.length}
+              {currentSlide + 1}/{displayImages.length}
             </span>
           </div>
         </div>
 
-        {/* Title & Quick Info Header */}
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
-            {room.name}
-          </h2>
+          {room.name ? (
+            <h2 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+              {room.name}
+            </h2>
+          ) : null}
 
           <div className="mt-3 flex flex-wrap items-center gap-4 text-xs font-medium text-gray-600">
-            <div className="flex items-center gap-1.5">
-              <IoBedOutline className="text-base text-[#3ea5dc]" />
-              <span>{room.bedInfo || '1 Twin bed(s)'}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <IoWaterOutline className="text-base text-[#3ea5dc]" />
-              <span>Baths</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <IoStatsChartOutline className="text-base text-[#3ea5dc]" />
-              <span>{room.size || '32m²'}</span>
-            </div>
+            {room.bedInfo ? (
+              <div className="flex items-center gap-1.5">
+                <IoBedOutline className="text-base text-[#3ea5dc]" />
+                <span>{room.bedInfo}</span>
+              </div>
+            ) : null}
+            {room.bathrooms ? (
+              <div className="flex items-center gap-1.5">
+                <IoWaterOutline className="text-base text-[#3ea5dc]" />
+                <span>
+                  {room.bathrooms} Bath{room.bathrooms !== 1 ? 's' : ''}
+                </span>
+              </div>
+            ) : null}
+            {room.size ? (
+              <div className="flex items-center gap-1.5">
+                <IoStatsChartOutline className="text-base text-[#3ea5dc]" />
+                <span>{room.size}</span>
+              </div>
+            ) : null}
           </div>
 
-          {/* Tag Badges */}
-          <div className="mt-3 flex flex-wrap gap-2">
-            {(room.tags || ['City View', 'Rainfall shower experience', 'High floor']).map((tag) => (
-              <span
-                key={tag}
-                className="rounded-md bg-sky-50 px-2.5 py-1 text-[11px] font-semibold text-[#3ea5dc]"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
+          {tags.length > 0 ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-md bg-sky-50 px-2.5 py-1 text-[11px] font-semibold text-[#3ea5dc]"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          ) : null}
 
-          <p className="mt-4 text-xs leading-relaxed text-gray-500">
-            Our 32m² contemporary Twin Beds room at Pullman Hanoi offers city views, a 42&quot; LED TV,
-            free Wi-Fi, and a bathtub. Minibar available (charges apply). Ideal for Hanoi stays with
-            friends.
-          </p>
+          {room.description ? (
+            <p className="mt-4 text-xs leading-relaxed text-gray-500">{room.description}</p>
+          ) : null}
 
           <a
-            href="#rates"
+            href="#rooms"
             onClick={onClose}
             className="mt-4 inline-block rounded-full bg-[#3ea5dc] px-6 py-2 text-xs font-semibold text-white transition hover:bg-[#3296cc]"
           >
@@ -139,156 +169,30 @@ const RoomDetailsModal = ({ room, onClose }) => {
           </a>
         </div>
 
-        <div className="border-t border-gray-100 pt-4" />
-
-        {/* Detailed Amenities 2-Column Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs text-gray-600">
-          {/* Column 1 */}
-          <div className="space-y-6">
-            {/* Food and Beverage */}
-            <div>
-              <div className="flex items-center gap-2 text-sm font-bold text-slate-900">
-                <IoRestaurantOutline className="text-[#3ea5dc]" />
-                <h3>Food And Beverage</h3>
-              </div>
-              <div className="mt-2 space-y-1 pl-6 text-gray-500">
-                <p className="font-semibold text-slate-700">Food And Beverage Facilities</p>
-                <ul className="list-disc pl-4 space-y-0.5 text-[11px]">
-                  <li>Bottled water</li>
-                  <li>Coffee maker</li>
-                  <li>Coffee/tea making facilities</li>
-                  <li>Kettle</li>
-                  <li>Mini-refrigerator</li>
-                  <li>Free in Room Mineral Water</li>
-                </ul>
-              </div>
+        {categoryEntries.length > 0 ? (
+          <>
+            <div className="border-t border-gray-100 pt-4" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs text-gray-600">
+              {categoryEntries.map(([category, names]) => {
+                const meta = CATEGORY_META[category] || CATEGORY_META.general
+                const Icon = meta.icon
+                return (
+                  <div key={category}>
+                    <div className="flex items-center gap-2 text-sm font-bold text-slate-900">
+                      <Icon className="text-[#3ea5dc]" />
+                      <h3>{meta.title}</h3>
+                    </div>
+                    <ul className="mt-2 list-disc space-y-0.5 pl-6 text-[11px] text-gray-500">
+                      {names.map((name) => (
+                        <li key={name}>{name}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )
+              })}
             </div>
-
-            {/* Bathroom */}
-            <div>
-              <div className="flex items-center gap-2 text-sm font-bold text-slate-900">
-                <IoWaterOutline className="text-[#3ea5dc]" />
-                <h3>Bathroom</h3>
-              </div>
-              <div className="mt-2 space-y-1 pl-6 text-gray-500">
-                <p className="font-semibold text-slate-700">Bathroom Facilities</p>
-                <ul className="list-disc pl-4 space-y-0.5 text-[11px]">
-                  <li>Bathroom doors 32 inches wide</li>
-                  <li>Bathroom products</li>
-                  <li>Hair dryer in bathroom</li>
-                  <li>Make-up/magnifying mirror</li>
-                  <li>Telephone in bathroom</li>
-                  <li>Universal shaving plug</li>
-                </ul>
-              </div>
-            </div>
-
-            {/* Media And Technology */}
-            <div>
-              <div className="flex items-center gap-2 text-sm font-bold text-slate-900">
-                <IoTvOutline className="text-[#3ea5dc]" />
-                <h3>Media And Technology</h3>
-              </div>
-              <div className="mt-2 space-y-2 pl-6 text-gray-500">
-                <div>
-                  <p className="font-semibold text-slate-700">Complementary Elements</p>
-                  <p className="text-[11px]">Radio</p>
-                </div>
-                <div>
-                  <p className="font-semibold text-slate-700">Internet Facilities</p>
-                  <ul className="list-disc pl-4 space-y-0.5 text-[11px]">
-                    <li>Data port in room</li>
-                    <li>High speed internet</li>
-                    <li>Wireless internet in your room</li>
-                  </ul>
-                </div>
-                <div>
-                  <p className="font-semibold text-slate-700">Phone Facilities</p>
-                  <p className="text-[11px]">Direct dial telephone</p>
-                </div>
-                <div>
-                  <p className="font-semibold text-slate-700">Tv Facilities</p>
-                  <ul className="list-disc pl-4 space-y-0.5 text-[11px]">
-                    <li>Children&apos;s TV Channels</li>
-                    <li>Music TV channels</li>
-                    <li>Satellite/cable colour TV</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Column 2 */}
-          <div className="space-y-6">
-            {/* Service And Equipment */}
-            <div>
-              <div className="flex items-center gap-2 text-sm font-bold text-slate-900">
-                <IoShieldCheckmarkOutline className="text-[#3ea5dc]" />
-                <h3>Service And Equipment</h3>
-              </div>
-              <div className="mt-2 space-y-3 pl-6 text-gray-500">
-                <div>
-                  <p className="font-semibold text-slate-700">Accessibility And Security</p>
-                  <ul className="list-disc pl-4 space-y-0.5 text-[11px]">
-                    <li>Alarm clock</li>
-                    <li>Audible smoke alarms in rooms</li>
-                    <li>Dead bolt in rooms</li>
-                    <li>Emergency info in rooms</li>
-                    <li>Keycard-operated door locks</li>
-                    <li>Message alert</li>
-                    <li>Room interior entrance only</li>
-                    <li>Safe deposit box in room</li>
-                    <li>Security Peephole</li>
-                    <li>Self-closing rooms</li>
-                    <li>Smoke alarm in room</li>
-                    <li>Sprinkler in room</li>
-                    <li>Visual alarm for hearing impaired</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <p className="font-semibold text-slate-700">Comfort Features</p>
-                  <ul className="list-disc pl-4 space-y-0.5 text-[11px]">
-                    <li>Blackout curtain</li>
-                    <li>Blackout facilities</li>
-                    <li>Brand Magazine</li>
-                    <li>Hair dryer</li>
-                    <li>Soundproof doors</li>
-                    <li>Soundproof room</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <p className="font-semibold text-slate-700">Electric Facilities</p>
-                  <ul className="list-disc pl-4 space-y-0.5 text-[11px]">
-                    <li>220/240 V AC</li>
-                    <li>Room Services</li>
-                    <li>Automatic wake up call</li>
-                    <li>Operator wake up call</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <p className="font-semibold text-slate-700">Temperature Air Control</p>
-                  <ul className="list-disc pl-4 space-y-0.5 text-[11px]">
-                    <li>Air Conditioning</li>
-                    <li>Pulse Air</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <p className="font-semibold text-slate-700">Working Area</p>
-                  <ul className="list-disc pl-4 space-y-0.5 text-[11px]">
-                    <li>Adjustable desk lamp</li>
-                    <li>Business Desk</li>
-                    <li>Rolling seats</li>
-                    <li>Safe large enough to accommodate a laptop</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+          </>
+        ) : null}
       </div>
     </div>
   )

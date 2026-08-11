@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { IoLocationOutline } from 'react-icons/io5'
 import SearchCard from '../../../components/SearchCard'
 import { buildSearchUrlFromCard } from '../../../utils/hotelSearchParams'
+import { saveHotelSearch } from '../../../utils/hotelSearchStorage'
 
 const HeroSection = () => {
   const [activeTab, setActiveTab] = useState('hotel')
@@ -35,6 +36,7 @@ const HeroSection = () => {
 
         <SearchCard
           onSearch={(searchData) => {
+            saveHotelSearch(searchData)
             const queryParams = new URLSearchParams(buildSearchUrlFromCard(searchData)).toString()
             navigate(`/home/search?${queryParams}`)
           }}
