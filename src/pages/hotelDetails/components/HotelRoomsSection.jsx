@@ -427,22 +427,7 @@ const HotelRoomsSection = ({
         </button>
       </div>
 
-      {/* Room Filter Badges */}
-      {/* <div className="mt-4 flex flex-wrap items-center gap-4 text-xs font-medium text-gray-600">
-        <span className="font-bold text-slate-900">Filter:</span>
-        <label className="flex cursor-pointer items-center gap-2">
-          <input type="checkbox" className="h-3.5 w-3.5 accent-[#3ea5dc] rounded cursor-pointer" />
-          <span>Free cancellation</span>
-        </label>
-        <label className="flex cursor-pointer items-center gap-2">
-          <input type="checkbox" className="h-3.5 w-3.5 accent-[#3ea5dc] rounded cursor-pointer" />
-          <span>Breakfast included</span>
-        </label>
-        <label className="flex cursor-pointer items-center gap-2">
-          <input type="checkbox" className="h-3.5 w-3.5 accent-[#3ea5dc] rounded cursor-pointer" />
-          <span>Accessible room</span>
-        </label>
-      </div> */}
+      
 
       <div className="mt-6 space-y-5">
         {rooms.length === 0 ? (

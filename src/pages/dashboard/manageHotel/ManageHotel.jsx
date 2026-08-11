@@ -42,8 +42,8 @@ const ManageHotel = () => {
         setSearchParams({});
       } else {
         const response = await addHotelMutation.mutateAsync(formattedHotel);
-        const successMsg = response?.message || "Hotel created successfully!";
-        toast.success(successMsg);
+        const successMsg = response?.message || "Hotel created successfully! You can now add room types and upload gallery images below.";
+        toast.success(successMsg, { autoClose: 6000 });
         
         const createdHotel = response?.data || response;
         const newId = createdHotel?.id || createdHotel?._id;
