@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -18,7 +18,7 @@ const roomSchema = z.object({
   mediaTech: z.string().default(''),
   serviceEquipment: z.string().default(''),
   tags: z.string().default(''),
-  image: z.string().default(''),
+  image: z.any().default([]),
   roomsLeft: z.string().default('Only 2 rooms left'),
 });
 
@@ -45,70 +45,108 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
       mediaTech: '',
       serviceEquipment: '',
       tags: '',
-      image: '',
+      image: [],
       roomsLeft: 'Only 2 rooms left',
     },
   });
 
-  const imageVal = watch('image');
+  const [imageFiles, setImageFiles] = useState([]);
+  const [previewUrls, setPreviewUrls] = useState([]);
 
   useEffect(() => {
     if (room && isOpen) {
+      const rawImage = room.image || room.imageUrl;
+      const initialImages = Array.isArray(rawImage) 
+        ? rawImage 
+        : (rawImage ? [rawImage] : []);
+      
+      const priceVal = room.price || room.pricePerNight || room.basePrice || '';
+      const sizeVal = room.size || room.roomSize || room.sizeLabel || (room.sizesSqm ? String(room.sizesSqm) : '') || '';
+      const capacityVal = room.capacity || room.maxCapacity || '';
+      const bedInfoVal = room.bedInfo || room.bedInformation || '';
+      const bathsVal = room.baths || room.bathrooms || '';
+      const roomsLeftVal = room.roomsLeft || room.roomsLeftAlert || '';
+
       reset({
         name: room.name || '',
-        price: room.price ? room.price.replace('$', '') : '',
-        size: room.size || '',
-        capacity: room.capacity || '3 pers. max',
-        bedInfo: room.bedInfo || '1 King size bed(s)',
-        baths: room.baths || '1 Bath(s)',
+        price: priceVal ? String(priceVal).replace('$', '') : '',
+        size: sizeVal || '',
+        capacity: capacityVal || '3 pers. max',
+        bedInfo: bedInfoVal || '1 King size bed(s)',
+        baths: bathsVal || '1 Bath(s)',
         description: room.description || '',
         foodBeverage: room.foodBeverage ? (Array.isArray(room.foodBeverage) ? room.foodBeverage.join(', ') : room.foodBeverage) : '',
         bathroom: room.bathroom ? (Array.isArray(room.bathroom) ? room.bathroom.join(', ') : room.bathroom) : '',
         mediaTech: room.mediaTech ? (Array.isArray(room.mediaTech) ? room.mediaTech.join(', ') : room.mediaTech) : '',
         serviceEquipment: room.serviceEquipment ? (Array.isArray(room.serviceEquipment) ? room.serviceEquipment.join(', ') : room.serviceEquipment) : '',
         tags: room.tags ? (Array.isArray(room.tags) ? room.tags.join(', ') : room.tags) : '',
-        image: room.image || '',
-        roomsLeft: room.roomsLeft || 'Only 2 rooms left',
+        image: initialImages,
+        roomsLeft: roomsLeftVal || 'Only 2 rooms left',
       });
+      setPreviewUrls(initialImages);
+      setImageFiles([]);
     } else if (isOpen) {
       reset({
         name: '',
         price: '',
         size: '',
-        capacity: '3 pers. max',
-        bedInfo: '1 King size bed(s)',
-        baths: '1 Bath(s)',
+        capacity: '',
+        bedInfo: '',
+        baths: '',
         description: '',
         foodBeverage: '',
         bathroom: '',
         mediaTech: '',
         serviceEquipment: '',
         tags: '',
-        image: '',
-        roomsLeft: 'Only 2 rooms left',
+        image: [],
+        roomsLeft: '',
       });
+      setPreviewUrls([]);
+      setImageFiles([]);
     }
   }, [room, isOpen, reset]);
 
   const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (file) {
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+      setImageFiles(prev => [...prev, ...files]);
       try {
-        const base64 = await fileToBase64(file, { maxSizeMB: 5, allowedTypes: ['image/*'] });
-        setValue('image', base64);
+        const promises = files.map(file => fileToBase64(file, { maxSizeMB: 5, allowedTypes: ['image/*'] }));
+        const base64s = await Promise.all(promises);
+        setPreviewUrls(prev => {
+          const updated = [...prev, ...base64s];
+          setValue('image', updated);
+          return updated;
+        });
       } catch (err) {
         alert(err.message);
       }
     }
   };
 
+  const handleRemoveImage = (indexToRemove) => {
+    setPreviewUrls(prev => {
+      const updated = prev.filter((_, idx) => idx !== indexToRemove);
+      setValue('image', updated);
+      return updated;
+    });
+    setImageFiles(prev => {
+      const existingCount = previewUrls.length - prev.length;
+      if (indexToRemove >= existingCount) {
+        return prev.filter((_, idx) => idx !== (indexToRemove - existingCount));
+      }
+      return prev;
+    });
+  };
+
   if (!isOpen) return null;
 
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
     const formattedRoom = {
-      id: room ? room.id : Date.now(),
+      id: room ? (room.id || room._id) : Date.now(),
       name: data.name,
-      price: `$${data.price}`,
+      price: data.price,
       size: data.size,
       capacity: data.capacity,
       bedInfo: data.bedInfo,
@@ -119,16 +157,21 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
       mediaTech: data.mediaTech.split(',').map(t => t.trim()).filter(Boolean),
       serviceEquipment: data.serviceEquipment.split(',').map(t => t.trim()).filter(Boolean),
       tags: data.tags.split(',').map(t => t.trim()).filter(Boolean),
-      image: data.image || 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=800&q=80',
+      existingImages: previewUrls.filter(url => url.startsWith('http')),
       roomsLeft: data.roomsLeft,
+      imageFiles: imageFiles, // pass multiple binary files
     };
-    onSave(formattedRoom);
-    onClose();
+    try {
+      await onSave(formattedRoom);
+      onClose();
+    } catch (err) {
+      console.error("Failed to save room:", err);
+    }
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl w-full max-w-2xl border border-gray-200 shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="bg-white rounded-2xl w-full max-w-4xl border border-gray-200 shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
         <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-gray-50">
           <h3 className="text-lg font-bold text-slate-900">
             {room ? 'Edit Room Type' : 'Add New Room Type'}
@@ -249,17 +292,12 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
           </div>
 
           <FormFileInput
-            label="Room Photo"
+            label="Room Photos (Multiple)"
             accept="image/*"
             onChange={handleImageUpload}
-            placeholder="Or paste direct image URL (https://...)"
-            valueText={imageVal}
-            onTextChange={(val) => setValue('image', val)}
-            previewContent={
-              imageVal && (
-                <img src={imageVal} alt="Room Preview" className="h-24 w-40 object-cover rounded-lg border" />
-              )
-            }
+            valueText={previewUrls}
+            onRemoveFile={handleRemoveImage}
+            multiple={true}
           />
 
           <div className="pt-4 border-t border-gray-200 flex justify-end gap-3 bg-gray-50 -mx-6 -mb-6 p-4">

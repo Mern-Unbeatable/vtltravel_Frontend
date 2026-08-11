@@ -37,6 +37,32 @@ export const hotelService = {
   deleteHotel: async (id) => {
     return api.delete(API_ENDPOINTS.HOTEL_DETAILS(id));
   },
+
+  addRoom: async (hotelId, roomData) => {
+    return api.post(`/v1/rooms/hotel/${hotelId}`, roomData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
+
+  getRoomById: async (roomId) => {
+    return api.get(`/v1/rooms/${roomId}`);
+  },
+
+  updateRoom: async (roomId, roomData) => {
+    return api.put(`/v1/rooms/${roomId}`, roomData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
+
+  deleteRoom: async (roomId) => {
+    return api.delete(`/v1/rooms/${roomId}`);
+  },
+
+  uploadGalleryImages: async (hotelId, formData) => {
+    return api.post(`/v1/hotels/${hotelId}/images`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
 };
 
 export default hotelService;

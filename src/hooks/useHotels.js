@@ -104,6 +104,7 @@ export const useAddHotel = () => {
     mutationFn: (newHotel) => hotelService.addHotel(newHotel),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['hotels'] });
+      queryClient.invalidateQueries({ queryKey: ['admin_hotels'] });
     },
   });
 };
@@ -115,6 +116,7 @@ export const useUpdateHotel = () => {
     mutationFn: ({ id, hotelData }) => hotelService.updateHotel(id, hotelData),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['hotels'] });
+      queryClient.invalidateQueries({ queryKey: ['admin_hotels'] });
       queryClient.invalidateQueries({ queryKey: ['hotel', variables.id] });
     },
   });
@@ -127,6 +129,7 @@ export const useDeleteHotel = () => {
     mutationFn: (id) => hotelService.deleteHotel(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['hotels'] });
+      queryClient.invalidateQueries({ queryKey: ['admin_hotels'] });
     },
   });
 };

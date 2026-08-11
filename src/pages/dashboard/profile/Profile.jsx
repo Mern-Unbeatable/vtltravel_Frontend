@@ -107,7 +107,7 @@ const Profile = () => {
 
     setIsChangingPassword(true);
     try {
-      const response = await authService.updateProfile({
+      const response = await authService.updatePassword({
         currentPassword,
         newPassword,
       });
@@ -146,26 +146,10 @@ const Profile = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-fadeIn text-slate-700">
-      {/* Profile Overview Card */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.02)] flex flex-col md:flex-row items-center gap-6">
-        <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center text-primary text-3xl font-bold">
-          {profile.name ? profile.name.charAt(0).toUpperCase() : "A"}
-        </div>
-        <div className="flex-1 text-center md:text-left space-y-1">
-          <h2 className="text-2xl font-bold text-slate-900">{profile.name}</h2>
-          <div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm text-gray-500 mt-2">
-            <span className="flex items-center gap-1">
-              <IoMailOutline className="text-base text-gray-400" /> {profile.email}
-            </span>
-            <span className="flex items-center gap-1">
-              <IoShieldCheckmarkOutline className="text-base text-gray-400" /> {profile.role}
-            </span>
-          </div>
-        </div>
-      </div>
+    <div className="container  animate-fadeIn text-slate-700">
+ 
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 gap-8">
         {/* Update Account Info Form */}
         <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-[0_8px_30px_rgba(0,0,0,0.02)]">
           <div className="flex items-center gap-3 border-b border-gray-100 pb-4 mb-6">

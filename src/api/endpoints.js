@@ -8,7 +8,8 @@ export const API_ENDPOINTS = {
   BOOKINGS: '/v1/bookings',
   CONFIRM_PAYMENT: (bookingRef) => `/v1/bookings/ref/${bookingRef}/confirm-payment`,
   ADMIN_HOTELS: '/v1/hotels/admin/list/all',
-  PROFILE: '/v1/auth/admin/profile',
+  PROFILE: '/v1/auth/me',
+  UPDATE_PASSWORD: '/v1/auth/me/password',
 };
 
 
