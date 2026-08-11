@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import HotelHeaderGallery from './components/HotelHeaderGallery'
 import HotelOverviewSection from './components/HotelOverviewSection'
@@ -10,7 +10,8 @@ import { useHotel } from '../../hooks/useHotels'
 import Spinner from '../../components/Spinner'
 import { getStoredHotelSearch, saveHotelSearch } from '../../utils/hotelSearchStorage'
 import { formatDateISO } from '../../utils/hotelSearchParams'
-
+import { isRoomBookedForStay, ROOM_BOOKED_MESSAGE } from '../../utils/roomAvailability'
+import { toast } from 'react-toastify'
 const mapRoomType = (room) => {
   const images = (room.images || []).map((img) => img.url).filter(Boolean)
   const amenityNames = (room.amenities || [])
@@ -48,14 +49,37 @@ const mapRoomType = (room) => {
 
 const HotelDetailsPage = () => {
   const { hotelId } = useParams()
-  const { data: hotel, isLoading, isError } = useHotel(hotelId)
   const [selectedRoom, setSelectedRoom] = useState(null)
   const [modalRoom, setModalRoom] = useState(null)
   const [stay, setStay] = useState(() => getStoredHotelSearch())
+  const stayParams =
+    stay?.checkIn && stay?.checkOut
+      ? { checkIn: stay.checkIn, checkOut: stay.checkOut }
+      : {}
+  const { data: hotel, isLoading, isError } = useHotel(hotelId, stayParams)
 
   const handleStaySearch = (nextStay) => {
     const saved = saveHotelSearch(nextStay)
     setStay(saved)
+  }
+
+  useEffect(() => {
+    if (!hotel) return
+    setSelectedRoom((prev) => {
+      if (!prev?.id) return prev
+      const updated = (hotel.roomTypes || [])
+        .filter((room) => room.isActive !== false)
+        .map(mapRoomType)
+        .find((room) => room.id === prev.id)
+      return updated || prev
+    })
+  }, [hotel])
+
+  const handleSelectRoom = (room) => {
+    setSelectedRoom(room)
+    if (isRoomBookedForStay(room, stay)) {
+      toast.error(ROOM_BOOKED_MESSAGE)
+    }
   }
 
   if (isLoading) {
@@ -78,7 +102,6 @@ const HotelDetailsPage = () => {
     .filter(Boolean)
   const roomsList = (hotel.roomTypes || []).filter((room) => room.isActive !== false).map(mapRoomType)
   const todayIso = formatDateISO(new Date())
-
   return (
     <div className="">
       <HotelHeaderGallery images={galleryImages} title={title} />
@@ -101,7 +124,7 @@ const HotelDetailsPage = () => {
               initialChildren={stay?.children || 0}
               stay={stay}
               onStaySearch={handleStaySearch}
-              onSelectRoom={(room) => setSelectedRoom(room)}
+              onSelectRoom={handleSelectRoom}
               onOpenDetails={(room) => setModalRoom(room)}
             />
           </div>
@@ -111,6 +134,7 @@ const HotelDetailsPage = () => {
               hotel={hotel}
               stay={stay}
               selectedRoom={selectedRoom}
+              onStayChange={handleStaySearch}
             />
           </div>
         </div>

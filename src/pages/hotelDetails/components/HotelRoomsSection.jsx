@@ -83,6 +83,22 @@ const HotelRoomsSection = ({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  useEffect(() => {
+    const nextIn = parseLocalDate(stay?.checkIn)
+    const nextOut = parseLocalDate(stay?.checkOut)
+    if (nextIn) setCheckInDate(nextIn)
+    if (stay?.checkOut === '') {
+      setCheckOutDate(null)
+    } else if (nextOut) {
+      setCheckOutDate(nextOut)
+    }
+    if (stay?.adults) setAdultsCount(Number(stay.adults) || 1)
+    if (stay?.rooms) setRoomsCount(Number(stay.rooms) || 1)
+    if (stay?.children !== undefined && stay?.children !== null) {
+      setChildrenCount(Number(stay.children) || 0)
+    }
+  }, [stay?.checkIn, stay?.checkOut, stay?.adults, stay?.rooms, stay?.children])
+
   // Calendar math
   const year = currentCalendarMonth.getFullYear()
   const month = currentCalendarMonth.getMonth()

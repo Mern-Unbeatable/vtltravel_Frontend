@@ -11,8 +11,8 @@ export const hotelService = {
   },
 
 
-  getHotelById: async (id) => {
-    return api.get(API_ENDPOINTS.HOTEL_DETAILS(id));
+  getHotelById: async (id, params = {}) => {
+    return api.get(API_ENDPOINTS.HOTEL_DETAILS(id), { params });
   },
 
   addHotel: async (hotelData) => {

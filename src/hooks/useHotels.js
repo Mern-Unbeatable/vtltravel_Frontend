@@ -69,17 +69,18 @@ export const useAdminHotels = () => {
 };
 
 
-export const useHotel = (id) => {
+export const useHotel = (id, params = {}) => {
   return useQuery({
-    queryKey: ['hotel', id],
+    queryKey: ['hotel', id, params],
     queryFn: async () => {
-      const response = await hotelService.getHotelById(id);
+      const response = await hotelService.getHotelById(id, params);
       if (response && response.success && response.data) {
         return response.data;
       }
       return response;
     },
     enabled: !!id,
+    placeholderData: (previousData) => previousData,
   });
 };
 
