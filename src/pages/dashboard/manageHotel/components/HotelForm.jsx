@@ -20,6 +20,22 @@ const availableFacilitiesList = [
   'Free Parking'
 ];
 
+const GALLERY_CATEGORIES = [
+  'Videos',
+  'Hotel',
+  'Rooms',
+  'Suite',
+  'Restaurant',
+  'Bar',
+  'Breakfast',
+  'Family',
+  'Weddings',
+  'Meetings and events',
+  'Services',
+  'Hotel advantages',
+  'Spa',
+];
+
 const hotelSchema = z.object({
   title: z.string().min(1, 'Hotel title is required'),
   starNum: z.number().min(1).max(5),
@@ -28,7 +44,10 @@ const hotelSchema = z.object({
   video: z.string().optional().default(''),
   description: z.string().min(1, 'Description is required'),
   facilities: z.array(z.string()).default([]),
-  gallery: z.array(z.string()).default([]),
+  gallery: z.array(z.object({
+    url: z.string(),
+    category: z.string()
+  })).default([]),
   rooms: z.array(z.any()).default([]),
   available: z.boolean().default(true),
   addOns: z.array(
@@ -43,6 +62,7 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
   // Room modal sub-states
   const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState(null);
+  const [activeGalleryTab, setActiveGalleryTab] = useState('Hotel');
 
   const {
     register,
@@ -88,7 +108,17 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
         typeof fac === 'string' ? fac : (fac?.facility?.name || fac?.name || '')
       ).filter(Boolean);
 
-      const mappedGallery = (hotel.images || []).map(img => img.url).filter(Boolean);
+      const rawGallery = hotel.gallery || hotel.images || [];
+      const mappedGallery = rawGallery.map(img => {
+        if (typeof img === 'string') {
+          const isVideo = img.toLowerCase().endsWith('.mp4') || img.toLowerCase().endsWith('.mov');
+          return { url: img, category: isVideo ? 'Videos' : 'Hotel' };
+        }
+        return {
+          url: img.url || img.coverImageUrl || '',
+          category: img.category || img.type || 'Hotel'
+        };
+      }).filter(img => img.url);
 
       reset({
         title: hotel.name || hotel.title || '',
@@ -98,7 +128,7 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
         video: hotel.videoUrl || hotel.video || '',
         description: hotel.description || '',
         facilities: mappedFacilities,
-        gallery: mappedGallery.length > 0 ? mappedGallery : (hotel.gallery || []),
+        gallery: mappedGallery,
         rooms: hotel.rooms || hotel.roomTypes || [],
         available: hotel.isActive !== undefined ? hotel.isActive : (hotel.available !== undefined ? hotel.available : true),
         addOns: hotel.addOns && hotel.addOns.length > 0 
@@ -148,17 +178,25 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
     const files = Array.from(e.target.files);
     if (files.length > 0) {
       try {
-        const promises = files.map(file => fileToBase64(file, { maxSizeMB: 5, allowedTypes: ['image/*'] }));
-        const base64Images = await Promise.all(promises);
-        setValue('gallery', [...galleryVal, ...base64Images].filter(Boolean));
+        const isVideoTab = activeGalleryTab.toLowerCase() === 'videos';
+        const promises = files.map(file => fileToBase64(file, { 
+          maxSizeMB: isVideoTab ? 20 : 5, 
+          allowedTypes: isVideoTab ? ['video/*'] : ['image/*'] 
+        }));
+        const base64Files = await Promise.all(promises);
+        const newGalleryItems = base64Files.map(base64 => ({
+          url: base64,
+          category: activeGalleryTab
+        }));
+        setValue('gallery', [...galleryVal, ...newGalleryItems].filter(Boolean));
       } catch (err) {
         alert(err.message);
       }
     }
   };
 
-  const removeGalleryImage = (index) => {
-    setValue('gallery', galleryVal.filter((_, idx) => idx !== index));
+  const removeGalleryImage = (url) => {
+    setValue('gallery', galleryVal.filter(img => img.url !== url));
   };
 
   // Rooms CRUD within Hotel Form
@@ -256,16 +294,32 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
       }
     }
 
-    // Gallery images
+    // Gallery images & videos
     if (data.gallery && data.gallery.length > 0) {
       data.gallery.forEach((img, idx) => {
-        if (img.startsWith('data:')) {
-          const fileObj = base64ToFile(img, `gallery_image_${idx}.png`);
-          if (fileObj) formData.append('galleryImages', fileObj);
+        const urlStr = img.url;
+        const cat = img.category || 'Hotel';
+        const isVideo = cat.toLowerCase() === 'videos';
+        const ext = isVideo ? 'mp4' : 'png';
+        
+        if (urlStr.startsWith('data:')) {
+          const fileObj = base64ToFile(urlStr, `gallery_${cat.toLowerCase()}_${idx}.${ext}`);
+          if (fileObj) {
+            formData.append('galleryImages', fileObj);
+            formData.append(`galleryCategories[${idx}]`, cat);
+          }
         } else {
-          formData.append('galleryImages', img); // URL fallback
+          formData.append('galleryImages', urlStr); // URL fallback
+          formData.append(`galleryCategories[${idx}]`, cat);
         }
       });
+      // Also append full gallery data as JSON
+      formData.append('gallery', JSON.stringify(data.gallery));
+    }
+
+    // Append rooms list
+    if (data.rooms && data.rooms.length > 0) {
+      formData.append('rooms', JSON.stringify(data.rooms));
     }
 
     // Debug print Form Data keys and values
@@ -406,32 +460,75 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
           </div>
         </div>
 
-        {/* Gallery Image Upload (Multiple) */}
-        <div>
-          <label className="block text-xs font-bold text-slate-700 uppercase mb-2">Gallery Photos</label>
-          <div className="space-y-4">
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={handleGalleryUpload}
-              className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer"
-            />
-            
-            {galleryVal.length > 0 && (
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
-                {galleryVal.map((url, idx) => (
-                  <div key={idx} className="relative group aspect-square rounded-lg overflow-hidden border border-gray-200 bg-white">
-                    <img src={url} alt={`Gallery ${idx + 1}`} className="w-full h-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => removeGalleryImage(idx)}
-                      className="absolute inset-0 bg-slate-900/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white text-xs font-bold cursor-pointer"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ))}
+        {/* Gallery Photos & Videos Category Tab Manager */}
+        <div className="border-t border-gray-200 pt-6">
+          <label className="block text-xs font-bold text-slate-700 uppercase mb-3">Gallery Sections (Categorized)</label>
+          
+          {/* Horizontal scrollable tab buttons */}
+          <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-thin">
+            {GALLERY_CATEGORIES.map((cat) => {
+              const count = galleryVal.filter(img => (img.category || 'Hotel').toLowerCase() === cat.toLowerCase()).length;
+              const isActive = activeGalleryTab.toLowerCase() === cat.toLowerCase();
+              return (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setActiveGalleryTab(cat)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+                    isActive 
+                      ? 'bg-primary text-white' 
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  {cat} ({count})
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="space-y-4 bg-slate-50 p-5 rounded-2xl border border-slate-200">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h4 className="text-sm font-bold text-slate-800">{activeGalleryTab} Gallery</h4>
+                <p className="text-xs text-slate-500">Upload media specific to the {activeGalleryTab} section</p>
+              </div>
+              <input
+                type="file"
+                multiple
+                accept={activeGalleryTab.toLowerCase() === 'videos' ? 'video/*' : 'image/*'}
+                onChange={handleGalleryUpload}
+                className="text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer"
+              />
+            </div>
+
+            {/* Filtered items display */}
+            {galleryVal.filter(img => (img.category || 'Hotel').toLowerCase() === activeGalleryTab.toLowerCase()).length === 0 ? (
+              <div className="text-center py-8 text-xs font-semibold text-slate-400 border border-dashed border-slate-200 rounded-xl bg-white">
+                No items uploaded under {activeGalleryTab} category yet.
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
+                {galleryVal
+                  .filter(img => (img.category || 'Hotel').toLowerCase() === activeGalleryTab.toLowerCase())
+                  .map((img, idx) => {
+                    const isVideo = (img.category || 'Hotel').toLowerCase() === 'videos';
+                    return (
+                      <div key={idx} className="relative group aspect-square rounded-lg overflow-hidden border border-gray-200 bg-white">
+                        {isVideo ? (
+                          <video src={img.url} className="w-full h-full object-cover bg-black" />
+                        ) : (
+                          <img src={img.url} alt={`Gallery ${activeGalleryTab} ${idx + 1}`} className="w-full h-full object-cover" />
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => removeGalleryImage(img.url)}
+                          className="absolute inset-0 bg-slate-900/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white text-xs font-bold cursor-pointer"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    );
+                  })}
               </div>
             )}
           </div>
@@ -481,67 +578,69 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
         </div>
 
         {/* Room Types Table */}
-        <div className="border-t border-gray-200 pt-6">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-base font-bold text-slate-900">Room Types & Pricing</h3>
-            <button
-              type="button"
-              onClick={() => {
-                setEditingRoom(null);
-                setIsRoomModalOpen(true);
-              }}
-              className="px-3.5 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-semibold hover:bg-slate-800 transition cursor-pointer"
-            >
-              + Add Room Type
-            </button>
-          </div>
+        {hotel && (
+          <div className="border-t border-gray-200 pt-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-base font-bold text-slate-900">Room Types & Pricing</h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingRoom(null);
+                  setIsRoomModalOpen(true);
+                }}
+                className="px-3.5 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-semibold hover:bg-slate-800 transition cursor-pointer"
+              >
+                + Add Room Type
+              </button>
+            </div>
 
-          {roomsVal.length === 0 ? (
-            <div className="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-6 text-center text-sm text-gray-500 font-semibold">
-              No rooms configured for this hotel yet. Add at least one room type.
-            </div>
-          ) : (
-            <div className="border border-gray-200 rounded-xl overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-600 min-w-[600px]">
-                <thead className="bg-gray-50 uppercase font-semibold text-gray-500 border-b border-gray-200">
-                  <tr>
-                    <th className="px-4 py-3">Room Name</th>
-                    <th className="px-4 py-3">Bed Info</th>
-                    <th className="px-4 py-3">Size</th>
-                    <th className="px-4 py-3">Price</th>
-                    <th className="px-4 py-3 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {roomsVal.map(room => (
-                    <tr key={room.id} className="hover:bg-gray-50/50">
-                      <td className="px-4 py-3 font-semibold text-slate-800">{room.name}</td>
-                      <td className="px-4 py-3">{room.bedInfo}</td>
-                      <td className="px-4 py-3">{room.size}</td>
-                      <td className="px-4 py-3 font-bold text-slate-950">{room.price}/night</td>
-                      <td className="px-4 py-3 text-right space-x-2">
-                        <button
-                          type="button"
-                          onClick={() => handleEditRoom(room)}
-                          className="text-xs text-primary font-bold hover:underline cursor-pointer"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteRoom(room.id)}
-                          className="text-xs text-red-500 font-bold hover:underline cursor-pointer"
-                        >
-                          Delete
-                        </button>
-                      </td>
+            {roomsVal.length === 0 ? (
+              <div className="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-6 text-center text-sm text-gray-500 font-semibold">
+                No rooms configured for this hotel yet. Add at least one room type.
+              </div>
+            ) : (
+              <div className="border border-gray-200 rounded-xl overflow-x-auto">
+                <table className="w-full text-left text-xs text-slate-600 min-w-[600px]">
+                  <thead className="bg-gray-50 uppercase font-semibold text-gray-500 border-b border-gray-200">
+                    <tr>
+                      <th className="px-4 py-3">Room Name</th>
+                      <th className="px-4 py-3">Bed Info</th>
+                      <th className="px-4 py-3">Size</th>
+                      <th className="px-4 py-3">Price</th>
+                      <th className="px-4 py-3 text-right">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {roomsVal.map(room => (
+                      <tr key={room.id} className="hover:bg-gray-50/50">
+                        <td className="px-4 py-3 font-semibold text-slate-800">{room.name}</td>
+                        <td className="px-4 py-3">{room.bedInfo}</td>
+                        <td className="px-4 py-3">{room.size}</td>
+                        <td className="px-4 py-3 font-bold text-slate-950">{room.price}/night</td>
+                        <td className="px-4 py-3 text-right space-x-2">
+                          <button
+                            type="button"
+                            onClick={() => handleEditRoom(room)}
+                            className="text-xs text-primary font-bold hover:underline cursor-pointer"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteRoom(room.id)}
+                            className="text-xs text-red-500 font-bold hover:underline cursor-pointer"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Action Buttons */}
         <div className="flex flex-col-reverse sm:flex-row gap-3 pt-6 border-t border-gray-200 justify-end">

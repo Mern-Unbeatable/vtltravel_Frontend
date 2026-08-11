@@ -139,11 +139,11 @@ const HotelGalleryModal = ({ open, onClose, hotelTitle, images }) => {
                   key={`${activeCategory}-${image}-${index}`}
                   className="overflow-hidden rounded-xl"
                 >
-                  <img
-                    src={image}
-                    alt={`${activeCategory} ${index + 1}`}
-                    className="h-[220px] w-full object-cover"
-                  />
+                    <img
+                      src={image}
+                      alt={`${activeCategory} ${index + 1}`}
+                      className="h-[220px] w-full object-cover"
+                    />
                 </div>
               ))}
             </div>
