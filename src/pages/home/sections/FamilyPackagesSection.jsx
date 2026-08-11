@@ -1,51 +1,55 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import PackageCard from '../components/PackageCard'
+import { useHotels } from '../../../hooks/useHotels'
 
-const packages = [
-  // ... (keep packages unchanged)
-  {
-    id: 1,
-    title: 'Holiday Inn Resort Batam',
-    validTill: 'Valid Till Jun 30, 2026',
-    description:
-      'Holiday Inn Resort Batam is a family-friendly resort in Sekupang with pools, dining, and easy ferry access.',
-    price: '$99',
-    image:
-      'https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: 2,
-    title: 'Holiday Inn Resort Batam',
-    validTill: 'Valid Till Jun 30, 2026',
-    description:
-      'Holiday Inn Resort Batam is a family-friendly resort in Sekupang with pools, dining, and easy ferry access.',
-    price: '$99',
-    image:
-      'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: 3,
-    title: 'Holiday Inn Resort Batam',
-    validTill: 'Valid Till Jun 30, 2026',
-    description:
-      'Holiday Inn Resort Batam is a family-friendly resort in Sekupang with pools, dining, and easy ferry access.',
-    price: '$99',
-    image:
-      'https://images.unsplash.com/photo-1610641818989-c2051b5e2fcb?auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: 4,
-    title: 'Holiday Inn Resort Batam',
-    validTill: 'Valid Till Jun 30, 2026',
-    description:
-      'Holiday Inn Resort Batam is a family-friendly resort in Sekupang with pools, dining, and easy ferry access.',
-    price: '$99',
-    image:
-      'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?auto=format&fit=crop&w=800&q=80',
-  },
-]
+const isSingaporeHotel = (hotel) => {
+  const haystack = [hotel.country, hotel.city, hotel.location, hotel.address]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase()
+  return haystack.includes('singapore')
+}
+
+const formatValidTill = (value) => {
+  if (!value) return ''
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  return `Valid Till ${date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })}`
+}
+
+const mapHotelToCard = (hotel) => {
+  const priceValue = hotel.fromPrice ?? hotel.startingPrice
+  const image =
+    hotel.primaryImage ||
+    hotel.coverImageUrl ||
+    hotel.images?.[0]?.url ||
+    ''
+
+  return {
+    id: hotel.id || hotel.slug,
+    slug: hotel.slug,
+    title: hotel.name || '',
+    validTill: formatValidTill(hotel.validUntil),
+    description: hotel.shortDescription || hotel.description || '',
+    price: priceValue !== null && priceValue !== undefined && priceValue !== '' ? `$${priceValue}` : '',
+    image,
+  }
+}
 
 const FamilyPackagesSection = () => {
+  const navigate = useNavigate()
+  const { data, isLoading, isError } = useHotels({ limit: 12, page: 1 })
+  const hotels = data?.items || []
+
+  const packages = [...hotels]
+    .sort((a, b) => Number(isSingaporeHotel(b)) - Number(isSingaporeHotel(a)))
+    .map(mapHotelToCard)
+    .slice(0, 4)
+
   return (
     <section className="mx-auto container px-4  pb-14 md:pb-16 lg:pb-20">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -60,11 +64,36 @@ const FamilyPackagesSection = () => {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {packages.map((item) => (
-          <PackageCard key={item.id} item={item} />
-        ))}
-      </div>
+      {isLoading ? (
+        <div className="flex justify-center py-16">
+          <svg className="h-8 w-8 animate-spin text-primary" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            />
+          </svg>
+        </div>
+      ) : isError ? (
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-sm font-semibold text-red-600">
+          Failed to load hotels. Please try again.
+        </div>
+      ) : packages.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-500">
+          No hotels available right now.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {packages.map((item) => (
+            <PackageCard
+              key={item.id}
+              item={item}
+              onExplore={() => navigate(`/home/search/${item.slug || item.id}`)}
+            />
+          ))}
+        </div>
+      )}
     </section>
   )
 }

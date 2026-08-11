@@ -37,7 +37,6 @@ const mapHotelToCard = (hotel) => {
     description: hotel.shortDescription || hotel.description || '',
     price: priceValue !== null && priceValue !== undefined && priceValue !== '' ? `$${priceValue}` : '',
     image,
-    location: [hotel.city, hotel.country].filter(Boolean).join(', '),
   }
 }
 
