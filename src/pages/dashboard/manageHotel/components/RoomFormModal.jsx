@@ -209,9 +209,10 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
             <FormInput
               label="Room Size"
               name="size"
+              type="number"
               register={register}
               error={errors.size}
-              placeholder="e.g. 32m²"
+              placeholder="e.g. 32"
             />
           </div>
 
@@ -219,23 +220,26 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
             <FormInput
               label="Max Capacity"
               name="capacity"
+              type="number"
               register={register}
               error={errors.capacity}
-              placeholder="e.g. 3 pers. max"
+              placeholder="e.g. 3"
             />
             <FormInput
               label="Bed Information"
               name="bedInfo"
+              type="number"
               register={register}
               error={errors.bedInfo}
-              placeholder="e.g. 1 King size bed(s)"
+              placeholder="e.g. 2"
             />
             <FormInput
               label="Baths Count"
               name="baths"
+              type="number"
               register={register}
               error={errors.baths}
-              placeholder="e.g. 1 Baths"
+              placeholder="e.g. 1"
             />
           </div>
 
@@ -243,9 +247,10 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
             <FormInput
               label="Rooms Left Alert"
               name="roomsLeft"
+              type="number"
               register={register}
               error={errors.roomsLeft}
-              placeholder="e.g. Only 2 rooms left or 5 rooms left"
+              placeholder="e.g. 2"
             />
             <FormInput
               label="Tags "

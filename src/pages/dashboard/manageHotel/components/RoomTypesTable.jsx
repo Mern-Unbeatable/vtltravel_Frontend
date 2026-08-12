@@ -1,12 +1,20 @@
-import React from 'react';
+import React from "react";
 
-const RoomTypesTable = ({ hotel, roomsVal, onAddClick, onEditClick, onDeleteClick }) => {
+const RoomTypesTable = ({
+  hotel,
+  roomsVal,
+  onAddClick,
+  onEditClick,
+  onDeleteClick,
+}) => {
   if (!hotel) return null;
 
   return (
     <div className="border-t border-gray-200 pt-6">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-base font-bold text-slate-900">Room Types & Pricing</h3>
+        <h3 className="text-base font-bold text-slate-900">
+          Room Types & Pricing
+        </h3>
         <button
           type="button"
           onClick={onAddClick}
@@ -33,17 +41,25 @@ const RoomTypesTable = ({ hotel, roomsVal, onAddClick, onEditClick, onDeleteClic
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {roomsVal.map(room => {
-                const priceVal = room.price || room.pricePerNight || room.basePrice || '';
-                const sizeVal = room.size || room.roomSize || room.sizeLabel || (room.sizesSqm ? String(room.sizesSqm) : '') || 'N/A';
-                const bedInfoVal = room.bedInfo || room.bedInformation || 'N/A';
+              {roomsVal.map((room) => {
+                const priceVal =
+                  room.price || room.pricePerNight || room.basePrice || "";
+                const sizeVal =
+                  room.size ||
+                  room.roomSize ||
+                  room.sizeLabel ||
+                  (room.sizesSqm ? String(room.sizesSqm) : "") ||
+                  "N/A";
+                const bedInfoVal = room.bedInfo || room.bedInformation || "N/A";
                 return (
                   <tr key={room.id || room._id} className="hover:bg-gray-50/50">
-                    <td className="px-4 py-3 font-semibold text-slate-800">{room.name}</td>
+                    <td className="px-4 py-3 font-semibold text-slate-800">
+                      {room.name}
+                    </td>
                     <td className="px-4 py-3">{bedInfoVal}</td>
                     <td className="px-4 py-3">{sizeVal}</td>
                     <td className="px-4 py-3 font-bold text-slate-950">
-                      {priceVal ? `$${priceVal}/night` : 'N/A'}
+                      {priceVal ? `$${priceVal}/night` : "N/A"}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <button
