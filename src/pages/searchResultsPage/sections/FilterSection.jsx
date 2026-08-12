@@ -353,7 +353,7 @@ const FilterSection = ({ onFilterChange }) => {
           <div className="border-t border-[#05588E29] pt-4">
             <p className="text-xs font-bold text-gray-800">Availability</p>
             <div className="mt-3 flex items-center justify-between">
-              <span className="text-xs text-gray-600">Show only available hotels</span>
+              <span className="text-xs md:text-sm text-gray-600">Show only available hotels</span>
               <button
                 type="button"
                 onClick={() => setOnlyAvailable((prev) => !prev)}
