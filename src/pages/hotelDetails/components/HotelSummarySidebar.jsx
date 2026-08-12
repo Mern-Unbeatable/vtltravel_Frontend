@@ -7,6 +7,8 @@ import {
   IoChevronDown,
   IoChevronBack,
   IoChevronForward,
+  IoAdd,
+  IoRemove,
 } from 'react-icons/io5'
 import { toast } from 'react-toastify'
 import FallbackImage from '../../../components/FallbackImage'
@@ -54,24 +56,35 @@ const HotelSummarySidebar = ({
   const { hotelId } = useParams()
   const [showDetails, setShowDetails] = useState(true)
   const [showDatePicker, setShowDatePicker] = useState(false)
+  const [showGuestsPicker, setShowGuestsPicker] = useState(false)
   const [activeDateTab, setActiveDateTab] = useState('checkIn')
   const [checkInDate, setCheckInDate] = useState(() => parseLocalDate(stay?.checkIn))
   const [checkOutDate, setCheckOutDate] = useState(() => parseLocalDate(stay?.checkOut))
+  const [adultsCount, setAdultsCount] = useState(() => Number(stay?.adults) || 1)
+  const [roomsCount, setRoomsCount] = useState(() => Number(stay?.rooms) || 1)
+  const [childrenCount, setChildrenCount] = useState(() => Number(stay?.children) || 0)
   const today = new Date()
   const [currentCalendarMonth, setCurrentCalendarMonth] = useState(
     () => new Date(today.getFullYear(), today.getMonth(), 1),
   )
   const datePickerRef = useRef(null)
+  const guestsPickerRef = useRef(null)
 
   useEffect(() => {
     setCheckInDate(parseLocalDate(stay?.checkIn))
     setCheckOutDate(parseLocalDate(stay?.checkOut))
-  }, [stay?.checkIn, stay?.checkOut])
+    setAdultsCount(Number(stay?.adults) || 1)
+    setRoomsCount(Number(stay?.rooms) || 1)
+    setChildrenCount(Number(stay?.children) || 0)
+  }, [stay?.checkIn, stay?.checkOut, stay?.adults, stay?.rooms, stay?.children])
 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (datePickerRef.current && !datePickerRef.current.contains(event.target)) {
         setShowDatePicker(false)
+      }
+      if (guestsPickerRef.current && !guestsPickerRef.current.contains(event.target)) {
+        setShowGuestsPicker(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -87,21 +100,43 @@ const HotelSummarySidebar = ({
     stay?.checkIn || formatDateISO(checkInDate),
     stay?.checkOut || formatDateISO(checkOutDate),
   )
-  const adults = Number(stay?.adults) || 1
-  const rooms = Number(stay?.rooms) || 1
-  const children = Number(stay?.children) || 0
+  const adults = adultsCount
+  const rooms = roomsCount
+  const children = childrenCount
   const targetId = hotel?.id || hotel?.slug || hotelId
   const isFerryPage = location.pathname.includes('/book-ferry')
   const isRoomBooked = isRoomBookedForStay(selectedRoom, stay)
 
-  const applyStayDates = (nextCheckIn, nextCheckOut) => {
-    if (!onStayChange || !nextCheckIn || !nextCheckOut) return
+  const applyStayChange = (overrides = {}) => {
+    if (!onStayChange) return
     onStayChange({
+      checkIn: formatDateISO(checkInDate) || stay?.checkIn || '',
+      checkOut: formatDateISO(checkOutDate) || stay?.checkOut || '',
+      adults: adultsCount,
+      rooms: roomsCount,
+      children: childrenCount,
+      ...overrides,
+    })
+  }
+
+  const applyStayDates = (nextCheckIn, nextCheckOut) => {
+    applyStayChange({
       checkIn: formatDateISO(nextCheckIn),
       checkOut: formatDateISO(nextCheckOut),
-      adults,
-      rooms,
-      children,
+    })
+  }
+
+  const updateGuests = (next) => {
+    const adultsNext = Math.max(1, Number(next.adults ?? adultsCount) || 1)
+    const roomsNext = Math.max(1, Number(next.rooms ?? roomsCount) || 1)
+    const childrenNext = Math.max(0, Number(next.children ?? childrenCount) || 0)
+    setAdultsCount(adultsNext)
+    setRoomsCount(roomsNext)
+    setChildrenCount(childrenNext)
+    applyStayChange({
+      adults: adultsNext,
+      rooms: roomsNext,
+      children: childrenNext,
     })
   }
 
@@ -183,6 +218,7 @@ const HotelSummarySidebar = ({
           type="button"
           onClick={() => {
             setShowDatePicker((prev) => !prev)
+            setShowGuestsPicker(false)
             setActiveDateTab(checkInDate ? 'checkOut' : 'checkIn')
           }}
           className={`flex w-full items-center gap-2 rounded-xl px-0 py-1 text-left text-[#3ea5dc] font-medium text-xs cursor-pointer transition ${
@@ -301,13 +337,106 @@ const HotelSummarySidebar = ({
         </p>
       ) : null}
 
-      <div className="mt-3 flex items-center gap-2 text-[#3ea5dc] font-medium text-xs">
-        <IoPersonOutline className="text-sm shrink-0" />
-        <span>
-          {adults} adult{adults !== 1 ? 's' : ''}
-          {children > 0 ? ` - ${children} child${children !== 1 ? 'ren' : ''}` : ''}
-          {` - ${rooms} room${rooms !== 1 ? 's' : ''}`}
-        </span>
+      <div ref={guestsPickerRef} className="relative mt-3">
+        <button
+          type="button"
+          onClick={() => {
+            setShowGuestsPicker((prev) => !prev)
+            setShowDatePicker(false)
+          }}
+          className={`flex w-full items-center gap-2 rounded-xl px-0 py-1 text-left text-[#3ea5dc] font-medium text-xs cursor-pointer transition ${
+            showGuestsPicker ? 'text-[#3296cc]' : 'hover:opacity-80'
+          }`}
+        >
+          <IoPersonOutline className="text-sm shrink-0" />
+          <span>
+            {adults} adult{adults !== 1 ? 's' : ''}
+            {children > 0 ? ` - ${children} child${children !== 1 ? 'ren' : ''}` : ''}
+            {` - ${rooms} room${rooms !== 1 ? 's' : ''}`}
+          </span>
+        </button>
+
+        {showGuestsPicker ? (
+          <div className="absolute left-0 top-full z-[120] mt-2 w-full min-w-[220px] rounded-2xl border border-gray-100 bg-white p-4 shadow-2xl">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-bold text-gray-800">Rooms</p>
+                <div className="flex items-center gap-3 rounded-lg bg-gray-100 px-2 py-1">
+                  <button
+                    type="button"
+                    onClick={() => updateGuests({ rooms: roomsCount - 1 })}
+                    disabled={roomsCount <= 1}
+                    className="text-gray-600 disabled:opacity-40"
+                  >
+                    <IoRemove className="text-xs" />
+                  </button>
+                  <span className="text-xs font-bold text-primary">{roomsCount}</span>
+                  <button
+                    type="button"
+                    onClick={() => updateGuests({ rooms: roomsCount + 1 })}
+                    className="text-gray-600"
+                  >
+                    <IoAdd className="text-xs" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between border-t border-gray-100 pt-3">
+                <p className="text-xs font-bold text-gray-800">Adults</p>
+                <div className="flex items-center gap-3 rounded-lg bg-gray-100 px-2 py-1">
+                  <button
+                    type="button"
+                    onClick={() => updateGuests({ adults: adultsCount - 1 })}
+                    disabled={adultsCount <= 1}
+                    className="text-gray-600 disabled:opacity-40"
+                  >
+                    <IoRemove className="text-xs" />
+                  </button>
+                  <span className="text-xs font-bold text-primary">{adultsCount}</span>
+                  <button
+                    type="button"
+                    onClick={() => updateGuests({ adults: adultsCount + 1 })}
+                    className="text-gray-600"
+                  >
+                    <IoAdd className="text-xs" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between border-t border-gray-100 pt-3">
+                <p className="text-xs font-bold text-gray-800">Children</p>
+                <div className="flex items-center gap-3 rounded-lg bg-gray-100 px-2 py-1">
+                  <button
+                    type="button"
+                    onClick={() => updateGuests({ children: childrenCount - 1 })}
+                    disabled={childrenCount <= 0}
+                    className="text-gray-600 disabled:opacity-40"
+                  >
+                    <IoRemove className="text-xs" />
+                  </button>
+                  <span className="text-xs font-bold text-primary">{childrenCount}</span>
+                  <button
+                    type="button"
+                    onClick={() => updateGuests({ children: childrenCount + 1 })}
+                    className="text-gray-600"
+                  >
+                    <IoAdd className="text-xs" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 border-t border-gray-100 pt-3">
+              <button
+                type="button"
+                onClick={() => setShowGuestsPicker(false)}
+                className="w-full rounded-lg bg-primary py-1.5 text-[11px] font-semibold text-white transition hover:bg-primary/90"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   )

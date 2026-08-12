@@ -5,7 +5,7 @@ import { toast } from 'react-toastify'
 import HotelSummarySidebar from '../hotelDetails/components/HotelSummarySidebar'
 import { useHotel } from '../../hooks/useHotels'
 import { useCreateBooking } from '../../hooks/useBookings'
-import { getStoredHotelSearch } from '../../utils/hotelSearchStorage'
+import { getStoredHotelSearch, saveHotelSearch } from '../../utils/hotelSearchStorage'
 import { formatDateISO } from '../../utils/hotelSearchParams'
 
 const MONTHS = [
@@ -39,10 +39,15 @@ const FerryBookingPage = () => {
 
   const hotel = hotelData || state?.hotel || null
   const selectedRoom = state?.selectedRoom || null
-  const stay = state?.stay || getStoredHotelSearch()
+  const [stay, setStay] = useState(() => state?.stay || getStoredHotelSearch())
   const extraPrice = state?.extraPrice || 0
   const selectedAddOns = Array.isArray(state?.selectedAddOns) ? state.selectedAddOns : []
   const hotelTitle = hotel?.name || state?.title || ''
+
+  const handleStayChange = (nextStay) => {
+    const saved = saveHotelSearch(nextStay)
+    setStay(saved)
+  }
 
   const [gender, setGender] = useState('Male')
   const [agreed, setAgreed] = useState(true)
@@ -572,6 +577,7 @@ const FerryBookingPage = () => {
               extraPrice={extraPrice}
               selectedAddOns={selectedAddOns}
               onConfirmBooking={handleConfirmBooking}
+              onStayChange={handleStayChange}
               isSubmitting={isPending}
             />
           </div>

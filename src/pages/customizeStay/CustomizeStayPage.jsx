@@ -5,7 +5,7 @@ import HotelSummarySidebar from '../hotelDetails/components/HotelSummarySidebar'
 import FallbackImage from '../../components/FallbackImage'
 import Spinner from '../../components/Spinner'
 import { useHotel } from '../../hooks/useHotels'
-import { getStoredHotelSearch } from '../../utils/hotelSearchStorage'
+import { getStoredHotelSearch, saveHotelSearch } from '../../utils/hotelSearchStorage'
 
 const PRICE_UNIT_LABELS = {
   per_room_per_stay: 'Per room/stay',
@@ -43,8 +43,13 @@ const CustomizeStayPage = () => {
 
   const hotel = hotelData || state?.hotel || null
   const selectedRoom = state?.selectedRoom || null
-  const stay = state?.stay || getStoredHotelSearch()
+  const [stay, setStay] = useState(() => state?.stay || getStoredHotelSearch())
   const hotelTitle = hotel?.name || state?.title || ''
+
+  const handleStayChange = (nextStay) => {
+    const saved = saveHotelSearch(nextStay)
+    setStay(saved)
+  }
 
   const extras = (hotel?.addOns || [])
     .map(mapAddOn)
@@ -97,13 +102,13 @@ const CustomizeStayPage = () => {
           <span className="font-semibold text-[#3ea5dc]">Add-on</span>
         </nav>
 
-        <h1 className="mt-6 text-4xl font-extrabold tracking-tight text-slate-900">
+        <h1 className="mt-6 text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">
           Customise Your Stay
         </h1>
 
         <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_340px]">
           <div>
-            <h2 className="text-2xl font-bold text-slate-900">Extras</h2>
+            <h2 className="text-xl md:text-2xl font-bold text-slate-900">Extras</h2>
 
             {extras.length === 0 ? (
               <div className="mt-6 rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-500">
@@ -175,7 +180,7 @@ const CustomizeStayPage = () => {
               </div>
             )}
 
-            <div className="mt-12 space-y-3.5 text-[11px] leading-relaxed text-gray-400">
+            <div className="mt-12 space-y-3.5 text-sm md:text-base leading-relaxed text-gray-400">
               <p>These prices are the &quot;starting from&quot; prices.</p>
               <p>
                 They correspond to the lowest total price available on the dates requested, based on
@@ -224,6 +229,7 @@ const CustomizeStayPage = () => {
               selectedRoom={selectedRoom}
               extraPrice={extrasTotal}
               selectedAddOns={selectedAddOns}
+              onStayChange={handleStayChange}
             />
           </div>
         </div>
