@@ -38,7 +38,7 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
   const [calendarRoom, setCalendarRoom] = useState(null);
 
   // Form tab states
-  const [activeFormTab, setActiveFormTab] = useState('basic'); // 'basic' | 'calendar'
+  const [activeFormTab, setActiveFormTab] = useState("basic"); // 'basic' | 'calendar'
   const [selectedRoomId, setSelectedRoomId] = useState(null);
 
   const {
@@ -184,13 +184,15 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
     if (files.length === 0) return;
 
     try {
-      const promises = files.map(file => fileToBase64(file, { maxSizeMB: 5 }));
+      const promises = files.map((file) =>
+        fileToBase64(file, { maxSizeMB: 5 }),
+      );
       const base64s = await Promise.all(promises);
-      
+
       const backendCategory = getBackendCategoryKey(activeGalleryTab);
-      const formattedMedia = base64s.map(url => ({
+      const formattedMedia = base64s.map((url) => ({
         url,
-        category: backendCategory
+        category: backendCategory,
       }));
 
       setValue("gallery", [...galleryVal, ...formattedMedia]);
@@ -226,8 +228,8 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
           roomsVal.map((r) =>
             r.id === editingRoomId || r._id === editingRoomId
               ? { ...r, ...normalizedRoom }
-              : r
-          )
+              : r,
+          ),
         );
         toast.success("Room type updated locally!");
       } else {
@@ -243,7 +245,7 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
   const handleEditRoom = (room) => {
     const roomId = room.id || room._id;
     if (!roomId) return;
-    const localRoom = roomsVal.find(r => r.id === roomId || r._id === roomId);
+    const localRoom = roomsVal.find((r) => r.id === roomId || r._id === roomId);
     setEditingRoom(localRoom || room);
     setIsRoomModalOpen(true);
   };
@@ -253,12 +255,15 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
   };
 
   const handleSaveCalendarSettings = (roomId, settings) => {
-    setValue('rooms', roomsVal.map(r => {
-      if (r.id === roomId || r._id === roomId) {
-        return { ...r, calendarSettings: settings };
-      }
-      return r;
-    }));
+    setValue(
+      "rooms",
+      roomsVal.map((r) => {
+        if (r.id === roomId || r._id === roomId) {
+          return { ...r, calendarSettings: settings };
+        }
+        return r;
+      }),
+    );
     toast.success("Calendar settings updated locally!");
   };
 
@@ -398,22 +403,22 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
       <div className="flex border-b border-gray-200 mb-6">
         <button
           type="button"
-          onClick={() => setActiveFormTab('basic')}
+          onClick={() => setActiveFormTab("basic")}
           className={`px-4 py-2 text-xs font-bold border-b-2 transition-colors cursor-pointer ${
-            activeFormTab === 'basic'
-              ? 'border-slate-900 text-slate-900 font-extrabold'
-              : 'border-transparent text-gray-400 hover:text-slate-700'
+            activeFormTab === "basic"
+              ? "border-slate-900 text-slate-900 font-extrabold"
+              : "border-transparent text-gray-400 hover:text-slate-700"
           }`}
         >
           1. Basic Info & Gallery
         </button>
         <button
           type="button"
-          onClick={() => setActiveFormTab('calendar')}
+          onClick={() => setActiveFormTab("calendar")}
           className={`px-4 py-2 text-xs font-bold border-b-2 transition-colors cursor-pointer ${
-            activeFormTab === 'calendar'
-              ? 'border-slate-900 text-slate-900 font-extrabold'
-              : 'border-transparent text-gray-400 hover:text-slate-700'
+            activeFormTab === "calendar"
+              ? "border-slate-900 text-slate-900 font-extrabold"
+              : "border-transparent text-gray-400 hover:text-slate-700"
           }`}
         >
           2. Room Types & Calendar Rates
@@ -421,7 +426,7 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-6">
-        {activeFormTab === 'basic' ? (
+        {activeFormTab === "basic" ? (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormInput
@@ -628,11 +633,11 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
                                 className="w-full h-full object-cover bg-black"
                               />
                             ) : (
-                                <img
-                                  src={img.url}
-                                  alt={`Gallery ${activeGalleryTab} ${idx + 1}`}
-                                  className="w-full h-full object-cover"
-                                />
+                              <img
+                                src={img.url}
+                                alt={`Gallery ${activeGalleryTab} ${idx + 1}`}
+                                className="w-full h-full object-cover"
+                              />
                             )}
                             <button
                               type="button"
@@ -650,7 +655,7 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
             </div>
           </>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-stretch">
             <RoomTypesSidebar
               roomsVal={roomsVal}
               selectedRoomId={selectedRoomId}
@@ -664,15 +669,19 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
             />
 
             {/* Right Side: Interactive rates calendar */}
-            <div className="lg:col-span-3">
-              {selectedRoomId && roomsVal.find(r => (r.id || r._id) === selectedRoomId) ? (
+            <div className="lg:col-span-3 h-full">
+              {selectedRoomId &&
+              roomsVal.find((r) => (r.id || r._id) === selectedRoomId) ? (
                 <RoomCalendarContainer
-                  room={roomsVal.find(r => (r.id || r._id) === selectedRoomId)}
+                  room={roomsVal.find(
+                    (r) => (r.id || r._id) === selectedRoomId,
+                  )}
                   onSaveSettings={handleSaveCalendarSettings}
                 />
               ) : (
-                <div className="border border-dashed border-gray-300 rounded-2xl p-12 text-center text-sm text-gray-500 font-semibold bg-gray-50/50">
-                  Please add and select a room type on the left to configure calendar prices.
+                <div className="border border-dashed border-gray-300 rounded-2xl p-12 text-center text-sm text-gray-500 font-semibold bg-gray-50/50 h-full flex items-center justify-center">
+                  Please add and select a room type on the left to configure
+                  calendar prices.
                 </div>
               )}
             </div>

@@ -9,7 +9,7 @@ const RoomTypesSidebar = ({
   onDeleteRoom,
 }) => {
   return (
-    <div className="lg:col-span-1 border border-gray-200 rounded-2xl p-4 bg-slate-50 space-y-4 max-h-[600px] overflow-y-auto">
+    <div className="lg:col-span-1 border border-gray-200 rounded-2xl p-4 bg-slate-50 space-y-4 h-full overflow-y-auto">
       <div className="flex justify-between items-center pb-2 border-b border-gray-200">
         <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wide">
           Room Types

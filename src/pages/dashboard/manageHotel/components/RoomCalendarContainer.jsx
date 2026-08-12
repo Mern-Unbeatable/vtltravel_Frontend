@@ -136,7 +136,7 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
   ];
 
   return (
-    <div className="bg-white border border-slate-200/80 rounded-xl overflow-hidden p-6 shadow-sm">
+    <div className="bg-white border border-slate-200/80 rounded-xl overflow-hidden p-6 shadow-sm h-full">
       {/* Header & Legend */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center  pb-5 gap-4">
         <div>
@@ -161,8 +161,8 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
               <span className="w-3.5 h-3.5 bg-red-50 border border-red-200 rounded"></span>
               Blocked / Sold Out
             </div>
-            <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-900">
-              <span className="w-3.5 h-3.5 bg-slate-900/10 border-2 border-slate-900/50 rounded"></span>
+            <div className="flex items-center gap-1.5 text-[10px] font-bold text-primary">
+              <span className="w-3.5 h-3.5 bg-primary/10 border-2 border-primary/20 rounded"></span>
               Selected
             </div>
           </div>
@@ -230,7 +230,7 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
                   : "bg-white hover:bg-slate-50/70";
                 if (isSelected) {
                   cellBg =
-                    "bg-slate-900/10 border-2 border-slate-900/80 ring-2 ring-slate-900/10 z-10 scale-95";
+                    "bg-primary/10 border-2 border-primary/40 z-10 scale-95";
                 } else if (rule?.isBlocked) {
                   cellBg = "bg-red-50/70 hover:bg-red-100/70 border-red-100";
                 } else if (hasCustomRule) {
@@ -246,7 +246,7 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
                   >
                     <div className="flex justify-between items-center">
                       <span
-                        className={`text-xs font-bold ${isSelected ? "text-slate-950 font-extrabold scale-110" : "text-slate-800"}`}
+                        className={`text-xs font-bold ${isSelected ? "text-primary font-extrabold scale-110" : "text-slate-800"}`}
                       >
                         {d}
                       </span>
@@ -405,7 +405,7 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
                     placeholder={basePrice}
                     value={inputPrice}
                     onChange={(e) => setInputPrice(e.target.value)}
-                    className="w-full pl-8 pr-3 py-2.5 text-xs border border-slate-250 rounded-xl bg-white shadow-xs focus:outline-none focus:ring-1 focus:ring-slate-900"
+                    className="w-full pl-8 pr-3 py-2.5 text-xs border border-primary rounded-xl bg-white shadow-xs focus:outline-none focus:ring-1 focus:ring-slate-900"
                   />
                 </div>
               </div>
