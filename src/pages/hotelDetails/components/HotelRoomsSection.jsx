@@ -43,6 +43,7 @@ const HotelRoomsSection = ({
   initialAdults = 1,
   initialChildren = 0,
   stay = null,
+  selectedRooms = [],
   onStaySearch,
   onSelectRoom,
   onOpenDetails,
@@ -459,6 +460,9 @@ const HotelRoomsSection = ({
                 nights: getNightsBetween(stay?.checkIn, stay?.checkOut),
                 adults: stay?.adults || adultsCount,
               }}
+              selectedQuantity={
+                selectedRooms.find((item) => item.id === room.id)?.quantity || 0
+              }
               onSelectRoom={onSelectRoom}
               onOpenDetails={onOpenDetails}
             />

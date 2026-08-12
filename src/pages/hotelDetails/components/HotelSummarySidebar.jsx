@@ -19,7 +19,12 @@ import {
   getNightsBetween,
   parseLocalDate,
 } from '../../../utils/hotelSearchParams'
-import { isRoomBookedForStay, ROOM_BOOKED_MESSAGE } from '../../../utils/roomAvailability'
+import { ROOM_BOOKED_MESSAGE } from '../../../utils/roomAvailability'
+import {
+  normalizeSelectedRooms,
+  getSelectedRoomsPricing,
+  isAnySelectedRoomBooked,
+} from '../../../utils/selectedRooms'
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -45,10 +50,12 @@ const HotelSummarySidebar = ({
   title: titleProp = '',
   stay = null,
   selectedRoom = null,
+  selectedRooms: selectedRoomsProp = null,
   extraPrice = 0,
   selectedAddOns = [],
   onConfirmBooking = null,
   onStayChange = null,
+  onRoomQuantityChange = null,
   isSubmitting = false,
 }) => {
   const navigate = useNavigate()
@@ -69,6 +76,9 @@ const HotelSummarySidebar = ({
   )
   const datePickerRef = useRef(null)
   const guestsPickerRef = useRef(null)
+
+  const selectedRooms = normalizeSelectedRooms(selectedRoomsProp, selectedRoom)
+  const selectedRoomLegacy = selectedRooms[0] || null
 
   useEffect(() => {
     setCheckInDate(parseLocalDate(stay?.checkIn))
@@ -105,7 +115,8 @@ const HotelSummarySidebar = ({
   const children = childrenCount
   const targetId = hotel?.id || hotel?.slug || hotelId
   const isFerryPage = location.pathname.includes('/book-ferry')
-  const isRoomBooked = isRoomBookedForStay(selectedRoom, stay)
+  const isRoomBooked = isAnySelectedRoomBooked(selectedRooms, stay)
+  const pricing = getSelectedRoomsPricing(selectedRooms, extraPrice)
 
   const applyStayChange = (overrides = {}) => {
     if (!onStayChange) return
@@ -195,7 +206,8 @@ const HotelSummarySidebar = ({
     if (location.pathname.includes('/customize')) {
       navigate(`/home/search/${targetId}/book-ferry`, {
         state: {
-          selectedRoom,
+          selectedRooms,
+          selectedRoom: selectedRoomLegacy,
           title,
           extraPrice,
           stay,
@@ -207,7 +219,13 @@ const HotelSummarySidebar = ({
       return
     }
     navigate(`/home/search/${targetId}/customize`, {
-      state: { selectedRoom, title, stay, hotel },
+      state: {
+        selectedRooms,
+        selectedRoom: selectedRoomLegacy,
+        title,
+        stay,
+        hotel,
+      },
     })
   }
 
@@ -440,7 +458,7 @@ const HotelSummarySidebar = ({
       </div>
     </div>
   )
-  if (!selectedRoom) {
+  if (selectedRooms.length === 0) {
     return (
       <aside className="sticky top-24 rounded-2xl border border-gray-200 bg-white p-5 text-xs shadow-2xs">
         <h3 className="text-sm font-bold text-slate-900">{title}</h3>
@@ -459,33 +477,20 @@ const HotelSummarySidebar = ({
     )
   }
 
-  const roomData = selectedRoom
-  const roomImage =
-    roomData.image ||
-    (typeof roomData.images?.[0] === 'string' ? roomData.images[0] : roomData.images?.[0]?.url) ||
-    ''
-  const preview = roomData.pricePreview || null
-  const pricePerNight =
-    Number(preview?.pricePerNight ?? roomData.priceNum ?? roomData.discountPrice ?? roomData.basePrice) || 0
-  const originalPerNight = Number(preview?.originalPerNight ?? roomData.basePrice) || 0
-  const previewNights = Number(preview?.nights) || nights || 0
-  const roomSubtotal = Number(preview?.roomSubtotal)
-  const taxAmount = Number(preview?.taxAmount)
-  const previewTotal = Number(preview?.totalPrice)
-  const hasPreview =
-    preview &&
-    !Number.isNaN(roomSubtotal) &&
-    !Number.isNaN(taxAmount) &&
-    !Number.isNaN(previewTotal)
-  const savings =
-    hasPreview && originalPerNight > pricePerNight && previewNights > 0
-      ? (originalPerNight - pricePerNight) * previewNights * (Number(preview?.rooms) || rooms || 1)
-      : originalPerNight > pricePerNight
-        ? originalPerNight - pricePerNight
-        : 0
-  const totalPrice = hasPreview ? previewTotal + extraPrice : pricePerNight + extraPrice
-  const displayRoomSubtotal = hasPreview ? roomSubtotal : pricePerNight
-  const displayTaxAmount = hasPreview ? taxAmount : 0
+  const {
+    hasPreview,
+    roomSubtotal: displayRoomSubtotal,
+    taxAmount: displayTaxAmount,
+    totalPrice,
+    breakdownText,
+  } = pricing
+
+  const handleQuantityChange = (roomId, quantity) => {
+    if (onRoomQuantityChange) {
+      onRoomQuantityChange(roomId, quantity)
+      return
+    }
+  }
 
   return (
     <aside className="sticky top-24 rounded-2xl border border-gray-200 bg-white p-5 text-xs shadow-sm">
@@ -505,38 +510,82 @@ const HotelSummarySidebar = ({
 
       <div className="my-4 border-t border-gray-100" />
 
-      <div className="flex items-start gap-3">
-        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-[#f3f4f6]">
-          <FallbackImage
-            src={roomImage}
-            alt={roomData.name}
-            className="h-16 w-16 object-cover"
-            dummyClassName="h-16 w-16 object-contain p-2"
-          />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2">
-            <h4 className="text-xs font-bold leading-snug text-slate-900 line-clamp-2">
-              {roomData.name}
-            </h4>
-            {totalPrice ? (
-              <span className="text-base font-bold text-[#3ea5dc] shrink-0">
-                ${Number(totalPrice).toFixed(0)}
-              </span>
-            ) : null}
-          </div>
-          {roomData.capacity ? (
-            <p className="mt-1 text-[11px] text-gray-400">{roomData.capacity}</p>
-          ) : null}
-          {preview?.breakdownText ? (
-            <p className="mt-0.5 text-[11px] text-gray-400">{preview.breakdownText}</p>
-          ) : pricePerNight && previewNights > 0 ? (
-            <p className="mt-0.5 text-[11px] text-gray-400">
-              ${pricePerNight} × {previewNights} night{previewNights !== 1 ? 's' : ''}
-            </p>
-          ) : null}
-        </div>
+      <div className="space-y-3">
+        {selectedRooms.map((roomData) => {
+          const roomImage =
+            roomData.image ||
+            (typeof roomData.images?.[0] === 'string'
+              ? roomData.images[0]
+              : roomData.images?.[0]?.url) ||
+            ''
+          const preview = roomData.pricePreview || null
+          const pricePerNight =
+            Number(
+              preview?.pricePerNight ??
+                roomData.priceNum ??
+                roomData.discountPrice ??
+                roomData.basePrice,
+            ) || 0
+          const previewRooms = Math.max(1, Number(preview?.rooms) || 1)
+          const lineSubtotal = preview?.roomSubtotal != null
+            ? (Number(preview.roomSubtotal) / previewRooms) * roomData.quantity
+            : pricePerNight * roomData.quantity
+
+          return (
+            <div key={roomData.id} className="flex items-start gap-3">
+              <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-[#f3f4f6]">
+                <FallbackImage
+                  src={roomImage}
+                  alt={roomData.name}
+                  className="h-16 w-16 object-cover"
+                  dummyClassName="h-16 w-16 object-contain p-2"
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-2">
+                  <h4 className="text-xs font-bold leading-snug text-slate-900 line-clamp-2">
+                    {roomData.name}
+                  </h4>
+                  {lineSubtotal ? (
+                    <span className="text-sm font-bold text-[#3ea5dc] shrink-0">
+                      ${Number(lineSubtotal).toFixed(0)}
+                    </span>
+                  ) : null}
+                </div>
+                {roomData.capacity ? (
+                  <p className="mt-1 text-[11px] text-gray-400">{roomData.capacity}</p>
+                ) : null}
+                <div className="mt-2 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleQuantityChange(roomData.id, roomData.quantity - 1)}
+                    className="flex h-6 w-6 items-center justify-center rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50"
+                  >
+                    <IoRemove className="text-xs" />
+                  </button>
+                  <span className="min-w-[1.5rem] text-center text-xs font-bold text-slate-800">
+                    {roomData.quantity}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleQuantityChange(roomData.id, roomData.quantity + 1)}
+                    className="flex h-6 w-6 items-center justify-center rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50"
+                  >
+                    <IoAdd className="text-xs" />
+                  </button>
+                  <span className="text-[11px] text-gray-400">
+                    room{roomData.quantity !== 1 ? 's' : ''}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )
+        })}
       </div>
+
+      {breakdownText ? (
+        <p className="mt-3 text-[11px] text-gray-400">{breakdownText}</p>
+      ) : null}
 
       <div className="mt-3 flex justify-end">
         <button
@@ -551,21 +600,26 @@ const HotelSummarySidebar = ({
 
       {showDetails ? (
         <div className="mt-3 rounded-xl bg-[#f8fbfe] p-3.5 space-y-3">
-          <div>
-            <div className="flex items-start justify-between gap-2">
-              <span className="text-xs font-bold text-slate-900 leading-snug">{roomData.name}</span>
-              {displayRoomSubtotal ? (
-                <span className="text-xs font-bold text-slate-900 shrink-0">
-                  ${Number(displayRoomSubtotal).toFixed(2)}
+          {selectedRooms.map((roomData) => {
+            const preview = roomData.pricePreview || null
+            const previewRooms = Math.max(1, Number(preview?.rooms) || 1)
+            const lineSubtotal = preview?.roomSubtotal != null
+              ? (Number(preview.roomSubtotal) / previewRooms) * roomData.quantity
+              : (Number(roomData.priceNum ?? roomData.discountPrice ?? roomData.basePrice) || 0) *
+                roomData.quantity
+
+            return (
+              <div key={`detail-${roomData.id}`} className="flex items-start justify-between gap-2">
+                <span className="text-xs font-bold text-slate-900 leading-snug">
+                  {roomData.name}
+                  {roomData.quantity > 1 ? ` × ${roomData.quantity}` : ''}
                 </span>
-              ) : null}
-            </div>
-            {savings > 0 ? (
-              <p className="mt-0.5 text-[11px] text-[#3ea5dc]">
-                Included: ${savings.toFixed(2)} savings
-              </p>
-            ) : null}
-          </div>
+                <span className="text-xs font-bold text-slate-900 shrink-0">
+                  ${Number(lineSubtotal || 0).toFixed(2)}
+                </span>
+              </div>
+            )
+          })}
 
           {extraPrice > 0 ? (
             <div className="border-t border-gray-200/60 pt-2 flex items-center justify-between text-xs font-bold text-slate-900">
@@ -579,16 +633,6 @@ const HotelSummarySidebar = ({
               <span>Room subtotal</span>
               <span className="font-semibold">${Number(displayRoomSubtotal || 0).toFixed(2)}</span>
             </div>
-            {/* {hasPreview ? (
-              <div className="flex items-center justify-between text-xs text-slate-700">
-                <span>Taxes</span>
-                <span className="font-semibold">${Number(displayTaxAmount).toFixed(2)}</span>
-              </div>
-            ) : null} */}
-            {/* <div className="flex items-center justify-between text-xs font-bold text-slate-900">
-              <span>Total</span>
-              <span>${Number(totalPrice || 0).toFixed(2)}</span>
-            </div> */}
           </div>
         </div>
       ) : null}

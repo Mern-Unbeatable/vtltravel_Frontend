@@ -8,6 +8,12 @@ import { useCreateBooking } from '../../hooks/useBookings'
 import { getStoredHotelSearch, saveHotelSearch } from '../../utils/hotelSearchStorage'
 import { formatDateISO, getNightsBetween } from '../../utils/hotelSearchParams'
 import { ROOM_BOOKED_MESSAGE } from '../../utils/roomAvailability'
+import {
+  normalizeSelectedRooms,
+  buildRoomsPayload,
+  getSelectedRoomsQuantity,
+  updateSelectedRoomQuantity,
+} from '../../utils/selectedRooms'
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -66,10 +72,13 @@ const FerryBookingPage = () => {
   const { state } = useLocation()
   const navigate = useNavigate()
   const [stay, setStay] = useState(() => state?.stay || getStoredHotelSearch())
-  const [selectedRoom, setSelectedRoom] = useState(() => state?.selectedRoom || null)
+  const [selectedRooms, setSelectedRooms] = useState(() =>
+    normalizeSelectedRooms(state?.selectedRooms, state?.selectedRoom),
+  )
   const stayParams = buildStayParams(stay)
   const { data: hotelData } = useHotel(hotelIdParam, stayParams)
   const { mutateAsync: createBooking, isPending } = useCreateBooking()
+  const maxRooms = Number(stay?.rooms) || 1
 
   const hotel = hotelData || state?.hotel || null
   const extraPrice = state?.extraPrice || 0
@@ -77,21 +86,41 @@ const FerryBookingPage = () => {
   const hotelTitle = hotel?.name || state?.title || ''
 
   useEffect(() => {
-    if (!hotelData || !selectedRoom?.id) return
-    const updated = (hotelData.roomTypes || []).find((room) => room.id === selectedRoom.id)
-    if (!updated) return
-    setSelectedRoom((prev) => ({
-      ...prev,
-      ...updated,
-      pricePreview: updated.pricePreview || null,
-      priceNum: Number(updated.discountPrice || updated.basePrice) || prev.priceNum,
-      taxNum: Number(updated.taxPerNight) || 0,
-    }))
-  }, [hotelData, selectedRoom?.id])
+    if (!hotelData) return
+    setSelectedRooms((prev) => {
+      const normalized = normalizeSelectedRooms(prev)
+      if (normalized.length === 0) return prev
+      return normalized.map((selected) => {
+        const updated = (hotelData.roomTypes || []).find((room) => room.id === selected.id)
+        if (!updated) return selected
+        return {
+          ...selected,
+          ...updated,
+          quantity: selected.quantity,
+          pricePreview: updated.pricePreview || null,
+          priceNum: Number(updated.discountPrice || updated.basePrice) || selected.priceNum,
+          taxNum: Number(updated.taxPerNight) || 0,
+        }
+      })
+    })
+  }, [hotelData])
 
   const handleStayChange = (nextStay) => {
     const saved = saveHotelSearch(nextStay)
     setStay(saved)
+  }
+
+  const handleRoomQuantityChange = (roomId, quantity) => {
+    setSelectedRooms((prev) => {
+      const currentTotal = getSelectedRoomsQuantity(prev)
+      const currentRoom = prev.find((room) => room.id === roomId)
+      const currentQty = Number(currentRoom?.quantity) || 0
+      if (quantity > currentQty && currentTotal >= maxRooms) {
+        toast.info(`You can select up to ${maxRooms} room${maxRooms !== 1 ? 's' : ''}.`)
+        return prev
+      }
+      return updateSelectedRoomQuantity(prev, roomId, quantity)
+    })
   }
 
   const [gender, setGender] = useState('Male')
@@ -126,14 +155,16 @@ const FerryBookingPage = () => {
 
   const buildPayload = (ferrySkipped) => {
     const hotelId = hotel?.id
-    const roomTypeId = selectedRoom?.id
+    const roomsPayload = buildRoomsPayload(selectedRooms)
     const checkIn = formatDateISO(stay?.checkIn) || stay?.checkIn || ''
     const checkOut = formatDateISO(stay?.checkOut) || stay?.checkOut || ''
     const numAdults = Number(stay?.adults) || 1
     const numChildren = Number(stay?.children) || 0
-    const numRooms = Number(stay?.rooms) || 1
-    const numNights =
-      Number(selectedRoom?.pricePreview?.nights) || getNightsBetween(checkIn, checkOut)
+    const numRooms = getSelectedRoomsQuantity(selectedRooms) || Number(stay?.rooms) || 1
+    const previewNights = selectedRooms
+      .map((room) => Number(room?.pricePreview?.nights) || 0)
+      .find((nights) => nights > 0)
+    const numNights = previewNights || getNightsBetween(checkIn, checkOut)
     const guestName = formData.fullName.trim()
     const guestEmail = formData.email.trim()
     const guestPhone = formData.phone.trim()
@@ -143,7 +174,9 @@ const FerryBookingPage = () => {
     const passportExpiryDate = toIsoDate(formData.expDay, formData.expMonth, formData.expYear)
 
     if (!hotelId) return { error: 'Hotel information is missing. Please go back and try again.' }
-    if (!roomTypeId) return { error: 'Please select a room before completing your booking.' }
+    if (roomsPayload.length === 0) {
+      return { error: 'Please select a room before completing your booking.' }
+    }
     if (!checkIn || !checkOut) return { error: 'Check-in and check-out dates are required.' }
     if (numNights < 1) return { error: 'Please choose a valid check-in and check-out date.' }
     if (!guestName) return { error: 'Please enter your full name.' }
@@ -171,7 +204,7 @@ const FerryBookingPage = () => {
         guestEmail,
         guestPhoneCode: extractPhoneCode(formData.countryCode),
         guestPhone,
-        rooms: [{ roomTypeId, quantity: numRooms }],
+        rooms: roomsPayload,
         addOns: selectedAddOns
           .filter((item) => item?.addOnId)
           .map((item) => ({
@@ -622,7 +655,8 @@ const FerryBookingPage = () => {
               hotel={hotel}
               title={hotelTitle}
               stay={stay}
-              selectedRoom={selectedRoom}
+              selectedRooms={selectedRooms}
+              onRoomQuantityChange={handleRoomQuantityChange}
               extraPrice={extraPrice}
               selectedAddOns={selectedAddOns}
               onConfirmBooking={handleConfirmBooking}

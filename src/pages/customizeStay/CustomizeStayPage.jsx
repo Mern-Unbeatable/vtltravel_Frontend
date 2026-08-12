@@ -6,6 +6,12 @@ import FallbackImage from '../../components/FallbackImage'
 import Spinner from '../../components/Spinner'
 import { useHotel } from '../../hooks/useHotels'
 import { getStoredHotelSearch, saveHotelSearch } from '../../utils/hotelSearchStorage'
+import {
+  normalizeSelectedRooms,
+  updateSelectedRoomQuantity,
+  getSelectedRoomsQuantity,
+} from '../../utils/selectedRooms'
+import { toast } from 'react-toastify'
 
 const PRICE_UNIT_LABELS = {
   per_room_per_stay: 'Per room/stay',
@@ -51,29 +57,52 @@ const CustomizeStayPage = () => {
   const navigate = useNavigate()
   const [selectedExtras, setSelectedExtras] = useState([])
   const [stay, setStay] = useState(() => state?.stay || getStoredHotelSearch())
-  const [selectedRoom, setSelectedRoom] = useState(() => state?.selectedRoom || null)
+  const [selectedRooms, setSelectedRooms] = useState(() =>
+    normalizeSelectedRooms(state?.selectedRooms, state?.selectedRoom),
+  )
   const stayParams = buildStayParams(stay)
   const { data: hotelData, isLoading, isError } = useHotel(hotelId, stayParams)
+  const maxRooms = Number(stay?.rooms) || 1
 
   const hotel = hotelData || state?.hotel || null
   const hotelTitle = hotel?.name || state?.title || ''
 
   useEffect(() => {
-    if (!hotelData || !selectedRoom?.id) return
-    const updated = (hotelData.roomTypes || []).find((room) => room.id === selectedRoom.id)
-    if (!updated) return
-    setSelectedRoom((prev) => ({
-      ...prev,
-      ...updated,
-      pricePreview: updated.pricePreview || null,
-      priceNum: Number(updated.discountPrice || updated.basePrice) || prev.priceNum,
-      taxNum: Number(updated.taxPerNight) || 0,
-    }))
-  }, [hotelData, selectedRoom?.id])
+    if (!hotelData) return
+    setSelectedRooms((prev) => {
+      const normalized = normalizeSelectedRooms(prev)
+      if (normalized.length === 0) return prev
+      return normalized.map((selected) => {
+        const updated = (hotelData.roomTypes || []).find((room) => room.id === selected.id)
+        if (!updated) return selected
+        return {
+          ...selected,
+          ...updated,
+          quantity: selected.quantity,
+          pricePreview: updated.pricePreview || null,
+          priceNum: Number(updated.discountPrice || updated.basePrice) || selected.priceNum,
+          taxNum: Number(updated.taxPerNight) || 0,
+        }
+      })
+    })
+  }, [hotelData])
 
   const handleStayChange = (nextStay) => {
     const saved = saveHotelSearch(nextStay)
     setStay(saved)
+  }
+
+  const handleRoomQuantityChange = (roomId, quantity) => {
+    setSelectedRooms((prev) => {
+      const currentTotal = getSelectedRoomsQuantity(prev)
+      const currentRoom = prev.find((room) => room.id === roomId)
+      const currentQty = Number(currentRoom?.quantity) || 0
+      if (quantity > currentQty && currentTotal >= maxRooms) {
+        toast.info(`You can select up to ${maxRooms} room${maxRooms !== 1 ? 's' : ''}.`)
+        return prev
+      }
+      return updateSelectedRoomQuantity(prev, roomId, quantity)
+    })
   }
 
   const extras = (hotel?.addOns || [])
@@ -251,7 +280,8 @@ const CustomizeStayPage = () => {
               hotel={hotel}
               title={hotelTitle}
               stay={stay}
-              selectedRoom={selectedRoom}
+              selectedRooms={selectedRooms}
+              onRoomQuantityChange={handleRoomQuantityChange}
               extraPrice={extrasTotal}
               selectedAddOns={selectedAddOns}
               onStayChange={handleStayChange}

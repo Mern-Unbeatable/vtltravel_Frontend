@@ -3,7 +3,7 @@ import { HiOutlinePhotograph } from 'react-icons/hi'
 import HotelGalleryModal from '../../searchResultsPage/components/HotelGalleryModal'
 import FallbackImage from '../../../components/FallbackImage'
 
-const RoomCard = ({ room, stay, onSelectRoom, onOpenDetails }) => {
+const RoomCard = ({ room, stay, selectedQuantity = 0, onSelectRoom, onOpenDetails }) => {
   const [isGalleryOpen, setIsGalleryOpen] = useState(false)
   const roomImage =
     room?.image ||
@@ -16,6 +16,7 @@ const RoomCard = ({ room, stay, onSelectRoom, onOpenDetails }) => {
   const nights = stay?.nights || 0
   const adults = Number(stay?.adults) || 0
   const meta = [room?.bedInfo, room?.capacity, room?.size].filter(Boolean).join(' | ')
+  const isSelected = selectedQuantity > 0
 
   return (
     <article className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md">
@@ -108,10 +109,13 @@ const RoomCard = ({ room, stay, onSelectRoom, onOpenDetails }) => {
               <button
                 type="button"
                 onClick={() => onSelectRoom && onSelectRoom(room)}
-                className="mt-3 rounded-full bg-[#3ea5dc] px-7 py-2.5 text-xs font-bold text-white shadow-md transition hover:bg-[#3296cc] active:scale-95 cursor-pointer"
+                className={`mt-3 rounded-full px-7 py-2.5 text-xs font-bold text-white shadow-md transition active:scale-95 cursor-pointer ${
+                  isSelected
+                    ? 'bg-emerald-500 hover:bg-emerald-600'
+                    : 'bg-[#3ea5dc] hover:bg-[#3296cc]'
+                }`}
               >
-                
-                Choose this room
+                {isSelected ? `Added (${selectedQuantity})` : 'Choose this room'}
               </button>
             </div>
           </div>

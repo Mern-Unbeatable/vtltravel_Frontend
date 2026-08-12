@@ -11,7 +11,14 @@ import Spinner from '../../components/Spinner'
 import { getStoredHotelSearch, saveHotelSearch } from '../../utils/hotelSearchStorage'
 import { formatDateISO } from '../../utils/hotelSearchParams'
 import { isRoomBookedForStay, ROOM_BOOKED_MESSAGE } from '../../utils/roomAvailability'
+import {
+  normalizeSelectedRooms,
+  upsertSelectedRoom,
+  updateSelectedRoomQuantity,
+  getSelectedRoomsQuantity,
+} from '../../utils/selectedRooms'
 import { toast } from 'react-toastify'
+
 const mapRoomType = (room) => {
   const images = (room.images || []).map((img) => img.url).filter(Boolean)
   const amenityNames = (room.amenities || [])
@@ -51,7 +58,7 @@ const mapRoomType = (room) => {
 
 const HotelDetailsPage = () => {
   const { hotelId } = useParams()
-  const [selectedRoom, setSelectedRoom] = useState(null)
+  const [selectedRooms, setSelectedRooms] = useState([])
   const [modalRoom, setModalRoom] = useState(null)
   const [stay, setStay] = useState(() => getStoredHotelSearch())
   const stayParams =
@@ -65,29 +72,63 @@ const HotelDetailsPage = () => {
         }
       : {}
   const { data: hotel, isLoading, isError } = useHotel(hotelId, stayParams)
+  const maxRooms = Number(stay?.rooms) || 1
 
   const handleStaySearch = (nextStay) => {
     const saved = saveHotelSearch(nextStay)
     setStay(saved)
+    const nextMax = Number(saved.rooms) || 1
+    setSelectedRooms((prev) => {
+      const normalized = normalizeSelectedRooms(prev)
+      let remaining = nextMax
+      const trimmed = []
+      for (const room of normalized) {
+        if (remaining <= 0) break
+        const quantity = Math.min(room.quantity, remaining)
+        trimmed.push({ ...room, quantity })
+        remaining -= quantity
+      }
+      return trimmed
+    })
   }
 
   useEffect(() => {
     if (!hotel) return
-    setSelectedRoom((prev) => {
-      if (!prev?.id) return prev
-      const updated = (hotel.roomTypes || [])
-        .filter((room) => room.isActive !== false)
-        .map(mapRoomType)
-        .find((room) => room.id === prev.id)
-      return updated || prev
+    setSelectedRooms((prev) => {
+      const normalized = normalizeSelectedRooms(prev)
+      if (normalized.length === 0) return prev
+      return normalized.map((selected) => {
+        const updated = (hotel.roomTypes || [])
+          .filter((room) => room.isActive !== false)
+          .map(mapRoomType)
+          .find((room) => room.id === selected.id)
+        return updated ? { ...updated, quantity: selected.quantity } : selected
+      })
     })
   }, [hotel])
 
   const handleSelectRoom = (room) => {
-    setSelectedRoom(room)
     if (isRoomBookedForStay(room, stay)) {
       toast.error(ROOM_BOOKED_MESSAGE)
     }
+    setSelectedRooms((prev) => {
+      const result = upsertSelectedRoom(prev, room, maxRooms)
+      if (result.error) toast.info(result.error)
+      return result.rooms
+    })
+  }
+
+  const handleRoomQuantityChange = (roomId, quantity) => {
+    setSelectedRooms((prev) => {
+      const currentTotal = getSelectedRoomsQuantity(prev)
+      const currentRoom = prev.find((room) => room.id === roomId)
+      const currentQty = Number(currentRoom?.quantity) || 0
+      if (quantity > currentQty && currentTotal >= maxRooms) {
+        toast.info(`You can select up to ${maxRooms} room${maxRooms !== 1 ? 's' : ''}.`)
+        return prev
+      }
+      return updateSelectedRoomQuantity(prev, roomId, quantity)
+    })
   }
 
   if (isLoading) {
@@ -110,6 +151,7 @@ const HotelDetailsPage = () => {
     .filter(Boolean)
   const roomsList = (hotel.roomTypes || []).filter((room) => room.isActive !== false).map(mapRoomType)
   const todayIso = formatDateISO(new Date())
+
   return (
     <div className="">
       <HotelHeaderGallery images={galleryImages} title={title} hotelId={hotel.id} />
@@ -131,6 +173,7 @@ const HotelDetailsPage = () => {
               initialAdults={stay?.adults || 1}
               initialChildren={stay?.children || 0}
               stay={stay}
+              selectedRooms={selectedRooms}
               onStaySearch={handleStaySearch}
               onSelectRoom={handleSelectRoom}
               onOpenDetails={(room) => setModalRoom(room)}
@@ -141,7 +184,8 @@ const HotelDetailsPage = () => {
             <HotelSummarySidebar
               hotel={hotel}
               stay={stay}
-              selectedRoom={selectedRoom}
+              selectedRooms={selectedRooms}
+              onRoomQuantityChange={handleRoomQuantityChange}
               onStayChange={handleStaySearch}
             />
           </div>
