@@ -6,7 +6,7 @@ import HotelSummarySidebar from '../hotelDetails/components/HotelSummarySidebar'
 import { useHotel } from '../../hooks/useHotels'
 import { useCreateBooking } from '../../hooks/useBookings'
 import { getStoredHotelSearch, saveHotelSearch } from '../../utils/hotelSearchStorage'
-import { formatDateISO } from '../../utils/hotelSearchParams'
+import { formatDateISO, getNightsBetween } from '../../utils/hotelSearchParams'
 import { ROOM_BOOKED_MESSAGE } from '../../utils/roomAvailability'
 
 const MONTHS = [
@@ -107,6 +107,7 @@ const FerryBookingPage = () => {
     const numAdults = Number(stay?.adults) || 1
     const numChildren = Number(stay?.children) || 0
     const numRooms = Number(stay?.rooms) || 1
+    const numNights = getNightsBetween(checkIn, checkOut)
     const guestName = formData.fullName.trim()
     const guestEmail = formData.email.trim()
     const guestPhone = formData.phone.trim()
@@ -118,6 +119,7 @@ const FerryBookingPage = () => {
     if (!hotelId) return { error: 'Hotel information is missing. Please go back and try again.' }
     if (!roomTypeId) return { error: 'Please select a room before completing your booking.' }
     if (!checkIn || !checkOut) return { error: 'Check-in and check-out dates are required.' }
+    if (numNights < 1) return { error: 'Please choose a valid check-in and check-out date.' }
     if (!guestName) return { error: 'Please enter your full name.' }
     if (!guestEmail) return { error: 'Please enter your email address.' }
     if (!guestPhone) return { error: 'Please enter your phone number.' }
@@ -138,6 +140,7 @@ const FerryBookingPage = () => {
         numAdults,
         numChildren,
         numRooms,
+        numNights,
         guestName,
         guestEmail,
         guestPhoneCode: extractPhoneCode(formData.countryCode),

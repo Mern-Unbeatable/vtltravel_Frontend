@@ -464,11 +464,20 @@ const HotelSummarySidebar = ({
     roomData.image ||
     (typeof roomData.images?.[0] === 'string' ? roomData.images[0] : roomData.images?.[0]?.url) ||
     ''
-  const basePriceNum = Number(roomData.priceNum ?? roomData.discountPrice ?? roomData.basePrice) || 0
-  const taxesNum = Number(roomData.taxNum ?? roomData.taxPerNight) || 0
+  const pricePerNight = Number(roomData.priceNum ?? roomData.discountPrice ?? roomData.basePrice) || 0
+  const taxPerNight = Number(roomData.taxNum ?? roomData.taxPerNight) || 0
+  const hotelTaxRate = Number(hotel?.taxRate ?? hotel?.taxPercent ?? 0.1) || 0.1
   const publicRateNum = Number(roomData.basePrice) || 0
-  const savings = publicRateNum > basePriceNum ? publicRateNum - basePriceNum : 0
-  const finalTotal = basePriceNum + taxesNum + extraPrice
+  const stayNights = nights > 0 ? nights : 1
+  const roomUnits = rooms > 0 ? rooms : 1
+  const roomSubtotal = pricePerNight * stayNights * roomUnits
+  const taxAmount =
+    taxPerNight > 0 ? taxPerNight * stayNights * roomUnits : roomSubtotal * hotelTaxRate
+  const savings =
+    publicRateNum > pricePerNight
+      ? (publicRateNum - pricePerNight) * stayNights * roomUnits
+      : 0
+  const totalPrice = roomSubtotal + taxAmount + extraPrice
 
   return (
     <aside className="sticky top-24 rounded-2xl border border-gray-200 bg-white p-5 text-xs shadow-sm">
@@ -502,12 +511,20 @@ const HotelSummarySidebar = ({
             <h4 className="text-xs font-bold leading-snug text-slate-900 line-clamp-2">
               {roomData.name}
             </h4>
-            {basePriceNum ? (
-              <span className="text-base font-bold text-[#3ea5dc] shrink-0">${basePriceNum}</span>
+            {totalPrice ? (
+              <span className="text-base font-bold text-[#3ea5dc] shrink-0">
+                ${totalPrice.toFixed(0)}
+              </span>
             ) : null}
           </div>
           {roomData.capacity ? (
             <p className="mt-1 text-[11px] text-gray-400">{roomData.capacity}</p>
+          ) : null}
+          {nights > 0 && pricePerNight ? (
+            <p className="mt-0.5 text-[11px] text-gray-400">
+              ${pricePerNight} × {stayNights} night{stayNights !== 1 ? 's' : ''}
+              {roomUnits > 1 ? ` × ${roomUnits} rooms` : ''}
+            </p>
           ) : null}
         </div>
       </div>
@@ -528,8 +545,10 @@ const HotelSummarySidebar = ({
           <div>
             <div className="flex items-start justify-between gap-2">
               <span className="text-xs font-bold text-slate-900 leading-snug">{roomData.name}</span>
-              {basePriceNum ? (
-                <span className="text-xs font-bold text-slate-900 shrink-0">${basePriceNum}</span>
+              {roomSubtotal ? (
+                <span className="text-xs font-bold text-slate-900 shrink-0">
+                  ${roomSubtotal.toFixed(2)}
+                </span>
               ) : null}
             </div>
             {savings > 0 ? (
@@ -546,23 +565,27 @@ const HotelSummarySidebar = ({
             </div>
           ) : null}
 
-          <div className="border-t border-gray-200/60 pt-2">
+          <div className="border-t border-gray-200/60 pt-2 space-y-2">
+            <div className="flex items-center justify-between text-xs text-slate-700">
+              <span>Room subtotal</span>
+              <span className="font-semibold">${roomSubtotal.toFixed(2)}</span>
+            </div>
+            <div className="flex items-center justify-between text-xs text-slate-700">
+              <span>Taxes</span>
+              <span className="font-semibold">${taxAmount.toFixed(2)}</span>
+            </div>
             <div className="flex items-center justify-between text-xs font-bold text-slate-900">
-              <span>Total room</span>
-              <span>${(basePriceNum + extraPrice).toFixed(2)}</span>
+              <span>Total</span>
+              <span>${totalPrice.toFixed(2)}</span>
             </div>
           </div>
         </div>
       ) : null}
 
-      {taxesNum > 0 ? (
-        <div className="mt-4 flex items-center justify-between text-xs text-gray-600">
-          <span>Taxes</span>
-          <span className="font-semibold text-gray-800">
-            ${taxesNum.toFixed(2)}
-          </span>
-        </div>
-      ) : null}
+      <div className="mt-4 flex items-center justify-between text-xs text-gray-600">
+        <span>Taxes</span>
+        <span className="font-semibold text-gray-800">${taxAmount.toFixed(2)}</span>
+      </div>
 
       <div className="mt-4 border-t border-gray-100 pt-3">
         <div className="flex items-baseline justify-between">
@@ -571,7 +594,7 @@ const HotelSummarySidebar = ({
             <p className="text-[10px] text-gray-400">Fees and taxes included</p>
           </div>
           <div className="text-right">
-            <span className="text-xl font-extrabold text-slate-900">${finalTotal.toFixed(2)}</span>
+            <span className="text-xl font-extrabold text-slate-900">${totalPrice.toFixed(2)}</span>
           </div>
         </div>
       </div>
