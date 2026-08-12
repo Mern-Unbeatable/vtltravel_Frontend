@@ -23,9 +23,9 @@ const Navbar = () => {
       <nav className="mx-auto flex container items-center justify-between px-4 py-4">
         <NavLink to="/" className="flex items-center">
           <img
-            src="/logo.png"
+            src="/bintan-ferry-tickets-logo.webp"
             alt="VTL Travel"
-            className="h-10 w-auto sm:h-11 md:h-12"
+            className="h-10 w-auto sm:h-11 md:h-14"
           />
         </NavLink>
 
