@@ -315,32 +315,32 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
         </div>
 
         {/* Configurations Side Panel */}
-        <div className="bg-slate-50/80 border border-slate-200 rounded-3xl p-5 space-y-5 shadow-xs">
+        <div className="bg-slate-50/80 border border-slate-200 rounded-xl p-5 space-y-5 shadow-xs">
           <div>
             <h5 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3">
               Bulk Selection Helper
             </h5>
             <div className="grid grid-cols-2 gap-2.5">
               <div>
-                <span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold">
+                <span className="text-sm uppercase tracking-wider text-slate-400 font-bold">
                   Start Date
                 </span>
                 <input
                   type="date"
                   value={rangeStart}
                   onChange={(e) => setRangeStart(e.target.value)}
-                  className="w-full text-xs p-2.5 border border-slate-250 rounded-xl bg-white shadow-xs focus:outline-none focus:ring-1 focus:ring-slate-900"
+                  className="w-full text-xs p-2.5 border border-primary/60 rounded-xl bg-white shadow-xs focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
               <div>
-                <span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold">
+                <span className="text-sm uppercase tracking-wider text-slate-400 font-bold">
                   End Date
                 </span>
                 <input
                   type="date"
                   value={rangeEnd}
                   onChange={(e) => setRangeEnd(e.target.value)}
-                  className="w-full text-xs p-2.5 border border-slate-250 rounded-xl bg-white shadow-xs focus:outline-none focus:ring-1 focus:ring-slate-900"
+                  className="w-full text-xs p-2.5 border border-primary/60 rounded-xl bg-white shadow-xs focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
             </div>
@@ -354,9 +354,9 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
           </div>
 
           <div className="border-t border-slate-200 pt-4 space-y-4">
-            <div className="p-3 bg-slate-950 text-white rounded-2xl flex justify-between items-center shadow-xs">
+            <div className="p-3 bg-white text-primary border border-primary/50 rounded-2xl flex justify-between items-center shadow-xs">
               <span className="text-xs font-bold">Selected Days:</span>
-              <span className="px-2.5 py-0.5 bg-emerald-500 text-slate-950 font-extrabold rounded-lg text-xs">
+              <span className="px-2.5 py-0.5 bg-primary text-white font-extrabold rounded-lg text-xs">
                 {selectedDates.size}
               </span>
             </div>
@@ -365,7 +365,6 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
               <span className="text-xs font-bold text-slate-700 block">
                 Set Availability Status
               </span>
-
               {/* Premium Pill Toggle Selector */}
               <div className="flex bg-slate-200 p-1 rounded-xl">
                 <button
@@ -373,7 +372,7 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
                   onClick={() => setIsBlocked(false)}
                   className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
                     !isBlocked
-                      ? "bg-white text-slate-950 shadow-xs"
+                      ? "bg-primary text-white shadow-xs"
                       : "text-slate-500 hover:text-slate-800"
                   }`}
                 >
@@ -392,7 +391,6 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
                 </button>
               </div>
             </div>
-
             {!isBlocked && (
               <div className="space-y-1.5">
                 <span className="text-xs font-bold text-slate-700 block">
@@ -412,7 +410,6 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
                 </div>
               </div>
             )}
-
             <button
               type="button"
               disabled={selectedDates.size === 0}
