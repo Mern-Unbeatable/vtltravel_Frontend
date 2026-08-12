@@ -333,7 +333,7 @@ const HotelSummarySidebar = ({
 
       {isRoomBooked ? (
         <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-[11px] font-semibold leading-relaxed text-rose-600">
-          {ROOM_BOOKED_MESSAGE} Please choose different dates.
+          {ROOM_BOOKED_MESSAGE}
         </p>
       ) : null}
 

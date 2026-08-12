@@ -7,6 +7,7 @@ import { useHotel } from '../../hooks/useHotels'
 import { useCreateBooking } from '../../hooks/useBookings'
 import { getStoredHotelSearch, saveHotelSearch } from '../../utils/hotelSearchStorage'
 import { formatDateISO } from '../../utils/hotelSearchParams'
+import { ROOM_BOOKED_MESSAGE } from '../../utils/roomAvailability'
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -25,9 +26,28 @@ const extractPhoneCode = (value) => {
   return match ? match[0] : '+65'
 }
 
+const isAlreadyBookedError = (message = '') => {
+  const text = String(message).toLowerCase()
+  return (
+    text.includes('already booked') ||
+    text.includes('not available') ||
+    text.includes('unavailable') ||
+    text.includes('fully booked') ||
+    text.includes('dates') && text.includes('booked')
+  )
+}
+
 const getErrorMessage = (error) => {
-  if (typeof error === 'string') return error
-  return error?.message || error?.error || 'Failed to create booking.'
+  const message =
+    typeof error === 'string'
+      ? error
+      : error?.message || error?.error || 'Failed to create booking.'
+
+  if (isAlreadyBookedError(message)) {
+    return ROOM_BOOKED_MESSAGE
+  }
+
+  return message
 }
 
 const FerryBookingPage = () => {
@@ -291,7 +311,7 @@ const FerryBookingPage = () => {
             <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-2xs space-y-6">
               <div>
                 <h2 className="text-xl font-bold text-slate-900">Booking Passengers Details</h2>
-                <p className="mt-1 text-[11px] text-gray-400">
+                <p className="mt-1 text-sm  text-gray-400">
                   Enter all passenger information as it appears on official travel documents. Incorrect or incomplete details may cause check-in or boarding issues.
                 </p>
               </div>
@@ -545,7 +565,7 @@ const FerryBookingPage = () => {
             </div>
 
             {/* Confirmation Checkbox */}
-            <div className="flex items-start gap-3 text-[11px] leading-relaxed text-gray-500 pt-2">
+            <div className="flex items-start gap-3 text-xs md:text-sm leading-relaxed text-gray-500 pt-2">
               <input
                 type="checkbox"
                 id="confirm"

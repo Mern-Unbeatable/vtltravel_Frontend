@@ -56,4 +56,5 @@ export const isRoomBookedForStay = (room, stay) => {
   })
 }
 
-export const ROOM_BOOKED_MESSAGE = 'This room is already booked for these dates.'
+export const ROOM_BOOKED_MESSAGE =
+  'These dates are already booked. Please select other dates.'
