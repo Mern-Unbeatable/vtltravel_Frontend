@@ -2,60 +2,111 @@ import React, { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import HotelList from "./components/HotelList";
 import HotelForm from "./components/HotelForm";
-import {
-  useAdminHotels,
-  useHotel,
-  useAddHotel,
-  useUpdateHotel,
-  useDeleteHotel,
-} from "../../../hooks/useHotels";
-
 import { toast } from "react-toastify";
+
+const defaultMockHotels = [
+  {
+    id: "mock-1",
+    _id: "mock-1",
+    name: "VTL Premium Resort Batam",
+    title: "VTL Premium Resort Batam",
+    starRating: 5,
+    starNum: 5,
+    startingPrice: 225,
+    priceNum: 225,
+    coverImageUrl: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80",
+    image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80",
+    isActive: true,
+    available: true,
+    description: "Experience world-class service and luxury at VTL Premium Resort Batam. Set amidst lush tropical gardens with private beach access.",
+    facilities: ["Free Wi-Fi", "Swimming Pool", "Spa", "Restaurant", "Free Parking"],
+    gallery: [
+      { url: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80", category: "Hotel" },
+      { url: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=600&q=80", category: "Rooms" }
+    ],
+    rooms: [
+      {
+        id: "mock-room-1",
+        _id: "mock-room-1",
+        name: "Deluxe King Room",
+        price: "225",
+        pricePerNight: 225,
+        size: "45 sqm",
+        capacity: "2 pers. max",
+        bedInfo: "1 King size bed",
+        baths: "1 Bath",
+        description: "Elegant deluxe room with private balcony and garden views.",
+        calendarSettings: {
+          "2026-08-15": { price: "250", isBlocked: false },
+          "2026-08-16": { price: "", isBlocked: true }
+        }
+      }
+    ],
+    addOns: [{ name: "Extra Bed", price: "50" }]
+  }
+];
 
 const ManageHotel = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const cmsMode = searchParams.get("mode") || "list"; // 'list' | 'add' | 'edit'
   const hotelId = searchParams.get("id");
 
+  // Local storage state for mock frontend-only experience
+  const [hotels, setHotels] = React.useState(() => {
+    const saved = localStorage.getItem("vtl_mock_hotels");
+    return saved ? JSON.parse(saved) : defaultMockHotels;
+  });
+
+  React.useEffect(() => {
+    localStorage.setItem("vtl_mock_hotels", JSON.stringify(hotels));
+  }, [hotels]);
+
   // Custom delete modal states
   const [deleteTargetId, setDeleteTargetId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteResult, setDeleteResult] = useState(null); // null | { success: boolean, message: string }
 
-  // TanStack Query hooks
-  const { data: hotels = [], isLoading, isError } = useAdminHotels();
-  const { data: fetchedHotel, isLoading: isFetchingHotel } = useHotel(hotelId);
-  
-  const addHotelMutation = useAddHotel();
-  const updateHotelMutation = useUpdateHotel();
-  const deleteHotelMutation = useDeleteHotel();
+  // Get active hotel for edit mode
+  const fetchedHotel = hotels.find(h => h.id === hotelId || h._id === hotelId);
+  const isLoading = false;
+  const isError = false;
+  const isFetchingHotel = false;
 
   const handleSaveHotel = async (formattedHotel) => {
     try {
       if (cmsMode === "edit" && hotelId) {
-        const response = await updateHotelMutation.mutateAsync({
-          id: hotelId,
-          hotelData: formattedHotel,
-        });
-        const successMsg = response?.message || "Hotel updated successfully!";
-        toast.success(successMsg);
+        // Map fields correctly to resemble server schema
+        const updated = {
+          ...fetchedHotel,
+          ...formattedHotel,
+          name: formattedHotel.title || formattedHotel.name,
+          starRating: formattedHotel.starNum,
+          startingPrice: formattedHotel.priceNum,
+          coverImageUrl: formattedHotel.image || fetchedHotel?.coverImageUrl,
+        };
+        setHotels(prev => prev.map(h => (h.id === hotelId || h._id === hotelId) ? updated : h));
+        toast.success("Hotel details updated locally!");
         setSearchParams({});
       } else {
-        const response = await addHotelMutation.mutateAsync(formattedHotel);
-        const successMsg = response?.message || "Hotel created successfully! You can now add room types and upload gallery images below.";
-        toast.success(successMsg, { autoClose: 6000 });
-        
-        const createdHotel = response?.data || response;
-        const newId = createdHotel?.id || createdHotel?._id;
-        if (newId) {
-          setSearchParams({ mode: "edit", id: newId });
-        } else {
-          setSearchParams({});
-        }
+        const newId = `mock-${Date.now()}`;
+        const newHotel = {
+          ...formattedHotel,
+          id: newId,
+          _id: newId,
+          name: formattedHotel.title || formattedHotel.name,
+          starRating: formattedHotel.starNum,
+          startingPrice: formattedHotel.priceNum,
+          coverImageUrl: formattedHotel.image,
+          gallery: formattedHotel.gallery || [],
+          rooms: formattedHotel.rooms || [],
+        };
+        setHotels(prev => [...prev, newHotel]);
+        toast.success("Hotel listing created locally! You can now add room types and upload gallery images.");
+        setSearchParams({ mode: "edit", id: newId });
       }
     } catch (err) {
       console.error("Error saving hotel:", err);
-      toast.error(err.message || "Failed to save hotel.");
+      toast.error("Failed to save hotel.");
     }
   };
 
@@ -77,16 +128,16 @@ const ManageHotel = () => {
     if (!deleteTargetId) return;
     setIsDeleting(true);
     try {
-      const res = await deleteHotelMutation.mutateAsync(deleteTargetId);
+      setHotels(prev => prev.filter(h => h.id !== deleteTargetId && h._id !== deleteTargetId));
       setDeleteResult({
         success: true,
-        message: res?.message || "Hotel listing deleted successfully!"
+        message: "Hotel listing deleted successfully from local storage!"
       });
     } catch (err) {
       console.error("Error deleting hotel:", err);
       setDeleteResult({
         success: false,
-        message: err?.message || "Failed to delete the hotel listing."
+        message: "Failed to delete the hotel listing."
       });
     } finally {
       setIsDeleting(false);
