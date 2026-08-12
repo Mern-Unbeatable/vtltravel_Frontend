@@ -50,7 +50,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-5">
           <div>
             <Link to="/" className="inline-block">
-              <img src="/logo.png" alt="VTL Travel" className="h-12 w-auto" />
+              <img src="/bintan-ferry-tickets-logo.webp" alt="VTL Travel" className="h-12 md:h-14 w-auto" />
             </Link>
 
             <p className="mt-5 text-sm font-medium text-gray-700">Site / Currency</p>
