@@ -9,6 +9,8 @@ import {
   IoRemove,
   IoLocationOutline,
   IoBusinessOutline,
+  IoClose,
+  IoAlertCircleOutline,
 } from 'react-icons/io5'
 import { useHotelSuggestions } from '../hooks/useHotels'
 
@@ -102,6 +104,7 @@ const SearchCard = ({
   const [adults, setAdults] = useState(Number(initialAdults))
   const [childrenCount, setChildrenCount] = useState(Number(initialChildren))
   const [showGuestsPicker, setShowGuestsPicker] = useState(false)
+  const [showDestinationModal, setShowDestinationModal] = useState(false)
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQuery(destValue.trim()), 300)
@@ -230,6 +233,14 @@ const SearchCard = ({
   }
 
   const handleSearchSubmit = () => {
+    if (!hideDestination && !destValue.trim()) {
+      setShowDestinationModal(true)
+      setShowSuggestions(false)
+      setShowDatePicker(false)
+      setShowGuestsPicker(false)
+      return
+    }
+
     if (onSearch) {
       onSearch({
         destination: destValue.trim(),
@@ -241,6 +252,12 @@ const SearchCard = ({
         children: childrenCount,
       })
     }
+  }
+
+  const closeDestinationModal = () => {
+    setShowDestinationModal(false)
+    setShowSuggestions(true)
+    document.getElementById('destination-input')?.focus()
   }
 
   const formattedGuestsSummary = `${rooms} Room(s) - ${adults + childrenCount} Guest(s)`
@@ -690,6 +707,46 @@ const SearchCard = ({
           </button>
         </div>
       </div>
+
+      {showDestinationModal ? (
+        <div
+          className="fixed inset-0 z-[120] flex items-center justify-center bg-black/50 p-4"
+          onClick={closeDestinationModal}
+        >
+          <div
+            className="relative w-full max-w-sm rounded-2xl border border-gray-100 bg-white p-6 text-center shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Destination required"
+          >
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-sky-50 text-primary">
+              <IoAlertCircleOutline className="text-2xl" />
+            </div>
+            <h3 className="mt-4 text-lg font-bold text-slate-900">
+              Select Destination or Hotel
+            </h3>
+            <p className="mt-2 text-sm text-gray-500">
+              Please select or type a Destination / Hotel first. Search will not work without it.
+            </p>
+            <button
+              type="button"
+              onClick={closeDestinationModal}
+              className="mt-5 w-full rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-primary/90"
+            >
+              OK
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowDestinationModal(false)}
+              className="absolute right-4 top-4 rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              aria-label="Close"
+            >
+              <IoClose className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }
