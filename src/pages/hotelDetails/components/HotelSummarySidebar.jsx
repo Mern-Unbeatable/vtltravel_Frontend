@@ -579,16 +579,16 @@ const HotelSummarySidebar = ({
               <span>Room subtotal</span>
               <span className="font-semibold">${Number(displayRoomSubtotal || 0).toFixed(2)}</span>
             </div>
-            {hasPreview ? (
+            {/* {hasPreview ? (
               <div className="flex items-center justify-between text-xs text-slate-700">
                 <span>Taxes</span>
                 <span className="font-semibold">${Number(displayTaxAmount).toFixed(2)}</span>
               </div>
-            ) : null}
-            <div className="flex items-center justify-between text-xs font-bold text-slate-900">
+            ) : null} */}
+            {/* <div className="flex items-center justify-between text-xs font-bold text-slate-900">
               <span>Total</span>
               <span>${Number(totalPrice || 0).toFixed(2)}</span>
-            </div>
+            </div> */}
           </div>
         </div>
       ) : null}

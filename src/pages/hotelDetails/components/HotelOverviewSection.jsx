@@ -50,7 +50,7 @@ const HotelOverviewSection = ({ hotel }) => {
 
       {description ? (
         <>
-          <p className="mt-4 text-xs leading-relaxed text-gray-500 max-w-2xl">
+          <p className="mt-4 text-xs md:text-sm leading-relaxed text-gray-500 max-w-2xl">
             {visibleDescription}
           </p>
           {isLong ? (
