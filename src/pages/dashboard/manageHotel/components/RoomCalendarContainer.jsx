@@ -1,32 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 // Inline rate calendar container for the redesigned second tab
 const RoomCalendarContainer = ({ room, onSaveSettings }) => {
-  const basePrice = room.price || room.pricePerNight || room.basePrice || '0';
+  const basePrice = room.price || room.pricePerNight || room.basePrice || "0";
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDates, setSelectedDates] = useState(new Set());
-  const [calendarSettings, setCalendarSettings] = useState(room.calendarSettings || {});
-  const [inputPrice, setInputPrice] = useState('');
+  const [calendarSettings, setCalendarSettings] = useState(
+    room.calendarSettings || {},
+  );
+  const [inputPrice, setInputPrice] = useState("");
   const [isBlocked, setIsBlocked] = useState(false);
-  const [rangeStart, setRangeStart] = useState('');
-  const [rangeEnd, setRangeEnd] = useState('');
+  const [rangeStart, setRangeStart] = useState("");
+  const [rangeEnd, setRangeEnd] = useState("");
 
   useEffect(() => {
     setCalendarSettings(room.calendarSettings || {});
     setSelectedDates(new Set());
-    setInputPrice('');
+    setInputPrice("");
     setIsBlocked(false);
-    setRangeStart('');
-    setRangeEnd('');
+    setRangeStart("");
+    setRangeEnd("");
   }, [room]);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
   const formatDateString = (y, m, d) => {
-    const mm = String(m + 1).padStart(2, '0');
-    const dd = String(d).padStart(2, '0');
+    const mm = String(m + 1).padStart(2, "0");
+    const dd = String(d).padStart(2, "0");
     return `${y}-${mm}-${dd}`;
   };
 
@@ -93,18 +95,21 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
     if (selectedDates.size === 0) return;
 
     const updatedSettings = { ...calendarSettings };
-    selectedDates.forEach(dateStr => {
+    selectedDates.forEach((dateStr) => {
       if (isBlocked) {
-        updatedSettings[dateStr] = { price: '', isBlocked: true };
+        updatedSettings[dateStr] = { price: "", isBlocked: true };
       } else {
-        updatedSettings[dateStr] = { price: inputPrice || basePrice, isBlocked: false };
+        updatedSettings[dateStr] = {
+          price: inputPrice || basePrice,
+          isBlocked: false,
+        };
       }
     });
 
     setCalendarSettings(updatedSettings);
     onSaveSettings(room.id || room._id, updatedSettings);
     setSelectedDates(new Set());
-    setInputPrice('');
+    setInputPrice("");
     setIsBlocked(false);
   };
 
@@ -116,18 +121,32 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
   };
 
   const monthNames = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
 
   return (
     <div className="bg-white border border-slate-200/80 rounded-xl overflow-hidden p-6 shadow-sm">
       {/* Header & Legend */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-100 pb-5 gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center  pb-5 gap-4">
         <div>
-          <h4 className="text-lg font-bold text-slate-900 tracking-tight">Rates Calendar for {room.name}</h4>
-          <p className="text-xs text-slate-550 mt-0.5">Configure daily room rates & availability blocks.</p>
-          
+          <h4 className="text-lg font-bold text-slate-900 tracking-tight">
+            Rates Calendar for {room.name}
+          </h4>
+          <p className="text-xs text-slate-550 mt-0.5">
+            Configure daily room rates & availability blocks.
+          </p>
+
           {/* Visual Legend */}
           <div className="flex flex-wrap gap-3 mt-3">
             <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-600">
@@ -148,28 +167,32 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
             </div>
           </div>
         </div>
-        <div className="bg-slate-50 border border-slate-200 px-4 py-3 rounded-2xl text-right shadow-xs min-w-[120px]">
-          <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Default Price</span>
-          <p className="text-xl font-extrabold text-slate-900">${basePrice}</p>
+        <div className="bg-slate-50 border border-slate-200 px-4 py-3 rounded-xl text-right shadow-xs min-w-[120px]">
+          <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
+            Default Price
+          </span>
+          <p className="text-xl font-extrabold text-primary">${basePrice}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Calendar Grid */}
         <div className="xl:col-span-2 space-y-4">
-          <div className="flex justify-between items-center bg-primary p-3 rounded-2xl text-white shadow-md">
+          <div className="flex justify-between items-center bg-primary/15 p-3 rounded-xl text-primary ">
             <button
               type="button"
               onClick={prevMonth}
-              className="px-3 py-1.5 hover:bg-white/15 rounded-lg transition text-white text-xs font-bold cursor-pointer"
+              className="px-3 py-1.5 hover:bg-white/15 rounded-lg transition text-primary text-xs font-bold cursor-pointer"
             >
               &larr; Prev
             </button>
-            <span className="text-sm font-bold tracking-wide">{monthNames[month]} {year}</span>
+            <span className="text-sm font-bold tracking-wide">
+              {monthNames[month]} {year}
+            </span>
             <button
               type="button"
               onClick={nextMonth}
-              className="px-3 py-1.5 hover:bg-white/15 rounded-lg transition text-white text-xs font-bold cursor-pointer"
+              className="px-3 py-1.5 hover:bg-white/15 rounded-lg transition text-primary text-xs font-bold cursor-pointer"
             >
               Next &rarr;
             </button>
@@ -188,7 +211,10 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
 
             <div className="grid grid-cols-7 divide-x divide-y divide-slate-100 border-b border-slate-100">
               {Array.from({ length: firstDay }).map((_, idx) => (
-                <div key={`empty-${idx}`} className="bg-slate-50/30 min-h-[85px]"></div>
+                <div
+                  key={`empty-${idx}`}
+                  className="bg-slate-50/30 min-h-[85px]"
+                ></div>
               ))}
               {Array.from({ length: daysInMonth }).map((_, idx) => {
                 const d = idx + 1;
@@ -199,13 +225,17 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
                 const dayOfWeek = new Date(year, month, d).getDay();
                 const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
-                let cellBg = isWeekend ? "bg-slate-50/40 hover:bg-slate-100/50" : "bg-white hover:bg-slate-50/70";
+                let cellBg = isWeekend
+                  ? "bg-slate-50/40 hover:bg-slate-100/50"
+                  : "bg-white hover:bg-slate-50/70";
                 if (isSelected) {
-                  cellBg = "bg-slate-900/10 border-2 border-slate-900/80 ring-2 ring-slate-900/10 z-10 scale-95";
+                  cellBg =
+                    "bg-slate-900/10 border-2 border-slate-900/80 ring-2 ring-slate-900/10 z-10 scale-95";
                 } else if (rule?.isBlocked) {
                   cellBg = "bg-red-50/70 hover:bg-red-100/70 border-red-100";
                 } else if (hasCustomRule) {
-                  cellBg = "bg-emerald-50/70 hover:bg-emerald-100/70 border-emerald-100";
+                  cellBg =
+                    "bg-emerald-50/70 hover:bg-emerald-100/70 border-emerald-100";
                 }
 
                 return (
@@ -215,7 +245,11 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
                     className={`min-h-[85px] p-2.5 flex flex-col justify-between cursor-pointer transition-all duration-200 relative group select-none ${cellBg}`}
                   >
                     <div className="flex justify-between items-center">
-                      <span className={`text-xs font-bold ${isSelected ? 'text-slate-950 font-extrabold scale-110' : 'text-slate-800'}`}>{d}</span>
+                      <span
+                        className={`text-xs font-bold ${isSelected ? "text-slate-950 font-extrabold scale-110" : "text-slate-800"}`}
+                      >
+                        {d}
+                      </span>
                       {hasCustomRule && (
                         <button
                           type="button"
@@ -231,14 +265,20 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
                     </div>
                     <div className="text-right mt-2">
                       {rule?.isBlocked ? (
-                        <span className="inline-block px-1.5 py-0.5 bg-red-100 text-red-800 text-[8px] font-extrabold rounded-sm uppercase tracking-wider">Blocked</span>
+                        <span className="inline-block px-1.5 py-0.5 bg-red-100 text-red-800 text-[8px] font-extrabold rounded-sm uppercase tracking-wider">
+                          Blocked
+                        </span>
                       ) : (
                         <div className="flex flex-col items-end">
-                          <span className={`text-xs font-extrabold ${hasCustomRule ? 'text-emerald-700' : 'text-slate-450'}`}>
+                          <span
+                            className={`text-xs font-extrabold ${hasCustomRule ? "text-emerald-700" : "text-slate-450"}`}
+                          >
                             ${rule ? rule.price : basePrice}
                           </span>
                           {hasCustomRule && (
-                            <span className="text-[8px] uppercase tracking-wider text-emerald-600 font-bold">Custom</span>
+                            <span className="text-[8px] uppercase tracking-wider text-emerald-600 font-bold">
+                              Custom
+                            </span>
                           )}
                         </div>
                       )}
@@ -277,10 +317,14 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
         {/* Configurations Side Panel */}
         <div className="bg-slate-50/80 border border-slate-200 rounded-3xl p-5 space-y-5 shadow-xs">
           <div>
-            <h5 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3">Bulk Selection Helper</h5>
+            <h5 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3">
+              Bulk Selection Helper
+            </h5>
             <div className="grid grid-cols-2 gap-2.5">
               <div>
-                <span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold">Start Date</span>
+                <span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold">
+                  Start Date
+                </span>
                 <input
                   type="date"
                   value={rangeStart}
@@ -289,7 +333,9 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
                 />
               </div>
               <div>
-                <span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold">End Date</span>
+                <span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold">
+                  End Date
+                </span>
                 <input
                   type="date"
                   value={rangeEnd}
@@ -310,12 +356,16 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
           <div className="border-t border-slate-200 pt-4 space-y-4">
             <div className="p-3 bg-slate-950 text-white rounded-2xl flex justify-between items-center shadow-xs">
               <span className="text-xs font-bold">Selected Days:</span>
-              <span className="px-2.5 py-0.5 bg-emerald-500 text-slate-950 font-extrabold rounded-lg text-xs">{selectedDates.size}</span>
+              <span className="px-2.5 py-0.5 bg-emerald-500 text-slate-950 font-extrabold rounded-lg text-xs">
+                {selectedDates.size}
+              </span>
             </div>
 
             <div className="space-y-2">
-              <span className="text-xs font-bold text-slate-700 block">Set Availability Status</span>
-              
+              <span className="text-xs font-bold text-slate-700 block">
+                Set Availability Status
+              </span>
+
               {/* Premium Pill Toggle Selector */}
               <div className="flex bg-slate-200 p-1 rounded-xl">
                 <button
@@ -323,8 +373,8 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
                   onClick={() => setIsBlocked(false)}
                   className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
                     !isBlocked
-                      ? 'bg-white text-slate-950 shadow-xs'
-                      : 'text-slate-500 hover:text-slate-800'
+                      ? "bg-white text-slate-950 shadow-xs"
+                      : "text-slate-500 hover:text-slate-800"
                   }`}
                 >
                   Available
@@ -334,8 +384,8 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
                   onClick={() => setIsBlocked(true)}
                   className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
                     isBlocked
-                      ? 'bg-red-600 text-white shadow-xs'
-                      : 'text-slate-500 hover:text-slate-800'
+                      ? "bg-red-600 text-white shadow-xs"
+                      : "text-slate-500 hover:text-slate-800"
                   }`}
                 >
                   Blocked
@@ -345,9 +395,13 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
 
             {!isBlocked && (
               <div className="space-y-1.5">
-                <span className="text-xs font-bold text-slate-700 block">Custom Price ($ per night)</span>
+                <span className="text-xs font-bold text-slate-700 block">
+                  Custom Price ($ per night)
+                </span>
                 <div className="relative">
-                  <span className="absolute left-3.5 top-2.5 text-slate-400 text-sm font-semibold">$</span>
+                  <span className="absolute left-3.5 top-2.5 text-slate-400 text-sm font-semibold">
+                    $
+                  </span>
                   <input
                     type="number"
                     placeholder={basePrice}
