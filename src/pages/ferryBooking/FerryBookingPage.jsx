@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocation, Link, useNavigate, useParams } from 'react-router-dom'
 import { IoPersonOutline } from 'react-icons/io5'
 import { toast } from 'react-toastify'
@@ -33,7 +33,7 @@ const isAlreadyBookedError = (message = '') => {
     text.includes('not available') ||
     text.includes('unavailable') ||
     text.includes('fully booked') ||
-    text.includes('dates') && text.includes('booked')
+    (text.includes('dates') && text.includes('booked'))
   )
 }
 
@@ -50,19 +50,44 @@ const getErrorMessage = (error) => {
   return message
 }
 
+const buildStayParams = (stay) => {
+  if (!stay?.checkIn || !stay?.checkOut) return {}
+  return {
+    checkIn: stay.checkIn,
+    checkOut: stay.checkOut,
+    adults: Number(stay.adults) || 1,
+    rooms: Number(stay.rooms) || 1,
+    children: Number(stay.children) || 0,
+  }
+}
+
 const FerryBookingPage = () => {
   const { hotelId: hotelIdParam } = useParams()
   const { state } = useLocation()
   const navigate = useNavigate()
-  const { data: hotelData } = useHotel(hotelIdParam)
+  const [stay, setStay] = useState(() => state?.stay || getStoredHotelSearch())
+  const [selectedRoom, setSelectedRoom] = useState(() => state?.selectedRoom || null)
+  const stayParams = buildStayParams(stay)
+  const { data: hotelData } = useHotel(hotelIdParam, stayParams)
   const { mutateAsync: createBooking, isPending } = useCreateBooking()
 
   const hotel = hotelData || state?.hotel || null
-  const selectedRoom = state?.selectedRoom || null
-  const [stay, setStay] = useState(() => state?.stay || getStoredHotelSearch())
   const extraPrice = state?.extraPrice || 0
   const selectedAddOns = Array.isArray(state?.selectedAddOns) ? state.selectedAddOns : []
   const hotelTitle = hotel?.name || state?.title || ''
+
+  useEffect(() => {
+    if (!hotelData || !selectedRoom?.id) return
+    const updated = (hotelData.roomTypes || []).find((room) => room.id === selectedRoom.id)
+    if (!updated) return
+    setSelectedRoom((prev) => ({
+      ...prev,
+      ...updated,
+      pricePreview: updated.pricePreview || null,
+      priceNum: Number(updated.discountPrice || updated.basePrice) || prev.priceNum,
+      taxNum: Number(updated.taxPerNight) || 0,
+    }))
+  }, [hotelData, selectedRoom?.id])
 
   const handleStayChange = (nextStay) => {
     const saved = saveHotelSearch(nextStay)
@@ -107,7 +132,8 @@ const FerryBookingPage = () => {
     const numAdults = Number(stay?.adults) || 1
     const numChildren = Number(stay?.children) || 0
     const numRooms = Number(stay?.rooms) || 1
-    const numNights = getNightsBetween(checkIn, checkOut)
+    const numNights =
+      Number(selectedRoom?.pricePreview?.nights) || getNightsBetween(checkIn, checkOut)
     const guestName = formData.fullName.trim()
     const guestEmail = formData.email.trim()
     const guestPhone = formData.phone.trim()

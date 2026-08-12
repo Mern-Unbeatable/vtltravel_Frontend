@@ -44,6 +44,8 @@ const mapRoomType = (room) => {
     taxNum: Number(room.taxPerNight) || 0,
     roomsLeft: room.roomsLeftAlert || '',
     memberRate: Boolean(room.isMemberDeal),
+    pricePreview: room.pricePreview || null,
+    availableForDates: room.availableForDates,
   }
 }
 
@@ -54,7 +56,13 @@ const HotelDetailsPage = () => {
   const [stay, setStay] = useState(() => getStoredHotelSearch())
   const stayParams =
     stay?.checkIn && stay?.checkOut
-      ? { checkIn: stay.checkIn, checkOut: stay.checkOut }
+      ? {
+          checkIn: stay.checkIn,
+          checkOut: stay.checkOut,
+          adults: Number(stay.adults) || 1,
+          rooms: Number(stay.rooms) || 1,
+          children: Number(stay.children) || 0,
+        }
       : {}
   const { data: hotel, isLoading, isError } = useHotel(hotelId, stayParams)
 

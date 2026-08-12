@@ -155,13 +155,39 @@ const BookingSuccessPage = () => {
               <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">Status</p>
               <p className="mt-1 text-sm font-semibold text-emerald-600">{statusLabel}</p>
             </div>
-            {totalLabel ? (
-              <div className="text-right">
-                <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">Total</p>
-                <p className="mt-1 text-lg font-extrabold text-slate-900">{totalLabel}</p>
-              </div>
-            ) : null}
           </div>
+
+          {(booking?.roomSubtotal || booking?.taxAmount || booking?.totalPrice) ? (
+            <div className="space-y-2 border-t border-gray-100 pt-4 text-sm">
+              {booking?.roomSubtotal !== undefined && booking?.roomSubtotal !== null ? (
+                <div className="flex items-center justify-between text-slate-700">
+                  <span>Room subtotal</span>
+                  <span className="font-semibold">
+                    {formatCurrency(booking.roomSubtotal, booking.currency)}
+                  </span>
+                </div>
+              ) : null}
+              {booking?.taxAmount !== undefined && booking?.taxAmount !== null ? (
+                <div className="flex items-center justify-between text-slate-700">
+                  <span>Taxes</span>
+                  <span className="font-semibold">
+                    {formatCurrency(booking.taxAmount, booking.currency)}
+                  </span>
+                </div>
+              ) : null}
+              {totalLabel ? (
+                <div className="flex items-center justify-between text-slate-900">
+                  <span className="font-bold">Total</span>
+                  <span className="text-lg font-extrabold">{totalLabel}</span>
+                </div>
+              ) : null}
+            </div>
+          ) : totalLabel ? (
+            <div className="flex items-center justify-between border-t border-gray-100 pt-4">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">Total</p>
+              <p className="text-lg font-extrabold text-slate-900">{totalLabel}</p>
+            </div>
+          ) : null}
         </div>
 
         <HomeActions />

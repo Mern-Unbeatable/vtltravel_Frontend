@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocation, Link, useNavigate, useParams } from 'react-router-dom'
 import { IoAdd, IoCheckmark } from 'react-icons/io5'
 import HotelSummarySidebar from '../hotelDetails/components/HotelSummarySidebar'
@@ -34,17 +34,42 @@ const mapAddOn = (item) => {
   }
 }
 
+const buildStayParams = (stay) => {
+  if (!stay?.checkIn || !stay?.checkOut) return {}
+  return {
+    checkIn: stay.checkIn,
+    checkOut: stay.checkOut,
+    adults: Number(stay.adults) || 1,
+    rooms: Number(stay.rooms) || 1,
+    children: Number(stay.children) || 0,
+  }
+}
+
 const CustomizeStayPage = () => {
   const { hotelId } = useParams()
   const { state } = useLocation()
   const navigate = useNavigate()
-  const { data: hotelData, isLoading, isError } = useHotel(hotelId)
   const [selectedExtras, setSelectedExtras] = useState([])
+  const [stay, setStay] = useState(() => state?.stay || getStoredHotelSearch())
+  const [selectedRoom, setSelectedRoom] = useState(() => state?.selectedRoom || null)
+  const stayParams = buildStayParams(stay)
+  const { data: hotelData, isLoading, isError } = useHotel(hotelId, stayParams)
 
   const hotel = hotelData || state?.hotel || null
-  const selectedRoom = state?.selectedRoom || null
-  const [stay, setStay] = useState(() => state?.stay || getStoredHotelSearch())
   const hotelTitle = hotel?.name || state?.title || ''
+
+  useEffect(() => {
+    if (!hotelData || !selectedRoom?.id) return
+    const updated = (hotelData.roomTypes || []).find((room) => room.id === selectedRoom.id)
+    if (!updated) return
+    setSelectedRoom((prev) => ({
+      ...prev,
+      ...updated,
+      pricePreview: updated.pricePreview || null,
+      priceNum: Number(updated.discountPrice || updated.basePrice) || prev.priceNum,
+      taxNum: Number(updated.taxPerNight) || 0,
+    }))
+  }, [hotelData, selectedRoom?.id])
 
   const handleStayChange = (nextStay) => {
     const saved = saveHotelSearch(nextStay)
