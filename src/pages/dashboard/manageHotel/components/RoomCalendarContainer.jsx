@@ -121,7 +121,7 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
   ];
 
   return (
-    <div className="bg-white border border-slate-200/80 rounded-3xl overflow-hidden p-6 shadow-xl transition-all duration-300 hover:shadow-2xl">
+    <div className="bg-white border border-slate-200/80 rounded-xl overflow-hidden p-6 shadow-sm">
       {/* Header & Legend */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-100 pb-5 gap-4">
         <div>
@@ -157,11 +157,11 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Calendar Grid */}
         <div className="xl:col-span-2 space-y-4">
-          <div className="flex justify-between items-center bg-slate-950 p-3 rounded-2xl text-white shadow-sm">
+          <div className="flex justify-between items-center bg-primary p-3 rounded-2xl text-white shadow-md">
             <button
               type="button"
               onClick={prevMonth}
-              className="px-3 py-1.5 hover:bg-slate-800 rounded-lg transition text-slate-200 text-xs font-bold cursor-pointer"
+              className="px-3 py-1.5 hover:bg-white/15 rounded-lg transition text-white text-xs font-bold cursor-pointer"
             >
               &larr; Prev
             </button>
@@ -169,7 +169,7 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
             <button
               type="button"
               onClick={nextMonth}
-              className="px-3 py-1.5 hover:bg-slate-800 rounded-lg transition text-slate-200 text-xs font-bold cursor-pointer"
+              className="px-3 py-1.5 hover:bg-white/15 rounded-lg transition text-white text-xs font-bold cursor-pointer"
             >
               Next &rarr;
             </button>
@@ -301,7 +301,7 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
             <button
               type="button"
               onClick={handleApplyRangeSelection}
-              className="w-full mt-3 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition cursor-pointer shadow-xs"
+              className="w-full mt-3 py-2 bg-primary hover:bg-primary/90 text-white text-xs font-bold rounded-xl transition cursor-pointer shadow-sm"
             >
               Select Range
             </button>
@@ -363,7 +363,7 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
               type="button"
               disabled={selectedDates.size === 0}
               onClick={handleApplySettings}
-              className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white text-xs font-bold rounded-xl transition cursor-pointer shadow-md shadow-emerald-600/10"
+              className="w-full py-3 bg-primary hover:bg-primary/90 disabled:opacity-40 text-white text-xs font-bold rounded-xl transition cursor-pointer shadow-md shadow-primary/10"
             >
               Apply to Selected ({selectedDates.size})
             </button>

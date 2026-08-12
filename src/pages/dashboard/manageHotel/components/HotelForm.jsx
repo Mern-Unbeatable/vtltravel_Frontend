@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import RoomFormModal from "./RoomFormModal";
 import RoomCalendarContainer from "./RoomCalendarContainer";
+import RoomTypesSidebar from "./RoomTypesSidebar";
 import AddOnOptions from "./AddOnOptions";
 import RoomTypesTable from "./RoomTypesTable";
 import {
@@ -627,11 +628,11 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
                                 className="w-full h-full object-cover bg-black"
                               />
                             ) : (
-                              <img
-                                src={img.url}
-                                alt={`Gallery ${activeGalleryTab} ${idx + 1}`}
-                                className="w-full h-full object-cover"
-                              />
+                                <img
+                                  src={img.url}
+                                  alt={`Gallery ${activeGalleryTab} ${idx + 1}`}
+                                  className="w-full h-full object-cover"
+                                />
                             )}
                             <button
                               type="button"
@@ -650,79 +651,17 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
           </>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* Left Side: Room Types list */}
-            <div className="lg:col-span-1 border border-gray-200 rounded-2xl p-4 bg-slate-50 space-y-4 max-h-[600px] overflow-y-auto">
-              <div className="flex justify-between items-center pb-2 border-b border-gray-200">
-                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wide">Room Types</h3>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingRoom(null);
-                    setIsRoomModalOpen(true);
-                  }}
-                  className="px-2 py-1 bg-slate-900 text-white rounded text-[10px] font-bold hover:bg-slate-800 cursor-pointer"
-                >
-                  + Add Room
-                </button>
-              </div>
-
-              {roomsVal.length === 0 ? (
-                <div className="text-center py-8 text-xs text-gray-400 font-semibold">
-                  No room types configured yet.
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {roomsVal.map((room) => {
-                    const isSelected = selectedRoomId === (room.id || room._id) || (!selectedRoomId && roomsVal[0] === room);
-                    // Ensure state matches
-                    if (!selectedRoomId && roomsVal[0] === room) {
-                      setTimeout(() => setSelectedRoomId(room.id || room._id), 0);
-                    }
-                    return (
-                      <div
-                        key={room.id || room._id}
-                        onClick={() => setSelectedRoomId(room.id || room._id)}
-                        className={`p-3 rounded-xl border text-left cursor-pointer transition flex flex-col justify-between gap-2 ${
-                          isSelected
-                            ? "bg-slate-900 border-slate-900 text-white shadow-sm"
-                            : "bg-white border-gray-200 text-slate-700 hover:bg-gray-50"
-                        }`}
-                      >
-                        <div>
-                          <p className="text-xs font-bold">{room.name}</p>
-                          <p className={`text-[10px] mt-0.5 ${isSelected ? "text-slate-350" : "text-gray-450"}`}>
-                            Base price: ${room.price}
-                          </p>
-                        </div>
-                        <div className="flex gap-2.5 justify-end border-t border-slate-200/20 pt-1.5">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEditRoom(room);
-                            }}
-                            className={`text-[10px] font-bold hover:underline ${isSelected ? "text-white" : "text-slate-900"}`}
-                          >
-                            Edit
-                          </button>
-                          <span className={`text-[10px] ${isSelected ? "text-slate-700" : "text-gray-300"}`}>|</span>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteRoom(room.id || room._id);
-                            }}
-                            className="text-[10px] font-bold text-red-500 hover:underline"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+            <RoomTypesSidebar
+              roomsVal={roomsVal}
+              selectedRoomId={selectedRoomId}
+              setSelectedRoomId={setSelectedRoomId}
+              onAddRoom={() => {
+                setEditingRoom(null);
+                setIsRoomModalOpen(true);
+              }}
+              onEditRoom={handleEditRoom}
+              onDeleteRoom={handleDeleteRoom}
+            />
 
             {/* Right Side: Interactive rates calendar */}
             <div className="lg:col-span-3">
