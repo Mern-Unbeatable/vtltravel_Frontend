@@ -27,17 +27,18 @@ export const useHotels = (params = {}) => {
   });
 };
 
-export const useHotelSuggestions = (query) => {
+export const useHotelSuggestions = (query, enabled = true) => {
   const trimmed = (query || '').trim();
 
   return useQuery({
     queryKey: ['hotel-suggestions', trimmed],
     queryFn: async () => {
-      const response = await hotelService.getHotels({ q: trimmed, limit: 12 });
+      const params = trimmed ? { q: trimmed, limit: 50 } : { limit: 100 };
+      const response = await hotelService.getHotels(params);
       const items = response?.data?.items || [];
       return buildDestinationSuggestions(items, trimmed);
     },
-    enabled: trimmed.length >= 2,
+    enabled,
     staleTime: 60_000,
     placeholderData: (previousData) => previousData,
   });

@@ -108,7 +108,10 @@ const SearchCard = ({
     return () => clearTimeout(timer)
   }, [destValue])
 
-  const { data: suggestions, isFetching } = useHotelSuggestions(debouncedQuery)
+  const { data: suggestions, isFetching } = useHotelSuggestions(
+    debouncedQuery,
+    showSuggestions,
+  )
   const isSuggestionsLoading = isFetching || destValue.trim() !== debouncedQuery
   const locationSuggestions = suggestions?.locations || []
   const hotelSuggestions = suggestions?.hotels || []
@@ -276,18 +279,31 @@ const SearchCard = ({
                       setDestValue(e.target.value)
                       setSearchBy('location')
                       setShowSuggestions(true)
+                      setShowDatePicker(false)
+                      setShowGuestsPicker(false)
                     }}
-                    onFocus={() => destValue.trim().length >= 2 && setShowSuggestions(true)}
+                    onFocus={() => {
+                      setShowSuggestions(true)
+                      setShowDatePicker(false)
+                      setShowGuestsPicker(false)
+                    }}
+                    onClick={() => {
+                      setShowSuggestions(true)
+                      setShowDatePicker(false)
+                      setShowGuestsPicker(false)
+                    }}
                     placeholder="Destination, hotel name"
                     className="w-full border-0 bg-transparent p-0 text-xs font-semibold text-gray-800 outline-none placeholder:font-normal placeholder:text-gray-400 md:text-sm"
                   />
                 </div>
               </div>
 
-              {showSuggestions && destValue.trim().length >= 2 && (
-                <div className="absolute left-0 top-full z-[100] mt-2 w-full min-w-[260px] overflow-hidden rounded-2xl border border-gray-100 bg-white py-2 shadow-2xl">
+              {showSuggestions && (
+                <div className="absolute left-0 top-full z-[100] mt-2 max-h-[320px] w-full min-w-[260px] overflow-y-auto rounded-2xl border border-gray-100 bg-white py-2 shadow-2xl">
                   {isSuggestionsLoading && (
-                    <p className="px-4 py-2 text-xs text-gray-400">Searching destinations...</p>
+                    <p className="px-4 py-2 text-xs text-gray-400">
+                      {destValue.trim() ? 'Searching destinations...' : 'Loading hotels...'}
+                    </p>
                   )}
 
                   {!isSuggestionsLoading && !hasSuggestions && (

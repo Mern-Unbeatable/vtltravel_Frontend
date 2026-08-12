@@ -207,8 +207,6 @@ export const getNightsBetween = (checkIn, checkOut) => {
 
 export const buildDestinationSuggestions = (items = [], query = '') => {
   const q = query.trim().toLowerCase()
-  if (!q) return { locations: [], hotels: [] }
-
   const locations = []
   const seenLocations = new Set()
   const hotels = []
@@ -223,11 +221,8 @@ export const buildDestinationSuggestions = (items = [], query = '') => {
       .join(' ')
       .toLowerCase()
 
-    if (
-      locationLabel &&
-      locationHaystack.includes(q) &&
-      !seenLocations.has(locationLabel.toLowerCase())
-    ) {
+    const locationMatches = !q || (locationLabel && locationHaystack.includes(q))
+    if (locationLabel && locationMatches && !seenLocations.has(locationLabel.toLowerCase())) {
       seenLocations.add(locationLabel.toLowerCase())
       locations.push({
         type: 'location',
@@ -237,18 +232,21 @@ export const buildDestinationSuggestions = (items = [], query = '') => {
       })
     }
 
-    if (hotel.name && hotel.name.toLowerCase().includes(q)) {
+    const hotelMatches = !q || (hotel.name && hotel.name.toLowerCase().includes(q))
+    if (hotel.name && hotelMatches) {
       hotels.push({
         type: 'hotel',
         value: hotel.name,
         label: hotel.name,
         subtitle: locationLabel || address,
+        id: hotel.id,
+        slug: hotel.slug,
       })
     }
   })
 
   return {
-    locations: locations.slice(0, 6),
-    hotels: hotels.slice(0, 6),
+    locations: q ? locations.slice(0, 6) : locations,
+    hotels: q ? hotels.slice(0, 6) : hotels,
   }
 }

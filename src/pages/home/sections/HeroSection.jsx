@@ -18,7 +18,7 @@ const HeroSection = () => {
 
         {/* Tabs */}
         <div className="mt-8 flex items-center justify-center gap-8 md:gap-10">
-          <button
+          <p
             type="button"
             // onClick={() => setActiveTab('hotel')}
             className={`flex items-center gap-2 border-b-2 pb-2 text-sm font-medium transition ${
@@ -29,7 +29,7 @@ const HeroSection = () => {
           >
             <IoLocationOutline className="text-lg" />
             Which hotel are you looking
-          </button>
+          </p>
 
          
         </div>
