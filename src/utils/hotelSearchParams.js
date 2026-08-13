@@ -205,6 +205,57 @@ export const getNightsBetween = (checkIn, checkOut) => {
   return nights > 0 ? nights : 0
 }
 
+const hotelSuggestionKey = (item) =>
+  String(item?.id || item?.slug || item?.value || item?.label || '')
+    .trim()
+    .toLowerCase()
+
+const getHotelMatchScore = (name, query) => {
+  const label = String(name || '')
+    .trim()
+    .toLowerCase()
+  const q = String(query || '')
+    .trim()
+    .toLowerCase()
+  if (!q || !label) return 0
+  if (label === q) return 3
+  if (label.startsWith(q)) return 2
+  if (label.includes(q)) return 1
+  return 0
+}
+
+/** Rank matches first (exact → prefix → partial), then other hotels as recommendations. */
+export const rankHotelSuggestions = (hotels = [], query = '', limit = 8) => {
+  const q = query.trim()
+  const seen = new Set()
+  const unique = []
+
+  hotels.forEach((hotel) => {
+    const key = hotelSuggestionKey(hotel)
+    if (!key || seen.has(key)) return
+    seen.add(key)
+    unique.push(hotel)
+  })
+
+  if (!q) return unique.slice(0, limit)
+
+  const matches = []
+  const recommendations = []
+
+  unique.forEach((hotel) => {
+    const score = getHotelMatchScore(hotel.label || hotel.value, q)
+    if (score > 0) matches.push({ hotel, score })
+    else recommendations.push(hotel)
+  })
+
+  matches.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score
+    return String(a.hotel.label || '').localeCompare(String(b.hotel.label || ''))
+  })
+
+  return [...matches.map((item) => item.hotel), ...recommendations].slice(0, limit)
+}
+
 export const buildDestinationSuggestions = (items = [], query = '') => {
   const q = query.trim().toLowerCase()
   const locations = []
@@ -232,8 +283,7 @@ export const buildDestinationSuggestions = (items = [], query = '') => {
       })
     }
 
-    const hotelMatches = !q || (hotel.name && hotel.name.toLowerCase().includes(q))
-    if (hotel.name && hotelMatches) {
+    if (hotel.name) {
       hotels.push({
         type: 'hotel',
         value: hotel.name,
@@ -247,6 +297,6 @@ export const buildDestinationSuggestions = (items = [], query = '') => {
 
   return {
     locations: q ? locations.slice(0, 6) : locations,
-    hotels: q ? hotels.slice(0, 6) : hotels,
+    hotels: rankHotelSuggestions(hotels, query, q ? 8 : hotels.length),
   }
 }
