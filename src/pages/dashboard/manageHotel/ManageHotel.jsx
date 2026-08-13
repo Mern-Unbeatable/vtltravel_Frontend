@@ -16,6 +16,7 @@ const ManageHotel = () => {
   const [hotels, setHotels] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [fetchedHotel, setFetchedHotel] = useState(null);
   const [isFetchingHotel, setIsFetchingHotel] = useState(false);
@@ -81,6 +82,7 @@ const ManageHotel = () => {
   }, [cmsMode, hotelId]);
 
   const handleSaveHotel = async (formData) => {
+    setIsSaving(true);
     // Log target payload entries
     console.log("--- POSTING HOTEL DATA (FormData Payload) ---");
     for (let pair of formData.entries()) {
@@ -107,7 +109,12 @@ const ManageHotel = () => {
         console.log("--- HOTEL CREATE API RESPONSE ---", response);
         if (response && response.success) {
           toast.success("Hotel listing created successfully!");
-          setSearchParams({});
+          const newId = response.data?.id || response.data?._id;
+          if (newId) {
+            setSearchParams({ mode: "edit", id: newId, tab: "calendar" });
+          } else {
+            setSearchParams({});
+          }
         } else {
           toast.error(response?.message || "Failed to save hotel.");
         }
@@ -116,6 +123,8 @@ const ManageHotel = () => {
       console.error("Error saving hotel:", err);
       console.error("--- HOTEL API ERROR ---", err);
       toast.error(err.message || "Failed to save hotel.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -208,6 +217,7 @@ const ManageHotel = () => {
             hotel={cmsMode === "edit" ? fetchedHotel : null}
             onSave={handleSaveHotel}
             onCancel={handleCancel}
+            isSaving={isSaving}
           />
         ))}
 

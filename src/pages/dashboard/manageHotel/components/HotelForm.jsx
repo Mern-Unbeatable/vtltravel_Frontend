@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -16,6 +17,7 @@ import { fileToBase64 } from "../../../../utils/fileHelpers";
 import { IoArrowBackOutline } from "react-icons/io5";
 import { hotelService } from "../../../../api/services/hotelService";
 import { toast } from "react-toastify";
+import { CgSpinner } from "react-icons/cg";
 
 import {
   availableFacilitiesList,
@@ -25,7 +27,7 @@ import {
   hotelSchema,
 } from "./addHotelHelper";
 
-const HotelForm = ({ hotel, onSave, onCancel }) => {
+const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
   // Room modal sub-states
   const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState(null);
@@ -37,9 +39,16 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
   const [calendarRoom, setCalendarRoom] = useState(null);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get("tab") || "basic";
+
   // Form tab states
-  const [activeFormTab, setActiveFormTab] = useState("basic"); 
+  const [activeFormTab, setActiveFormTab] = useState(tabParam); 
   const [selectedRoomId, setSelectedRoomId] = useState(null);
+
+  useEffect(() => {
+    setActiveFormTab(tabParam);
+  }, [tabParam]);
 
   const {
     register,
@@ -397,7 +406,13 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
       <div className="flex border-b border-gray-200 mb-6">
         <button
           type="button"
-          onClick={() => setActiveFormTab("basic")}
+          onClick={() => {
+            setActiveFormTab("basic");
+            setSearchParams(prev => {
+              prev.set("tab", "basic");
+              return prev;
+            });
+          }}
           className={`px-4 py-2 text-xs font-bold border-b-2 transition-colors cursor-pointer ${
             activeFormTab === "basic"
               ? "border-slate-900 text-slate-900 font-extrabold"
@@ -408,7 +423,13 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
         </button>
         <button
           type="button"
-          onClick={() => setActiveFormTab("calendar")}
+          onClick={() => {
+            setActiveFormTab("calendar");
+            setSearchParams(prev => {
+              prev.set("tab", "calendar");
+              return prev;
+            });
+          }}
           className={`px-4 py-2 text-xs font-bold border-b-2 transition-colors cursor-pointer ${
             activeFormTab === "calendar"
               ? "border-slate-900 text-slate-900 font-extrabold"
@@ -693,9 +714,17 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
           </button>
           <button
             type="submit"
-            className="w-full sm:w-auto px-6 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-lg text-sm font-semibold shadow-sm cursor-pointer"
+            disabled={isSaving}
+            className="w-full sm:w-auto px-6 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-lg text-sm font-semibold shadow-sm cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
           >
-            Save Hotel Details
+            {isSaving ? (
+              <>
+                <CgSpinner className="animate-spin h-4 w-4" />
+                Saving...
+              </>
+            ) : (
+              "Save Hotel Details"
+            )}
           </button>
         </div>
       </form>
