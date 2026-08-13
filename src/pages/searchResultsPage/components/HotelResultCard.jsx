@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { HiOutlinePhotograph } from 'react-icons/hi'
 import HotelGalleryModal from './HotelGalleryModal'
 import FallbackImage from '../../../components/FallbackImage'
+import { useHotelImages } from '../../../hooks/useHotels'
 
 const formatStyle = (style) => {
   if (!style) return ''
@@ -12,22 +13,47 @@ const formatStyle = (style) => {
     .replace(/\b\w/g, (char) => char.toUpperCase())
 }
 
+const toImageUrls = (images) => {
+  if (!images) return []
+  const list = Array.isArray(images) ? images : [images]
+  const seen = new Set()
+  return list
+    .map((img) => (typeof img === 'string' ? img : img?.url))
+    .filter((url) => {
+      if (!url || seen.has(url)) return false
+      seen.add(url)
+      return true
+    })
+}
+
 const HotelResultCard = ({ hotel, nights = 1, adults = 1, rooms = 1 }) => {
   const navigate = useNavigate()
   const [isGalleryOpen, setIsGalleryOpen] = useState(false)
+  const hotelId = hotel?.id || hotel?.slug
+  const { data: apiImages } = useHotelImages(hotel?.id, Boolean(hotel?.id))
 
   const title = hotel?.name || hotel?.title || ''
   const shortDescription = hotel?.shortDescription || ''
   const imageUrl =
     hotel?.primaryImage || hotel?.coverImageUrl || hotel?.images?.[0]?.url || hotel?.image || ''
-  const galleryImages =
-    hotel?.images?.map((img) => img.url).filter(Boolean) || hotel?.gallery || []
+  const galleryImages = useMemo(() => {
+    const fromApi = toImageUrls(apiImages)
+    if (fromApi.length > 0) return fromApi
+
+    const fromHotel = toImageUrls(hotel?.images)
+    if (fromHotel.length > 0) return fromHotel
+
+    const fromGallery = toImageUrls(hotel?.gallery)
+    if (fromGallery.length > 0) return fromGallery
+
+    return imageUrl ? [imageUrl] : []
+  }, [apiImages, hotel?.images, hotel?.gallery, imageUrl])
+  const photoCount = galleryImages.length || 1
   const priceValue = hotel?.fromPrice ?? hotel?.startingPrice ?? hotel?.price
   const hasPrice = priceValue !== null && priceValue !== undefined && priceValue !== ''
   const publicRate = hotel?.roomTypes?.[0]?.basePrice
   const brandText =
     formatStyle(hotel?.accommodationStyle) || hotel?.city || hotel?.location || ''
-  const hotelId = hotel?.id || hotel?.slug
   const roomCount = hotel?._count?.roomTypes || hotel?.roomTypes?.length || hotel?.rooms?.length || 0
 
   const handleHotelClick = () => {
@@ -61,7 +87,7 @@ const HotelResultCard = ({ hotel, nights = 1, adults = 1, rooms = 1 }) => {
             className="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-md bg-black/60 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-xs transition-colors hover:bg-black/75"
           >
             <HiOutlinePhotograph className="h-4 w-4" />
-            <span>1/{galleryImages.length || 1}</span>
+            <span>1/{photoCount}</span>
           </button>
         </div>
 

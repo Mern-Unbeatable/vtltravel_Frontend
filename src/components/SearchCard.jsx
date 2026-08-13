@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import {
   IoCalendarOutline,
   IoPersonOutline,
@@ -13,6 +13,7 @@ import {
   IoAlertCircleOutline,
 } from 'react-icons/io5'
 import { useHotelSuggestions } from '../hooks/useHotels'
+import { buildDestinationSuggestions } from '../utils/hotelSearchParams'
 
 const MONTH_NAMES = [
   'January',
@@ -85,7 +86,6 @@ const SearchCard = ({
   const [destValue, setDestValue] = useState(initialDestination)
   const [searchBy, setSearchBy] = useState(initialSearchBy)
   const [showSuggestions, setShowSuggestions] = useState(false)
-  const [debouncedQuery, setDebouncedQuery] = useState('')
 
   // 2. Dates State
   const today = new Date()
@@ -106,16 +106,12 @@ const SearchCard = ({
   const [showGuestsPicker, setShowGuestsPicker] = useState(false)
   const [showDestinationModal, setShowDestinationModal] = useState(false)
 
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedQuery(destValue.trim()), 300)
-    return () => clearTimeout(timer)
-  }, [destValue])
-
-  const { data: suggestions, isFetching } = useHotelSuggestions(
-    debouncedQuery,
-    showSuggestions,
+  const { data: hotelCatalog, isFetching } = useHotelSuggestions(showSuggestions)
+  const suggestions = useMemo(
+    () => buildDestinationSuggestions(hotelCatalog || [], destValue),
+    [hotelCatalog, destValue],
   )
-  const isSuggestionsLoading = isFetching || destValue.trim() !== debouncedQuery
+  const isSuggestionsLoading = isFetching && !hotelCatalog
   const locationSuggestions = suggestions?.locations || []
   const hotelSuggestions = suggestions?.hotels || []
   const hasSuggestions = locationSuggestions.length > 0 || hotelSuggestions.length > 0

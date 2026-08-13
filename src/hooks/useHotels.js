@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { hotelService } from '../api/services/hotelService';
-import { buildDestinationSuggestions, buildFilterFacets } from '../utils/hotelSearchParams';
+import { buildFilterFacets } from '../utils/hotelSearchParams';
 
 const emptyHotelsResult = {
   items: [],
@@ -27,16 +27,12 @@ export const useHotels = (params = {}) => {
   });
 };
 
-export const useHotelSuggestions = (query, enabled = true) => {
-  const trimmed = (query || '').trim();
-
+export const useHotelSuggestions = (enabled = true) => {
   return useQuery({
-    queryKey: ['hotel-suggestions', trimmed],
+    queryKey: ['hotel-suggestions', 'catalog'],
     queryFn: async () => {
-      const params = trimmed ? { q: trimmed, limit: 50 } : { limit: 100 };
-      const response = await hotelService.getHotels(params);
-      const items = response?.data?.items || [];
-      return buildDestinationSuggestions(items, trimmed);
+      const response = await hotelService.getHotels({ limit: 100 });
+      return Array.isArray(response?.data?.items) ? response.data.items : [];
     },
     enabled,
     staleTime: 60_000,

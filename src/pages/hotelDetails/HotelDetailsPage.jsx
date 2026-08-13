@@ -111,11 +111,38 @@ const HotelDetailsPage = () => {
     if (isRoomBookedForStay(room, stay)) {
       toast.error(ROOM_BOOKED_MESSAGE)
     }
+
     setSelectedRooms((prev) => {
-      const result = upsertSelectedRoom(prev, room, maxRooms)
-      if (result.error) toast.info(result.error)
+      const currentTotal = getSelectedRoomsQuantity(prev)
+      const stayMax = Number(stay?.rooms) || 1
+      // Allow choosing rooms without first setting room count in the filter bar
+      const effectiveMax = Math.max(stayMax, currentTotal + 1)
+      const result = upsertSelectedRoom(prev, room, effectiveMax)
+
+      if (result.error) {
+        toast.info(result.error)
+        return prev
+      }
+
+      const nextTotal = getSelectedRoomsQuantity(result.rooms)
+      if (nextTotal > stayMax) {
+        const saved = saveHotelSearch({
+          ...(stay || {}),
+          checkIn: stay?.checkIn || '',
+          checkOut: stay?.checkOut || '',
+          adults: Number(stay?.adults) || 1,
+          children: Number(stay?.children) || 0,
+          rooms: nextTotal,
+        })
+        setStay(saved)
+      }
+
       return result.rooms
     })
+  }
+
+  const handleCancelRoom = (room) => {
+    setSelectedRooms((prev) => updateSelectedRoomQuantity(prev, room.id, 0))
   }
 
   const handleRoomQuantityChange = (roomId, quantity) => {
@@ -176,6 +203,7 @@ const HotelDetailsPage = () => {
               selectedRooms={selectedRooms}
               onStaySearch={handleStaySearch}
               onSelectRoom={handleSelectRoom}
+              onCancelRoom={handleCancelRoom}
               onOpenDetails={(room) => setModalRoom(room)}
             />
           </div>
