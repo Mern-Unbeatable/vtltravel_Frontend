@@ -34,7 +34,7 @@ const FilterGroup = ({ title, children }) => {
   );
 };
 
-const FilterSection = ({ onFilterChange }) => {
+const FilterSection = ({ onFilterChange, onResetAll }) => {
   const [searchParams] = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -127,6 +127,13 @@ const FilterSection = ({ onFilterChange }) => {
     setSelectedFacilities([]);
     setSelectedStyles([]);
     setOnlyAvailable(false);
+    setIsOpen(false);
+
+    if (onResetAll) {
+      onResetAll();
+      return;
+    }
+
     if (onFilterChange) {
       onFilterChange(null);
     }

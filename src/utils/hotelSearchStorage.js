@@ -34,3 +34,7 @@ export const saveHotelSearch = (data = {}) => {
   localStorage.setItem(HOTEL_SEARCH_STORAGE_KEY, JSON.stringify(next))
   return next
 }
+
+export const clearHotelSearch = () => {
+  localStorage.removeItem(HOTEL_SEARCH_STORAGE_KEY)
+}

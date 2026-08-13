@@ -8,7 +8,7 @@ import {
   buildSearchUrlFromCard,
   mapUiFiltersToApi,
 } from "../../utils/hotelSearchParams";
-import { saveHotelSearch } from "../../utils/hotelSearchStorage";
+import { saveHotelSearch, clearHotelSearch } from "../../utils/hotelSearchStorage";
 
 const SearchResultsPage = () => {
   const [filters, setFilters] = useState(null);
@@ -52,6 +52,12 @@ const SearchResultsPage = () => {
       ...mapUiFiltersToApi(filters),
       ...buildSearchUrlFromCard(searchData),
     });
+  };
+
+  const handleResetAll = () => {
+    setFilters(null);
+    clearHotelSearch();
+    setSearchParams({ page: "1", limit: "12" });
   };
 
   const hotelFilters = useMemo(
@@ -116,6 +122,7 @@ const SearchResultsPage = () => {
 
         <div className="mt-4 lg:mt-6 grid grid-cols-1 gap-10 lg:grid-cols-[320px_minmax(0,1fr)]">
           <FilterSection
+            onResetAll={handleResetAll}
             onFilterChange={(newFilters) => {
               setFilters(newFilters);
               setSearchParams((prev) => {
