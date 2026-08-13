@@ -3,7 +3,14 @@ import { HiOutlinePhotograph } from 'react-icons/hi'
 import HotelGalleryModal from '../../searchResultsPage/components/HotelGalleryModal'
 import FallbackImage from '../../../components/FallbackImage'
 
-const RoomCard = ({ room, stay, selectedQuantity = 0, onSelectRoom, onOpenDetails }) => {
+const RoomCard = ({
+  room,
+  stay,
+  selectedQuantity = 0,
+  onSelectRoom,
+  onCancelRoom,
+  onOpenDetails,
+}) => {
   const [isGalleryOpen, setIsGalleryOpen] = useState(false)
   const roomImage =
     room?.image ||
@@ -108,14 +115,27 @@ const RoomCard = ({ room, stay, selectedQuantity = 0, onSelectRoom, onOpenDetail
 
               <button
                 type="button"
-                onClick={() => onSelectRoom && onSelectRoom(room)}
-                className={`mt-3 rounded-full px-7 py-2.5 text-xs font-bold text-white shadow-md transition active:scale-95 cursor-pointer ${
+                onClick={() => {
+                  if (isSelected) {
+                    onCancelRoom?.(room)
+                    return
+                  }
+                  onSelectRoom?.(room)
+                }}
+                className={`group mt-3 rounded-full px-7 py-2.5 text-xs font-bold text-white shadow-md transition active:scale-95 cursor-pointer ${
                   isSelected
-                    ? 'bg-emerald-500 hover:bg-emerald-600'
+                    ? 'bg-emerald-500 hover:bg-red-500'
                     : 'bg-[#3ea5dc] hover:bg-[#3296cc]'
                 }`}
               >
-                {isSelected ? `Added (${selectedQuantity})` : 'Choose this room'}
+                {isSelected ? (
+                  <>
+                    <span className="group-hover:hidden">Added ({selectedQuantity})</span>
+                    <span className="hidden group-hover:inline">Cancel</span>
+                  </>
+                ) : (
+                  'Choose this room'
+                )}
               </button>
             </div>
           </div>

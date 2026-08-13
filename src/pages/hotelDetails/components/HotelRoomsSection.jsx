@@ -46,6 +46,7 @@ const HotelRoomsSection = ({
   selectedRooms = [],
   onStaySearch,
   onSelectRoom,
+  onCancelRoom,
   onOpenDetails,
 }) => {
   const today = new Date()
@@ -464,6 +465,7 @@ const HotelRoomsSection = ({
                 selectedRooms.find((item) => item.id === room.id)?.quantity || 0
               }
               onSelectRoom={onSelectRoom}
+              onCancelRoom={onCancelRoom}
               onOpenDetails={onOpenDetails}
             />
           ))
