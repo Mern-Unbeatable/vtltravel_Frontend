@@ -256,6 +256,59 @@ export const rankHotelSuggestions = (hotels = [], query = '', limit = 8) => {
   return [...matches.map((item) => item.hotel), ...recommendations].slice(0, limit)
 }
 
+/** Rank hotel list results: name/location matches first, then remaining hotels. */
+export const rankHotelsForResults = (hotels = [], query = '') => {
+  const q = String(query || '').trim()
+  if (!q) return hotels
+
+  const seen = new Set()
+  const unique = []
+
+  hotels.forEach((hotel) => {
+    const key = String(hotel?.id || hotel?.slug || hotel?.name || '')
+      .trim()
+      .toLowerCase()
+    if (!key || seen.has(key)) return
+    seen.add(key)
+    unique.push(hotel)
+  })
+
+  const matches = []
+  const recommendations = []
+
+  unique.forEach((hotel) => {
+    const nameScore = getHotelMatchScore(hotel?.name, q)
+    const locationHaystack = [hotel?.city, hotel?.location, hotel?.country, hotel?.address]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase()
+    const qLower = q.toLowerCase()
+    let locationScore = 0
+    if (locationHaystack === qLower) locationScore = 3
+    else if (
+      hotel?.city?.toLowerCase() === qLower ||
+      hotel?.location?.toLowerCase() === qLower ||
+      locationHaystack.startsWith(qLower)
+    ) {
+      locationScore = 2
+    } else if (locationHaystack.includes(qLower)) {
+      locationScore = 1
+    }
+
+    // Prefer name matches over location matches
+    const score = nameScore > 0 ? nameScore + 10 : locationScore
+    if (score > 0) matches.push({ hotel, score })
+    else recommendations.push(hotel)
+  })
+
+  matches.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score
+    return String(a.hotel?.name || '').localeCompare(String(b.hotel?.name || ''))
+  })
+
+  return [...matches.map((item) => item.hotel), ...recommendations]
+}
+
 export const buildDestinationSuggestions = (items = [], query = '') => {
   const q = query.trim().toLowerCase()
   const locations = []

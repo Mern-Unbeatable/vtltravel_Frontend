@@ -4,7 +4,7 @@ import { buildFilterFacets } from '../utils/hotelSearchParams';
 
 const emptyHotelsResult = {
   items: [],
-  pagination: { page: 1, limit: 12, total: 0, totalPages: 0 },
+  pagination: { page: 1, limit: 6, total: 0, totalPages: 0 },
 };
 
 export const useHotels = (params = {}) => {
