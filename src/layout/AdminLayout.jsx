@@ -84,7 +84,7 @@ const AdminLayout = () => {
   if (!isAuthenticated) return null;
 
   return (
-    <div className="h-screen bg-[#f7f8fa] text-slate-700 flex flex-col md:flex-row overflow-hidden">
+    <div className="h-screen bg-[#f7f8fa] text-slate-700 flex flex-col lg:flex-row overflow-hidden">
       {/* Sidebar Component */}
       <Sidebar
         handleLogout={handleLogout}
@@ -100,7 +100,7 @@ const AdminLayout = () => {
             {/* Hamburger Button for Mobile/Tablet */}
             <button
               onClick={() => setIsMobileSidebarOpen(true)}
-              className="p-1 text-gray-500 hover:text-slate-900 rounded-lg hover:bg-gray-100 md:hidden cursor-pointer"
+              className="p-1 text-gray-500 hover:text-slate-900 rounded-lg hover:bg-gray-100 lg:hidden cursor-pointer"
               aria-label="Open sidebar"
             >
               <IoMenuOutline className="text-2xl" />

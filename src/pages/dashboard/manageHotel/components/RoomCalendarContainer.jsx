@@ -19,13 +19,8 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
   useEffect(() => {
     const fetchCalendar = async () => {
       const roomId = room.id || room._id;
-      console.log("--- fetchCalendar called ---");
-      console.log("Room object:", room);
-      console.log("Room ID extracted:", roomId);
-      console.log("Current Date:", currentDate);
       
       if (!roomId || String(roomId).startsWith("mock-")) {
-        console.log("Room ID is mock or empty. Using room.calendarSettings:", room.calendarSettings);
         setCalendarSettings(room.calendarSettings || {});
         return;
       }
@@ -34,14 +29,11 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
       try {
         const reqYear = currentDate.getFullYear();
         const reqMonth = currentDate.getMonth() + 1; // API expects 1-12
-        console.log(`Calling getRoomCalendar API for Room: ${roomId}, Year: ${reqYear}, Month: ${reqMonth}`);
         const response = await hotelService.getRoomCalendar(roomId, reqYear, reqMonth);
-        console.log("getRoomCalendar API Response:", response);
         
         if (response && response.success && response.data) {
           const apiDays = response.data.days || [];
           const defaultPrice = response.data.defaultPrice || basePrice;
-          console.log(`Found ${apiDays.length} days. defaultPrice: ${defaultPrice}`);
           
           const newSettings = {};
           apiDays.forEach((day) => {
@@ -51,10 +43,8 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
               newSettings[day.date] = { price: String(day.price), isBlocked: false };
             }
           });
-          console.log("Mapped calendarSettings to set:", newSettings);
           setCalendarSettings(newSettings);
         } else {
-          console.log("API response not successful or empty data. Using fallback settings.");
           setCalendarSettings(room.calendarSettings || {});
         }
       } catch (err) {
@@ -172,17 +162,10 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
   };
 
   const handleApplySettings = async () => {
-    console.log("--- handleApplySettings clicked ---");
-    console.log("Selected Dates:", Array.from(selectedDates));
-    console.log("isBlocked Status:", isBlocked);
-    console.log("inputPrice:", inputPrice, "basePrice:", basePrice);
-    
     if (selectedDates.size === 0) return;
     const roomId = room.id || room._id;
-    console.log("Room ID extracted in apply:", roomId);
 
     if (!roomId || String(roomId).startsWith("mock-")) {
-      console.log("Fallback: Room ID is mock or empty. Applying changes locally.");
       const updatedSettings = { ...calendarSettings };
       selectedDates.forEach((dateStr) => {
         if (isBlocked) {
@@ -194,7 +177,6 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
           };
         }
       });
-      console.log("Fallback updatedSettings:", updatedSettings);
       setCalendarSettings(updatedSettings);
       onSaveSettings(roomId, updatedSettings);
       setSelectedDates(new Set());
@@ -206,7 +188,6 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
     setIsLoading(true);
     try {
       const ranges = getContiguousRanges(Array.from(selectedDates));
-      console.log("Identified Contiguous Ranges to Send:", ranges);
       
       for (const range of ranges) {
         const payload = {
@@ -215,17 +196,13 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
           status: isBlocked ? "BLOCKED" : "AVAILABLE",
           customPrice: isBlocked ? 0 : Number(inputPrice || basePrice),
         };
-        console.log(`Sending updateRoomCalendar API call for Room: ${roomId} with payload:`, payload);
-        const updateResponse = await hotelService.updateRoomCalendar(roomId, payload);
-        console.log("updateRoomCalendar API Response:", updateResponse);
+        await hotelService.updateRoomCalendar(roomId, payload);
       }
 
       // Re-fetch to get updated calendar data
       const reqYear = currentDate.getFullYear();
       const reqMonth = currentDate.getMonth() + 1;
-      console.log(`Re-fetching calendar data after update for Room: ${roomId}, Year: ${reqYear}, Month: ${reqMonth}`);
       const response = await hotelService.getRoomCalendar(roomId, reqYear, reqMonth);
-      console.log("Re-fetch getRoomCalendar API Response:", response);
       
       if (response && response.success && response.data) {
         const apiDays = response.data.days || [];
@@ -239,7 +216,6 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
             newSettings[day.date] = { price: String(day.price), isBlocked: false };
           }
         });
-        console.log("Setting new calendarSettings state from re-fetch:", newSettings);
         setCalendarSettings(newSettings);
       }
 
@@ -254,10 +230,8 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
   };
 
   const handleResetDateRule = async (dateStr) => {
-    console.log(`--- handleResetDateRule clicked for Date: ${dateStr} ---`);
     const roomId = room.id || room._id;
     if (!roomId || String(roomId).startsWith("mock-")) {
-      console.log("Fallback: Room ID is mock or empty. Resetting date locally.");
       const updatedSettings = { ...calendarSettings };
       delete updatedSettings[dateStr];
       setCalendarSettings(updatedSettings);
@@ -271,16 +245,12 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
         startDate: dateStr,
         endDate: dateStr,
       };
-      console.log(`Sending delete (deleteRoomCalendar) for Room: ${roomId} with payload:`, payload);
-      const updateResponse = await hotelService.deleteRoomCalendar(roomId, payload);
-      console.log("Delete deleteRoomCalendar API Response:", updateResponse);
+      await hotelService.deleteRoomCalendar(roomId, payload);
 
       // Re-fetch to update state
       const reqYear = currentDate.getFullYear();
       const reqMonth = currentDate.getMonth() + 1;
-      console.log(`Re-fetching calendar data after reset for Room: ${roomId}, Year: ${reqYear}, Month: ${reqMonth}`);
       const response = await hotelService.getRoomCalendar(roomId, reqYear, reqMonth);
-      console.log("Re-fetch getRoomCalendar API Response after reset:", response);
       
       if (response && response.success && response.data) {
         const apiDays = response.data.days || [];
@@ -294,7 +264,6 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
             newSettings[day.date] = { price: String(day.price), isBlocked: false };
           }
         });
-        console.log("Setting new calendarSettings state after reset re-fetch:", newSettings);
         setCalendarSettings(newSettings);
       }
     } catch (err) {

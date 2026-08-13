@@ -4,12 +4,17 @@ import HotelTable from "./HotelTable";
 
 const HotelList = ({ hotels, onEdit, onDelete, onAddNew }) => {
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
   const itemsPerPage = 4;
 
-  const totalPages = Math.ceil(hotels.length / itemsPerPage);
+  const filteredHotels = hotels.filter((hotel) =>
+    (hotel.name || hotel.title || "").toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredHotels.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentData = hotels.slice(startIndex, endIndex);
+  const endIndex = Math.min(startIndex + itemsPerPage, filteredHotels.length);
+  const currentData = filteredHotels.slice(startIndex, endIndex);
 
   const handlePageChange = (pageNumber) => {
     if (pageNumber >= 1 && pageNumber <= totalPages) {
@@ -19,7 +24,7 @@ const HotelList = ({ hotels, onEdit, onDelete, onAddNew }) => {
 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden">
-      <div className="p-6 border-b border-gray-200 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+      <div className="p-6 border-b border-gray-200 flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div>
           <h2 className="text-lg font-bold text-slate-900">
             Manage Hotels & Resort Listings
@@ -28,18 +33,51 @@ const HotelList = ({ hotels, onEdit, onDelete, onAddNew }) => {
             Add, edit details, room configurations, and facilities for hotels.
           </p>
         </div>
-        <button
-          onClick={onAddNew}
-          className="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg text-sm font-semibold shadow-sm transition flex items-center gap-2 cursor-pointer shrink-0"
-        >
-          <span className="text-lg font-bold">+</span> Add New Hotel
-        </button>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 md:w-auto w-full">
+          <div className="relative flex-1 sm:min-w-[400px]">
+            <input
+              type="text"
+              placeholder="Search by hotel name..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full text-sm pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary shadow-xs transition-all"
+            />
+            <svg
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          </div>
+          <button
+            onClick={onAddNew}
+            className="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg text-sm font-semibold shadow-sm transition flex items-center justify-center gap-2 cursor-pointer shrink-0"
+          >
+            <span className="text-lg font-bold">+</span> Add New Hotel
+          </button>
+        </div>
       </div>
 
       {hotels.length === 0 ? (
         <div className="p-12 text-center">
           <p className="text-slate-500 font-medium">
             No hotels available. Click the button above to add one.
+          </p>
+        </div>
+      ) : filteredHotels.length === 0 ? (
+        <div className="p-12 text-center">
+          <p className="text-slate-500 font-medium">
+            No matching hotels found for "{searchTerm}".
           </p>
         </div>
       ) : (
@@ -120,7 +158,7 @@ const HotelList = ({ hotels, onEdit, onDelete, onAddNew }) => {
           <TablePagination
             currentPage={currentPage}
             totalPages={totalPages}
-            totalEntries={hotels.length}
+            totalEntries={filteredHotels.length}
             startIndex={startIndex}
             endIndex={endIndex}
             onPageChange={handlePageChange}

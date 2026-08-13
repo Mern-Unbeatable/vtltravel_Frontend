@@ -9,7 +9,7 @@ import { CgSpinner } from "react-icons/cg";
 
 const ManageHotel = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const cmsMode = searchParams.get("mode") || "list"; // 'list' | 'add' | 'edit'
+  const cmsMode = searchParams.get("mode") || "list";
   const hotelId = searchParams.get("id");
 
   // Backend integration states
@@ -24,7 +24,7 @@ const ManageHotel = () => {
   // Custom delete modal states
   const [deleteTargetId, setDeleteTargetId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [deleteResult, setDeleteResult] = useState(null); // null | { success: boolean, message: string }
+  const [deleteResult, setDeleteResult] = useState(null); 
 
   // Fetch hotels list
   const fetchHotels = async () => {
@@ -83,21 +83,11 @@ const ManageHotel = () => {
 
   const handleSaveHotel = async (formData) => {
     setIsSaving(true);
-    // Log target payload entries
-    console.log("--- POSTING HOTEL DATA (FormData Payload) ---");
-    for (let pair of formData.entries()) {
-      if (pair[1] instanceof File) {
-        console.log(`${pair[0]}: File [name: ${pair[1].name}, size: ${pair[1].size} bytes, type: ${pair[1].type}]`);
-      } else {
-        console.log(`${pair[0]}:`, pair[1]);
-      }
-    }
 
     try {
       let response;
       if (cmsMode === "edit" && hotelId) {
         response = await hotelService.updateHotel(hotelId, formData);
-        console.log("--- HOTEL UPDATE API RESPONSE ---", response);
         if (response && response.success) {
           toast.success("Hotel details updated successfully!");
           setSearchParams({});
@@ -106,7 +96,6 @@ const ManageHotel = () => {
         }
       } else {
         response = await hotelService.addHotel(formData);
-        console.log("--- HOTEL CREATE API RESPONSE ---", response);
         if (response && response.success) {
           toast.success("Hotel listing created successfully!");
           const newId = response.data?.id || response.data?._id;
@@ -150,13 +139,13 @@ const ManageHotel = () => {
       if (response && response.success) {
         setDeleteResult({
           success: true,
-          message: response.message || "Hotel listing deleted successfully!",
+          message: response.message,
         });
         fetchHotels();
       } else {
         setDeleteResult({
           success: false,
-          message: response.message || "Failed to delete the hotel listing.",
+          message: response.message,
         });
       }
     } catch (err) {

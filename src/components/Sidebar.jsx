@@ -16,13 +16,13 @@ const Sidebar = ({ handleLogout, isOpen, onClose }) => {
       {isOpen && (
         <div
           onClick={onClose}
-          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 md:hidden"
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 lg:hidden"
         ></div>
       )}
 
       {/* Sidebar Aside Panel */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 p-6 flex flex-col justify-between shrink-0 h-full transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:relative ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 p-6 flex flex-col justify-between shrink-0 h-full transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:relative ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -31,7 +31,7 @@ const Sidebar = ({ handleLogout, isOpen, onClose }) => {
             <img src="/bintan-ferry-tickets-logo.webp" alt="VTL Travel" className="h-10 w-auto" />
             <button
               onClick={onClose}
-              className="p-1 text-gray-500 hover:text-slate-950 rounded-lg hover:bg-gray-100 md:hidden cursor-pointer"
+              className="p-1 text-gray-500 hover:text-slate-950 rounded-lg hover:bg-gray-100 lg:hidden cursor-pointer"
               aria-label="Close sidebar"
             >
               <IoCloseOutline className="text-2xl" />
