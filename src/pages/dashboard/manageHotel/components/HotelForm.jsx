@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -16,6 +17,7 @@ import { fileToBase64 } from "../../../../utils/fileHelpers";
 import { IoArrowBackOutline } from "react-icons/io5";
 import { hotelService } from "../../../../api/services/hotelService";
 import { toast } from "react-toastify";
+import { CgSpinner } from "react-icons/cg";
 
 import {
   availableFacilitiesList,
@@ -25,7 +27,7 @@ import {
   hotelSchema,
 } from "./addHotelHelper";
 
-const HotelForm = ({ hotel, onSave, onCancel }) => {
+const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
   // Room modal sub-states
   const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState(null);
@@ -37,9 +39,16 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
   const [calendarRoom, setCalendarRoom] = useState(null);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get("tab") || "basic";
+
   // Form tab states
-  const [activeFormTab, setActiveFormTab] = useState("basic"); // 'basic' | 'calendar'
+  const [activeFormTab, setActiveFormTab] = useState(tabParam); 
   const [selectedRoomId, setSelectedRoomId] = useState(null);
+
+  useEffect(() => {
+    setActiveFormTab(tabParam);
+  }, [tabParam]);
 
   const {
     register,
@@ -212,33 +221,115 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
 
   // Rooms CRUD within Hotel Form
   const handleSaveRoom = async (savedRoom) => {
-    try {
-      const editingRoomId = editingRoom?.id || editingRoom?._id;
-      const normalizedRoom = {
-        ...savedRoom,
-        id: editingRoomId || `mock-room-${Date.now()}`,
-        _id: editingRoomId || `mock-room-${Date.now()}`,
-        pricePerNight: Number(savedRoom.price),
-        basePrice: Number(savedRoom.price),
-      };
+    const editingRoomId = editingRoom?.id || editingRoom?._id;
+    const isEditingReal = editingRoomId && !String(editingRoomId).startsWith("mock-");
 
-      if (editingRoomId) {
-        setValue(
-          "rooms",
-          roomsVal.map((r) =>
-            r.id === editingRoomId || r._id === editingRoomId
-              ? { ...r, ...normalizedRoom }
-              : r,
-          ),
-        );
-        toast.success("Room type updated locally!");
+    const formData = new FormData();
+    formData.append("name", savedRoom.name);
+    
+    const slug = savedRoom.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    formData.append("slug", slug);
+    formData.append("description", savedRoom.description || "");
+    formData.append("pricePerNight", String(savedRoom.price));
+    formData.append("basePrice", String(savedRoom.price));
+    formData.append("discountPrice", String(Number(savedRoom.price) > 20 ? Number(savedRoom.price) - 20 : savedRoom.price));
+    formData.append("taxPerNight", "0");
+    
+    const sizeLabel = savedRoom.size ? `${savedRoom.size}m²` : "";
+    formData.append("roomSize", sizeLabel);
+    formData.append("sizeLabel", sizeLabel);
+    formData.append("sizeSqm", String(savedRoom.size || 0));
+    
+    formData.append("bedType", "King");
+    formData.append("bedCount", String(savedRoom.bedInfo || 1));
+    formData.append("bedInformation", `${savedRoom.bedInfo || 1} King size bed(s)`);
+    
+    const viewType = savedRoom.tags && savedRoom.tags.length > 0 ? savedRoom.tags[0] : "Ocean View";
+    formData.append("viewType", viewType);
+    
+    formData.append("bathrooms", String(savedRoom.baths || 1));
+    formData.append("maxCapacity", String(savedRoom.capacity || 3));
+    
+    const adults = Number(savedRoom.capacity) > 1 ? Number(savedRoom.capacity) - 1 : 1;
+    formData.append("maxAdults", String(adults));
+    formData.append("maxChildren", "1");
+    formData.append("totalInventory", "5");
+    
+    const alertLabel = savedRoom.roomsLeft ? `Only ${savedRoom.roomsLeft} rooms left` : "Only 2 rooms left";
+    formData.append("roomsLeftAlert", alertLabel);
+    
+    formData.append("tags", JSON.stringify(savedRoom.tags || []));
+    formData.append("amenityIds", JSON.stringify([]));
+    
+    const amenities = [
+      ...(savedRoom.foodBeverage || []),
+      ...(savedRoom.bathroom || []),
+      ...(savedRoom.mediaTech || []),
+      ...(savedRoom.serviceEquipment || [])
+    ];
+    const amenitySlugs = amenities.map(a => a.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''));
+    formData.append("amenitySlugs", JSON.stringify(amenitySlugs));
+    
+    formData.append("breakfastIncluded", "true");
+    formData.append("freeCancellation", "true");
+    formData.append("isMemberDeal", "false");
+    formData.append("smokingAllowed", "false");
+    
+    if (savedRoom.imageFiles && savedRoom.imageFiles.length > 0) {
+      savedRoom.imageFiles.forEach(file => {
+        formData.append("imageUrl", file);
+      });
+    }
+
+    // Log the request payload entries to console
+    console.log("--- POSTING ROOM DATA (FormData Payload) ---");
+    for (let pair of formData.entries()) {
+      if (pair[1] instanceof File) {
+        console.log(`${pair[0]}: File [name: ${pair[1].name}, size: ${pair[1].size} bytes, type: ${pair[1].type}]`);
       } else {
-        setValue("rooms", [...roomsVal, normalizedRoom]);
-        toast.success("Room type added locally!");
+        console.log(`${pair[0]}:`, pair[1]);
       }
+    }
+
+    try {
+      let response;
+      if (isEditingReal) {
+        response = await hotelService.updateRoom(editingRoomId, formData);
+        console.log("--- ROOM UPDATE API RESPONSE ---", response);
+        if (response && response.success) {
+          toast.success("Room type updated successfully!");
+        } else {
+          toast.error(response?.message || "Failed to update room.");
+          return;
+        }
+      } else {
+        response = await hotelService.addRoom(activeHotelId, formData);
+        console.log("--- ROOM CREATE API RESPONSE ---", response);
+        if (response && response.success) {
+          toast.success("Room type created successfully!");
+        } else {
+          toast.error(response?.message || "Failed to create room.");
+          return;
+        }
+      }
+
+      // Update the local state with the returned room object to refresh UI instantly
+      const newRoomData = response.data || response.room || response.roomType;
+      if (newRoomData) {
+        if (isEditingReal) {
+          setValue("rooms", roomsVal.map(r => (r.id === editingRoomId || r._id === editingRoomId) ? newRoomData : r));
+        } else {
+          setValue("rooms", [...roomsVal, newRoomData]);
+        }
+      } else {
+        // Fallback: Reload parent data
+        toast.info("Please refresh to see the updated room list.");
+      }
+
     } catch (err) {
       console.error("Error saving room:", err);
-      toast.error("Failed to save room details.");
+      console.error("--- ROOM API ERROR ---", err);
+      toast.error(err.message || "Failed to save room details.");
     }
   };
 
@@ -345,35 +436,29 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
       }
     }
 
-    // Gallery images & videos
+    // Gallery images & videos (dynamically matching Postman keys like imagesHOTEL, imagesROOMS)
     if (data.gallery && data.gallery.length > 0) {
       data.gallery.forEach((img, idx) => {
         const urlStr = img.url;
         const cat = img.category || "Hotel";
-        const isVideo = cat.toLowerCase() === "videos";
+        
+        // Map category names to uppercase and format (e.g., 'Hotel' -> 'HOTEL', 'Meetings and events' -> 'MEETINGS_AND_EVENTS')
+        const catUpper = cat.toUpperCase().replace(/\s+/g, "_");
+        const formKey = `images${catUpper}`;
+        
+        const isVideo = catUpper === "VIDEOS";
         const ext = isVideo ? "mp4" : "png";
 
         if (urlStr.startsWith("data:")) {
           const fileObj = base64ToFile(
             urlStr,
-            `gallery_${cat.toLowerCase()}_${idx}.${ext}`,
+            `gallery_${catUpper.toLowerCase()}_${idx}.${ext}`,
           );
           if (fileObj) {
-            formData.append("galleryImages", fileObj);
-            formData.append(`galleryCategories[${idx}]`, cat);
+            formData.append(formKey, fileObj);
           }
-        } else {
-          formData.append("galleryImages", urlStr); // URL fallback
-          formData.append(`galleryCategories[${idx}]`, cat);
         }
       });
-      // Also append full gallery data as JSON
-      formData.append("gallery", JSON.stringify(data.gallery));
-    }
-
-    // Append rooms list
-    if (data.rooms && data.rooms.length > 0) {
-      formData.append("rooms", JSON.stringify(data.rooms));
     }
 
     onSave(formData);
@@ -403,7 +488,13 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
       <div className="flex border-b border-gray-200 mb-6">
         <button
           type="button"
-          onClick={() => setActiveFormTab("basic")}
+          onClick={() => {
+            setActiveFormTab("basic");
+            setSearchParams(prev => {
+              prev.set("tab", "basic");
+              return prev;
+            });
+          }}
           className={`px-4 py-2 text-xs font-bold border-b-2 transition-colors cursor-pointer ${
             activeFormTab === "basic"
               ? "border-slate-900 text-slate-900 font-extrabold"
@@ -414,7 +505,13 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
         </button>
         <button
           type="button"
-          onClick={() => setActiveFormTab("calendar")}
+          onClick={() => {
+            setActiveFormTab("calendar");
+            setSearchParams(prev => {
+              prev.set("tab", "calendar");
+              return prev;
+            });
+          }}
           className={`px-4 py-2 text-xs font-bold border-b-2 transition-colors cursor-pointer ${
             activeFormTab === "calendar"
               ? "border-slate-900 text-slate-900 font-extrabold"
@@ -699,9 +796,17 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
           </button>
           <button
             type="submit"
-            className="w-full sm:w-auto px-6 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-lg text-sm font-semibold shadow-sm cursor-pointer"
+            disabled={isSaving}
+            className="w-full sm:w-auto px-6 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-lg text-sm font-semibold shadow-sm cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
           >
-            Save Hotel Details
+            {isSaving ? (
+              <>
+                <CgSpinner className="animate-spin h-4 w-4" />
+                Saving...
+              </>
+            ) : (
+              "Save Hotel Details"
+            )}
           </button>
         </div>
       </form>
