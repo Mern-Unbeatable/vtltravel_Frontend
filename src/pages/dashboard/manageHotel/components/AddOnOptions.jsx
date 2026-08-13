@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 const AddOnOptions = ({ register, addOnFields, appendAddOn, removeAddOn }) => {
   return (
@@ -7,7 +7,7 @@ const AddOnOptions = ({ register, addOnFields, appendAddOn, removeAddOn }) => {
         <h3 className="text-base font-bold text-slate-900">Add-on Options</h3>
         <button
           type="button"
-          onClick={() => appendAddOn({ name: '', price: '' })}
+          onClick={() => appendAddOn({ name: "", price: "" })}
           className="px-3.5 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-semibold hover:bg-slate-800 transition cursor-pointer"
         >
           + Add Option
@@ -15,7 +15,10 @@ const AddOnOptions = ({ register, addOnFields, appendAddOn, removeAddOn }) => {
       </div>
       <div className="space-y-3">
         {addOnFields.map((field, idx) => (
-          <div key={field.id} className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center bg-gray-50/50 sm:bg-transparent p-3 sm:p-0 rounded-xl border border-gray-100 sm:border-0">
+          <div
+            key={field.id}
+            className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center bg-gray-50/50 sm:bg-transparent p-3 sm:p-0 rounded-xl border border-gray-100 sm:border-0"
+          >
             <input
               type="text"
               {...register(`addOns.${idx}.name`)}

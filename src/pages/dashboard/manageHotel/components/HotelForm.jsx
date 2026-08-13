@@ -43,7 +43,7 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
   const tabParam = searchParams.get("tab") || "basic";
 
   // Form tab states
-  const [activeFormTab, setActiveFormTab] = useState(tabParam); 
+  const [activeFormTab, setActiveFormTab] = useState(tabParam);
   const [selectedRoomId, setSelectedRoomId] = useState(null);
 
   useEffect(() => {
@@ -222,61 +222,86 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
   // Rooms CRUD within Hotel Form
   const handleSaveRoom = async (savedRoom) => {
     const editingRoomId = editingRoom?.id || editingRoom?._id;
-    const isEditingReal = editingRoomId && !String(editingRoomId).startsWith("mock-");
+    const isEditingReal =
+      editingRoomId && !String(editingRoomId).startsWith("mock-");
 
     const formData = new FormData();
     formData.append("name", savedRoom.name);
-    
-    const slug = savedRoom.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+
+    const slug = savedRoom.name
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9-]/g, "");
     formData.append("slug", slug);
     formData.append("description", savedRoom.description || "");
     formData.append("pricePerNight", String(savedRoom.price));
     formData.append("basePrice", String(savedRoom.price));
-    formData.append("discountPrice", String(Number(savedRoom.price) > 20 ? Number(savedRoom.price) - 20 : savedRoom.price));
+    formData.append(
+      "discountPrice",
+      String(
+        Number(savedRoom.price) > 20
+          ? Number(savedRoom.price) - 20
+          : savedRoom.price,
+      ),
+    );
     formData.append("taxPerNight", "0");
-    
+
     const sizeLabel = savedRoom.size ? `${savedRoom.size}m²` : "";
     formData.append("roomSize", sizeLabel);
     formData.append("sizeLabel", sizeLabel);
     formData.append("sizeSqm", String(savedRoom.size || 0));
-    
+
     formData.append("bedType", "King");
     formData.append("bedCount", String(savedRoom.bedInfo || 1));
-    formData.append("bedInformation", `${savedRoom.bedInfo || 1} King size bed(s)`);
-    
-    const viewType = savedRoom.tags && savedRoom.tags.length > 0 ? savedRoom.tags[0] : "Ocean View";
+    formData.append(
+      "bedInformation",
+      `${savedRoom.bedInfo || 1} King size bed(s)`,
+    );
+
+    const viewType =
+      savedRoom.tags && savedRoom.tags.length > 0
+        ? savedRoom.tags[0]
+        : "Ocean View";
     formData.append("viewType", viewType);
-    
+
     formData.append("bathrooms", String(savedRoom.baths || 1));
     formData.append("maxCapacity", String(savedRoom.capacity || 3));
-    
-    const adults = Number(savedRoom.capacity) > 1 ? Number(savedRoom.capacity) - 1 : 1;
+
+    const adults =
+      Number(savedRoom.capacity) > 1 ? Number(savedRoom.capacity) - 1 : 1;
     formData.append("maxAdults", String(adults));
     formData.append("maxChildren", "1");
     formData.append("totalInventory", "5");
-    
-    const alertLabel = savedRoom.roomsLeft ? `Only ${savedRoom.roomsLeft} rooms left` : "Only 2 rooms left";
+
+    const alertLabel = savedRoom.roomsLeft
+      ? `Only ${savedRoom.roomsLeft} rooms left`
+      : "Only 2 rooms left";
     formData.append("roomsLeftAlert", alertLabel);
-    
+
     formData.append("tags", JSON.stringify(savedRoom.tags || []));
     formData.append("amenityIds", JSON.stringify([]));
-    
+
     const amenities = [
       ...(savedRoom.foodBeverage || []),
       ...(savedRoom.bathroom || []),
       ...(savedRoom.mediaTech || []),
-      ...(savedRoom.serviceEquipment || [])
+      ...(savedRoom.serviceEquipment || []),
     ];
-    const amenitySlugs = amenities.map(a => a.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''));
+    const amenitySlugs = amenities.map((a) =>
+      a
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9-]/g, ""),
+    );
     formData.append("amenitySlugs", JSON.stringify(amenitySlugs));
-    
+
     formData.append("breakfastIncluded", "true");
     formData.append("freeCancellation", "true");
     formData.append("isMemberDeal", "false");
     formData.append("smokingAllowed", "false");
-    
+
     if (savedRoom.imageFiles && savedRoom.imageFiles.length > 0) {
-      savedRoom.imageFiles.forEach(file => {
+      savedRoom.imageFiles.forEach((file) => {
         formData.append("imageUrl", file);
       });
     }
@@ -285,7 +310,9 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
     console.log("--- POSTING ROOM DATA (FormData Payload) ---");
     for (let pair of formData.entries()) {
       if (pair[1] instanceof File) {
-        console.log(`${pair[0]}: File [name: ${pair[1].name}, size: ${pair[1].size} bytes, type: ${pair[1].type}]`);
+        console.log(
+          `${pair[0]}: File [name: ${pair[1].name}, size: ${pair[1].size} bytes, type: ${pair[1].type}]`,
+        );
       } else {
         console.log(`${pair[0]}:`, pair[1]);
       }
@@ -317,7 +344,14 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
       const newRoomData = response.data || response.room || response.roomType;
       if (newRoomData) {
         if (isEditingReal) {
-          setValue("rooms", roomsVal.map(r => (r.id === editingRoomId || r._id === editingRoomId) ? newRoomData : r));
+          setValue(
+            "rooms",
+            roomsVal.map((r) =>
+              r.id === editingRoomId || r._id === editingRoomId
+                ? newRoomData
+                : r,
+            ),
+          );
         } else {
           setValue("rooms", [...roomsVal, newRoomData]);
         }
@@ -325,7 +359,6 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
         // Fallback: Reload parent data
         toast.info("Please refresh to see the updated room list.");
       }
-
     } catch (err) {
       console.error("Error saving room:", err);
       console.error("--- ROOM API ERROR ---", err);
@@ -441,11 +474,11 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
       data.gallery.forEach((img, idx) => {
         const urlStr = img.url;
         const cat = img.category || "Hotel";
-        
+
         // Map category names to uppercase and format (e.g., 'Hotel' -> 'HOTEL', 'Meetings and events' -> 'MEETINGS_AND_EVENTS')
         const catUpper = cat.toUpperCase().replace(/\s+/g, "_");
         const formKey = `images${catUpper}`;
-        
+
         const isVideo = catUpper === "VIDEOS";
         const ext = isVideo ? "mp4" : "png";
 
@@ -490,7 +523,7 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
           type="button"
           onClick={() => {
             setActiveFormTab("basic");
-            setSearchParams(prev => {
+            setSearchParams((prev) => {
               prev.set("tab", "basic");
               return prev;
             });
@@ -507,7 +540,7 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
           type="button"
           onClick={() => {
             setActiveFormTab("calendar");
-            setSearchParams(prev => {
+            setSearchParams((prev) => {
               prev.set("tab", "calendar");
               return prev;
             });

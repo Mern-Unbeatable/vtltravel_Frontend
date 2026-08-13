@@ -24,7 +24,7 @@ const ManageHotel = () => {
   // Custom delete modal states
   const [deleteTargetId, setDeleteTargetId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [deleteResult, setDeleteResult] = useState(null); 
+  const [deleteResult, setDeleteResult] = useState(null);
 
   // Fetch hotels list
   const fetchHotels = async () => {
