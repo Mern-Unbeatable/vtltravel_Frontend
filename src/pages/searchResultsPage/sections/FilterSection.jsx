@@ -376,13 +376,13 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
 
         {/* Sticky Actions Footer (Transparent on Desktop) */}
         <div className="mt-auto pt-4 pb-2 border-t border-[#05588E29] flex items-center justify-between bg-white lg:bg-transparent shrink-0">
-          <button
+          {/* <button
             type="button"
             onClick={handleClearFilters}
             className="text-sky-500 hover:text-sky-600 hover:underline text-sm font-semibold cursor-pointer transition-all bg-transparent border-0"
           >
             Clear all
-          </button>
+          </button> */}
           <button
             type="button"
             onClick={handleApplyFilter}
