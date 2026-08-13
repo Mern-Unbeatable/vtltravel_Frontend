@@ -63,6 +63,20 @@ export const hotelService = {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
   },
+
+  getRoomCalendar: async (roomId, year, month) => {
+    return api.get(`/v1/rooms/${roomId}/calendar`, {
+      params: { year, month }
+    });
+  },
+
+  updateRoomCalendar: async (roomId, payload) => {
+    return api.put(`/v1/rooms/${roomId}/calendar`, payload);
+  },
+
+  deleteRoomCalendar: async (roomId, payload) => {
+    return api.delete(`/v1/rooms/${roomId}/calendar`, { data: payload });
+  },
 };
 
 export default hotelService;
