@@ -28,7 +28,7 @@ const Sidebar = ({ handleLogout, isOpen, onClose }) => {
       >
         <div>
           <div className="flex justify-between items-center mb-8">
-            <img src="/logo.png" alt="VTL Travel" className="h-10 w-auto" />
+            <img src="/bintan-ferry-tickets-logo.webp" alt="VTL Travel" className="h-10 w-auto" />
             <button
               onClick={onClose}
               className="p-1 text-gray-500 hover:text-slate-950 rounded-lg hover:bg-gray-100 md:hidden cursor-pointer"
