@@ -241,7 +241,6 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
         });
         console.log("Setting new calendarSettings state from re-fetch:", newSettings);
         setCalendarSettings(newSettings);
-        onSaveSettings(roomId, newSettings);
       }
 
       setSelectedDates(new Set());
@@ -297,7 +296,6 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
         });
         console.log("Setting new calendarSettings state after reset re-fetch:", newSettings);
         setCalendarSettings(newSettings);
-        onSaveSettings(roomId, newSettings);
       }
     } catch (err) {
       console.error("Error resetting date rule in API call:", err);
@@ -480,7 +478,7 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2 pt-1">
+          {/* <div className="flex flex-wrap gap-2 pt-1">
             <button
               type="button"
               onClick={handleSelectAllWeekends}
@@ -502,7 +500,7 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
             >
               Clear Selected ({selectedDates.size})
             </button>
-          </div>
+          </div> */}
         </div>
 
         {/* Configurations Side Panel */}
