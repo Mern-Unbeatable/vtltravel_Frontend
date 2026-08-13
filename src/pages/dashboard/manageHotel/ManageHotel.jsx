@@ -81,10 +81,21 @@ const ManageHotel = () => {
   }, [cmsMode, hotelId]);
 
   const handleSaveHotel = async (formData) => {
+    // Log target payload entries
+    console.log("--- POSTING HOTEL DATA (FormData Payload) ---");
+    for (let pair of formData.entries()) {
+      if (pair[1] instanceof File) {
+        console.log(`${pair[0]}: File [name: ${pair[1].name}, size: ${pair[1].size} bytes, type: ${pair[1].type}]`);
+      } else {
+        console.log(`${pair[0]}:`, pair[1]);
+      }
+    }
+
     try {
       let response;
       if (cmsMode === "edit" && hotelId) {
         response = await hotelService.updateHotel(hotelId, formData);
+        console.log("--- HOTEL UPDATE API RESPONSE ---", response);
         if (response && response.success) {
           toast.success("Hotel details updated successfully!");
           setSearchParams({});
@@ -93,6 +104,7 @@ const ManageHotel = () => {
         }
       } else {
         response = await hotelService.addHotel(formData);
+        console.log("--- HOTEL CREATE API RESPONSE ---", response);
         if (response && response.success) {
           toast.success("Hotel listing created successfully!");
           setSearchParams({});
@@ -102,6 +114,7 @@ const ManageHotel = () => {
       }
     } catch (err) {
       console.error("Error saving hotel:", err);
+      console.error("--- HOTEL API ERROR ---", err);
       toast.error(err.message || "Failed to save hotel.");
     }
   };

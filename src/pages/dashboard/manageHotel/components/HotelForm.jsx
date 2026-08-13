@@ -38,7 +38,7 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
   const [calendarRoom, setCalendarRoom] = useState(null);
 
   // Form tab states
-  const [activeFormTab, setActiveFormTab] = useState("basic"); // 'basic' | 'calendar'
+  const [activeFormTab, setActiveFormTab] = useState("basic"); 
   const [selectedRoomId, setSelectedRoomId] = useState(null);
 
   const {
@@ -345,35 +345,29 @@ const HotelForm = ({ hotel, onSave, onCancel }) => {
       }
     }
 
-    // Gallery images & videos
+    // Gallery images & videos (dynamically matching Postman keys like imagesHOTEL, imagesROOMS)
     if (data.gallery && data.gallery.length > 0) {
       data.gallery.forEach((img, idx) => {
         const urlStr = img.url;
         const cat = img.category || "Hotel";
-        const isVideo = cat.toLowerCase() === "videos";
+        
+        // Map category names to uppercase and format (e.g., 'Hotel' -> 'HOTEL', 'Meetings and events' -> 'MEETINGS_AND_EVENTS')
+        const catUpper = cat.toUpperCase().replace(/\s+/g, "_");
+        const formKey = `images${catUpper}`;
+        
+        const isVideo = catUpper === "VIDEOS";
         const ext = isVideo ? "mp4" : "png";
 
         if (urlStr.startsWith("data:")) {
           const fileObj = base64ToFile(
             urlStr,
-            `gallery_${cat.toLowerCase()}_${idx}.${ext}`,
+            `gallery_${catUpper.toLowerCase()}_${idx}.${ext}`,
           );
           if (fileObj) {
-            formData.append("galleryImages", fileObj);
-            formData.append(`galleryCategories[${idx}]`, cat);
+            formData.append(formKey, fileObj);
           }
-        } else {
-          formData.append("galleryImages", urlStr); // URL fallback
-          formData.append(`galleryCategories[${idx}]`, cat);
         }
       });
-      // Also append full gallery data as JSON
-      formData.append("gallery", JSON.stringify(data.gallery));
-    }
-
-    // Append rooms list
-    if (data.rooms && data.rooms.length > 0) {
-      formData.append("rooms", JSON.stringify(data.rooms));
     }
 
     onSave(formData);
