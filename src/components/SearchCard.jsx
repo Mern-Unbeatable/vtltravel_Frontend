@@ -14,6 +14,7 @@ import {
 } from 'react-icons/io5'
 import { useHotelSuggestions } from '../hooks/useHotels'
 import { buildDestinationSuggestions } from '../utils/hotelSearchParams'
+import { SearchSuggestionsSkeleton } from './skeletons/Skeleton'
 
 const MONTH_NAMES = [
   'January',
@@ -46,16 +47,6 @@ const formatDateInput = (dateObj) => {
   const mm = String(dateObj.getMonth() + 1).padStart(2, '0')
   const dd = String(dateObj.getDate()).padStart(2, '0')
   return `${yyyy}-${mm}-${dd}`
-}
-
-const parseDateInput = (str) => {
-  if (!str) return null
-  const parts = str.split('-')
-  if (parts.length === 3) {
-    return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10))
-  }
-  const parsed = new Date(str)
-  return Number.isNaN(parsed.getTime()) ? null : parsed
 }
 
 const SearchCard = ({
@@ -313,11 +304,7 @@ const SearchCard = ({
 
               {showSuggestions && (
                 <div className="absolute left-0 top-full z-[100] mt-2 max-h-[320px] w-full min-w-[260px] overflow-y-auto rounded-2xl border border-gray-100 bg-white py-2 shadow-2xl">
-                  {isSuggestionsLoading && (
-                    <p className="px-4 py-2 text-xs text-gray-400">
-                      {destValue.trim() ? 'Searching destinations...' : 'Loading hotels...'}
-                    </p>
-                  )}
+                  {isSuggestionsLoading && <SearchSuggestionsSkeleton />}
 
                   {!isSuggestionsLoading && !hasSuggestions && (
                     <p className="px-4 py-2 text-xs text-gray-400">No matching destinations found</p>
@@ -378,15 +365,19 @@ const SearchCard = ({
           {/* 2. Check in & Check out Date Picker Trigger */}
           <div ref={datePickerRef} className="relative flex-1">
             <div
-              onClick={() => {
-                setShowDatePicker((prev) => !prev)
-                setShowGuestsPicker(false)
-              }}
-              className={`flex flex-1 cursor-pointer items-center justify-between rounded-xl border border-gray-200 bg-white transition hover:border-primary/50 ${
+              className={`flex flex-1 items-center justify-between rounded-xl border border-gray-200 bg-white transition hover:border-primary/50 ${
                 showDatePicker ? 'border-primary ring-2 ring-primary/20' : ''
               } ${compact ? 'px-3 py-2' : 'px-4 py-2.5'}`}
             >
-              <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveDateTab('checkIn')
+                  setShowDatePicker(true)
+                  setShowGuestsPicker(false)
+                }}
+                className="flex min-w-0 flex-1 items-center gap-3 text-left"
+              >
                 <IoCalendarOutline className="text-xl text-primary shrink-0" />
                 <div>
                   <p className="text-[11px] font-medium text-gray-400">Check in</p>
@@ -394,67 +385,29 @@ const SearchCard = ({
                     {formatDateDisplay(checkInDate) || 'Add date'}
                   </p>
                 </div>
-              </div>
+              </button>
 
               <div className="h-6 w-px bg-gray-200" />
 
-              <div className="text-right">
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveDateTab('checkOut')
+                  setShowDatePicker(true)
+                  setShowGuestsPicker(false)
+                }}
+                className="min-w-0 flex-1 text-right"
+              >
                 <p className="text-[11px] font-medium text-gray-400">Check out</p>
                 <p className={`mt-0.5 text-xs font-semibold md:text-sm ${checkOutDate ? 'text-gray-800' : 'text-gray-400'}`}>
                   {formatDateDisplay(checkOutDate) || 'Add date'}
                 </p>
-              </div>
+              </button>
             </div>
 
             {/* Date Picker Popover */}
             {showDatePicker && (
               <div className="absolute left-0 top-full z-[100] mt-2 w-full min-w-[320px] max-w-sm rounded-2xl border border-gray-100 bg-white p-4 shadow-2xl md:min-w-[360px]">
-                {/* Active Tab Toggle */}
-                <div className="mb-3 flex items-center justify-between rounded-xl bg-gray-100 p-1">
-                  <button
-                    type="button"
-                    onClick={() => setActiveDateTab('checkIn')}
-                    className={`flex-1 rounded-lg py-1.5 text-xs font-semibold transition ${
-                      activeDateTab === 'checkIn'
-                        ? 'bg-primary text-white shadow-xs'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    Check-in: {formatDateDisplay(checkInDate) || 'Select'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveDateTab('checkOut')}
-                    className={`flex-1 rounded-lg py-1.5 text-xs font-semibold transition ${
-                      activeDateTab === 'checkOut'
-                        ? 'bg-primary text-white shadow-xs'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    Check-out: {formatDateDisplay(checkOutDate) || 'Select'}
-                  </button>
-                </div>
-
-                {/* Direct Manual Date Input */}
-                <div className="mb-3 flex items-center gap-2 border-b border-gray-100 pb-3">
-                  <div className="flex-1">
-                    <span className="block text-[10px] font-medium text-gray-400">Select Date Directly</span>
-                    <input
-                      type="date"
-                      value={formatDateInput(activeDateTab === 'checkIn' ? checkInDate : checkOutDate)}
-                      onChange={(e) => {
-                        const parsed = parseDateInput(e.target.value)
-                        if (activeDateTab === 'checkIn') {
-                          setCheckInDate(parsed)
-                        } else {
-                          setCheckOutDate(parsed)
-                        }
-                      }}
-                      className="mt-0.5 w-full rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-700 outline-none focus:border-primary"
-                    />
-                  </div>
-                </div>
-
                 {/* Month Controls */}
                 <div className="mb-3 flex items-center justify-between">
                   <button

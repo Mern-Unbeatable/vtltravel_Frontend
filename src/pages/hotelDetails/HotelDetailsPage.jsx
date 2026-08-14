@@ -7,7 +7,7 @@ import HotelSummarySidebar from './components/HotelSummarySidebar'
 import HotelRoomsSection from './components/HotelRoomsSection'
 import RoomDetailsModal from './components/RoomDetailsModal'
 import { useHotel } from '../../hooks/useHotels'
-import Spinner from '../../components/Spinner'
+import { HotelDetailsSkeleton } from '../../components/skeletons/Skeleton'
 import { getStoredHotelSearch, saveHotelSearch } from '../../utils/hotelSearchStorage'
 import { formatDateISO } from '../../utils/hotelSearchParams'
 import { isRoomBookedForStay, ROOM_BOOKED_MESSAGE } from '../../utils/roomAvailability'
@@ -71,7 +71,7 @@ const HotelDetailsPage = () => {
           children: Number(stay.children) || 0,
         }
       : {}
-  const { data: hotel, isLoading, isError } = useHotel(hotelId, stayParams)
+  const { data: hotel, isLoading, isFetching, isError } = useHotel(hotelId, stayParams)
   const maxRooms = Number(stay?.rooms) || 1
 
   const handleStaySearch = (nextStay) => {
@@ -159,7 +159,7 @@ const HotelDetailsPage = () => {
   }
 
   if (isLoading) {
-    return <Spinner />
+    return <HotelDetailsSkeleton />
   }
 
   if (isError || !hotel) {
@@ -215,6 +215,7 @@ const HotelDetailsPage = () => {
               selectedRooms={selectedRooms}
               onRoomQuantityChange={handleRoomQuantityChange}
               onStayChange={handleStaySearch}
+              isLoading={isFetching}
             />
           </div>
         </div>

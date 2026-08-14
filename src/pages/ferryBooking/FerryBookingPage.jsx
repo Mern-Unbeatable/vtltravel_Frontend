@@ -76,7 +76,7 @@ const FerryBookingPage = () => {
     normalizeSelectedRooms(state?.selectedRooms, state?.selectedRoom),
   )
   const stayParams = buildStayParams(stay)
-  const { data: hotelData } = useHotel(hotelIdParam, stayParams)
+  const { data: hotelData, isFetching } = useHotel(hotelIdParam, stayParams)
   const { mutateAsync: createBooking, isPending } = useCreateBooking()
   const maxRooms = Number(stay?.rooms) || 1
 
@@ -662,6 +662,7 @@ const FerryBookingPage = () => {
               onConfirmBooking={handleConfirmBooking}
               onStayChange={handleStayChange}
               isSubmitting={isPending}
+              isLoading={isFetching}
             />
           </div>
         </div>

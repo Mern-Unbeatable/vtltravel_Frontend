@@ -146,7 +146,10 @@ const SearchResultsPage = () => {
               });
             }}
           />
-          <HotelCardsSection filters={hotelFilters} />
+          <HotelCardsSection
+            filters={hotelFilters}
+            searchQuery={destination}
+          />
         </div>
       </div>
     </section>

@@ -1,8 +1,13 @@
+import { useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import HotelResultCard from "../components/HotelResultCard";
 import { useHotels } from "../../../hooks/useHotels";
 import Pagination from "../../../components/Pagination";
-import { getNightsBetween } from "../../../utils/hotelSearchParams";
+import { SearchResultsListSkeleton } from "../../../components/skeletons/Skeleton";
+import {
+  getNightsBetween,
+  rankHotelsForResults,
+} from "../../../utils/hotelSearchParams";
 
 const SORT_LABELS = {
   recommended: "Sorted by recommended for you",
@@ -12,57 +17,72 @@ const SORT_LABELS = {
   stars: "Sorted by star rating",
 };
 
-const HotelCardsSection = ({ filters }) => {
+const HotelCardsSection = ({ filters, searchQuery = "" }) => {
   const [, setSearchParams] = useSearchParams();
-  const { data, isLoading, isError } = useHotels(filters || {});
+  const query = String(searchQuery || filters?.q || filters?.location || "").trim();
+  const wantsRecommendations = Boolean(query);
 
-  const hotels = data?.items || [];
-  const pagination = data?.pagination || {
-    page: 1,
-    limit: 12,
-    total: 0,
-    totalPages: 0,
-  };
-  const currentPage = Number(pagination.page || filters?.page || 1);
-  const totalPages = Number(pagination.totalPages || 0);
-  const totalHotels = Number(pagination.total || hotels.length);
+  // When searching by name/place, fetch the full catalog (keep other filters)
+  // so matched hotels can sit above the remaining recommendations.
+  const apiFilters = useMemo(() => {
+    if (!wantsRecommendations) return filters || {};
+
+    const next = { ...(filters || {}) };
+    delete next.q;
+    delete next.location;
+    next.page = 1;
+    next.limit = 100;
+    return next;
+  }, [filters, wantsRecommendations]);
+
+  const { data, isLoading, isError, isFetching } = useHotels(apiFilters);
+
+  const pageSize = Number(filters?.limit) || 12;
+  const requestedPage = Number(filters?.page) || 1;
+
+  const rankedHotels = useMemo(() => {
+    const items = data?.items || [];
+    if (!wantsRecommendations) return items;
+    return rankHotelsForResults(items, query);
+  }, [data?.items, wantsRecommendations, query]);
+
+  const totalHotels = wantsRecommendations
+    ? rankedHotels.length
+    : Number(data?.pagination?.total || rankedHotels.length);
+
+  const totalPages = wantsRecommendations
+    ? Math.max(1, Math.ceil(totalHotels / pageSize))
+    : Number(data?.pagination?.totalPages || 0);
+
+  const currentPage = wantsRecommendations
+    ? Math.min(requestedPage, totalPages)
+    : Number(filters?.page || data?.pagination?.page || 1);
+
+  const hotels = wantsRecommendations
+    ? rankedHotels.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+    : rankedHotels;
+
   const nights = getNightsBetween(filters?.checkIn, filters?.checkOut);
   const adults = Number(filters?.adults || 1);
   const rooms = Number(filters?.rooms || 1);
   const sortLabel = SORT_LABELS[filters?.sort] || SORT_LABELS.recommended;
 
   const handlePageChange = (page) => {
+    const nextPage = Number(page);
+    if (!Number.isFinite(nextPage) || nextPage < 1) return;
+    if (totalPages > 0 && nextPage > totalPages) return;
+
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
-      next.set("page", String(page));
+      next.set("page", String(nextPage));
+      if (!next.get("limit")) next.set("limit", String(pageSize));
       return next;
     });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   if (isLoading && hotels.length === 0) {
-    return (
-      <div className="flex justify-center items-center py-12">
-        <svg
-          className="animate-spin h-8 w-8 text-primary"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-          />
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          />
-        </svg>
-      </div>
-    );
+    return <SearchResultsListSkeleton count={3} />;
   }
 
   if (isError) {
@@ -91,7 +111,11 @@ const HotelCardsSection = ({ filters }) => {
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="space-y-3">
+          <div
+            className={`space-y-3 transition-opacity ${
+              isFetching ? "opacity-60" : "opacity-100"
+            }`}
+          >
             {hotels.map((hotel) => (
               <HotelResultCard
                 key={hotel.id}
