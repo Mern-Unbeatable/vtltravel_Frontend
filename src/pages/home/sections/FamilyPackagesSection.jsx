@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
-import PackageCard from '../components/PackageCard'
+import PackageCard, { PackageCardSkeleton } from '../components/PackageCard'
 import { useHotels } from '../../../hooks/useHotels'
 
 const isSingaporeHotel = (hotel) => {
@@ -65,16 +65,7 @@ const FamilyPackagesSection = () => {
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center py-16">
-          <svg className="h-8 w-8 animate-spin text-primary" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            />
-          </svg>
-        </div>
+        <PackageCardSkeleton count={4} />
       ) : isError ? (
         <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-sm font-semibold text-red-600">
           Failed to load hotels. Please try again.

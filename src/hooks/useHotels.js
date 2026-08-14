@@ -94,6 +94,21 @@ export const useHotel = (id, params = {}) => {
   });
 };
 
+export const useRoom = (roomId, enabled = true) => {
+  return useQuery({
+    queryKey: ['room', roomId],
+    queryFn: async () => {
+      const response = await hotelService.getRoomById(roomId);
+      if (response && response.success && response.data) {
+        return response.data;
+      }
+      return response?.data || response;
+    },
+    enabled: Boolean(roomId) && enabled,
+    staleTime: 60_000,
+  });
+};
+
 export const useAddHotel = () => {
   const queryClient = useQueryClient();
 

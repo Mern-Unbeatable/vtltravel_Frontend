@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { IoFilterOutline, IoCloseOutline } from "react-icons/io5";
 import { useHotelFilterFacets } from "../../../hooks/useHotels";
 import { compactParams } from "../../../utils/hotelSearchParams";
+import { FilterFacetSkeleton } from "../../../components/skeletons/Skeleton";
 
 const starsList = ["5 ★", "4 ★", "3 ★", "1 ★", "Unclassified ★"];
 
@@ -295,7 +296,7 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
           {isFacetsLoading || bestFor.length > 0 ? (
             <FilterGroup title="Best For">
               {isFacetsLoading ? (
-                <p className="text-xs text-gray-400">Loading...</p>
+                <FilterFacetSkeleton rows={4} />
               ) : (
                 bestFor.map((item) => (
                   <FilterCheckboxRow
@@ -315,7 +316,7 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
           {isFacetsLoading || accommodationStyles.length > 0 ? (
             <FilterGroup title="Accommodation Style">
               {isFacetsLoading ? (
-                <p className="text-xs text-gray-400">Loading...</p>
+                <FilterFacetSkeleton rows={4} />
               ) : (
                 accommodationStyles.map((item) => (
                   <FilterCheckboxRow
@@ -335,7 +336,7 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
           {isFacetsLoading || resortFeatures.length > 0 ? (
             <FilterGroup title="Resort Features">
               {isFacetsLoading ? (
-                <p className="text-xs text-gray-400">Loading...</p>
+                <FilterFacetSkeleton rows={4} />
               ) : (
                 resortFeatures.map((item) => (
                   <FilterCheckboxRow

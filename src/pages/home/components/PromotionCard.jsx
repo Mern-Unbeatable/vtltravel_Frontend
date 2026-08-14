@@ -1,3 +1,7 @@
+import { PromotionCardSkeleton } from '../../../components/skeletons/Skeleton'
+
+export { PromotionCardSkeleton }
+
 const PromotionCard = ({ promo }) => {
   return (
     <article className="overflow-hidden rounded-2xl shadow-sm transition hover:shadow-md">
