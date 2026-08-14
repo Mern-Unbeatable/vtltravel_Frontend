@@ -61,7 +61,7 @@ const CustomizeStayPage = () => {
     normalizeSelectedRooms(state?.selectedRooms, state?.selectedRoom),
   )
   const stayParams = buildStayParams(stay)
-  const { data: hotelData, isLoading, isError } = useHotel(hotelId, stayParams)
+  const { data: hotelData, isLoading, isFetching, isError } = useHotel(hotelId, stayParams)
   const maxRooms = Number(stay?.rooms) || 1
 
   const hotel = hotelData || state?.hotel || null
@@ -285,6 +285,7 @@ const CustomizeStayPage = () => {
               extraPrice={extrasTotal}
               selectedAddOns={selectedAddOns}
               onStayChange={handleStayChange}
+              isLoading={isFetching}
             />
           </div>
         </div>

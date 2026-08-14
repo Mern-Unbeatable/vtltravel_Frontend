@@ -71,7 +71,7 @@ const HotelDetailsPage = () => {
           children: Number(stay.children) || 0,
         }
       : {}
-  const { data: hotel, isLoading, isError } = useHotel(hotelId, stayParams)
+  const { data: hotel, isLoading, isFetching, isError } = useHotel(hotelId, stayParams)
   const maxRooms = Number(stay?.rooms) || 1
 
   const handleStaySearch = (nextStay) => {
@@ -215,6 +215,7 @@ const HotelDetailsPage = () => {
               selectedRooms={selectedRooms}
               onRoomQuantityChange={handleRoomQuantityChange}
               onStayChange={handleStaySearch}
+              isLoading={isFetching}
             />
           </div>
         </div>

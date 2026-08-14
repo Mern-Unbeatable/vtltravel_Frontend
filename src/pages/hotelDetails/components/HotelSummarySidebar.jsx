@@ -25,6 +25,7 @@ import {
   getSelectedRoomsPricing,
   isAnySelectedRoomBooked,
 } from '../../../utils/selectedRooms'
+import { HotelSummarySidebarSkeleton } from '../../../components/skeletons/Skeleton'
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -57,6 +58,7 @@ const HotelSummarySidebar = ({
   onStayChange = null,
   onRoomQuantityChange = null,
   isSubmitting = false,
+  isLoading = false,
 }) => {
   const navigate = useNavigate()
   const location = useLocation()
@@ -79,6 +81,10 @@ const HotelSummarySidebar = ({
 
   const selectedRooms = normalizeSelectedRooms(selectedRoomsProp, selectedRoom)
   const selectedRoomLegacy = selectedRooms[0] || null
+
+  if (isLoading) {
+    return <HotelSummarySidebarSkeleton />
+  }
 
   useEffect(() => {
     setCheckInDate(parseLocalDate(stay?.checkIn))

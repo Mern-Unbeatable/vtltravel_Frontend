@@ -142,6 +142,36 @@ export const RoomCardSkeleton = () => (
   </article>
 )
 
+export const HotelSummarySidebarSkeleton = () => (
+  <aside className="sticky top-24 rounded-2xl border border-gray-200 bg-white p-5">
+    <Skeleton className="h-5 w-3/4 rounded-md" />
+    <Skeleton className="mt-3 h-4 w-48 rounded-md" />
+    <div className="mt-4 space-y-2">
+      <Skeleton className="h-12 w-full rounded-xl" />
+      <Skeleton className="h-12 w-full rounded-xl" />
+    </div>
+    <div className="my-4 border-t border-gray-100" />
+    <div className="flex items-start gap-3">
+      <Skeleton className="h-16 w-16 shrink-0 rounded-xl" />
+      <div className="min-w-0 flex-1">
+        <Skeleton className="h-4 w-4/5 rounded-md" />
+        <Skeleton className="mt-2 h-3 w-24 rounded-md" />
+        <Skeleton className="mt-3 h-6 w-28 rounded-full" />
+      </div>
+    </div>
+    <Skeleton className="mt-4 h-3 w-32 rounded-md" />
+    <div className="mt-3 space-y-3 rounded-xl bg-[#f8fbfe] p-3.5">
+      <Skeleton className="h-4 w-full rounded-md" />
+      <Skeleton className="h-4 w-2/3 rounded-md" />
+      <Skeleton className="h-4 w-1/2 rounded-md" />
+    </div>
+    <div className="mt-4 border-t border-gray-100 pt-3">
+      <Skeleton className="h-7 w-28 rounded-md" />
+      <Skeleton className="mt-4 h-11 w-full rounded-full" />
+    </div>
+  </aside>
+)
+
 export const HotelDetailsSkeleton = () => (
   <div>
     <div className="relative w-full overflow-hidden bg-white">
@@ -203,18 +233,7 @@ export const HotelDetailsSkeleton = () => (
           </div>
         </div>
 
-        <aside className="sticky top-24 rounded-2xl border border-gray-200 bg-white p-5">
-          <Skeleton className="h-5 w-3/4 rounded-md" />
-          <Skeleton className="mt-3 h-4 w-48 rounded-md" />
-          <Skeleton className="mt-4 h-16 w-full rounded-xl" />
-          <Skeleton className="mt-3 h-16 w-full rounded-xl" />
-          <div className="mt-4 border-t border-gray-100 pt-3">
-            <Skeleton className="h-4 w-full rounded-md" />
-            <Skeleton className="mt-2 h-4 w-2/3 rounded-md" />
-            <Skeleton className="mt-4 h-8 w-28 rounded-md" />
-            <Skeleton className="mt-4 h-11 w-full rounded-full" />
-          </div>
-        </aside>
+        <HotelSummarySidebarSkeleton />
       </div>
     </div>
   </div>
