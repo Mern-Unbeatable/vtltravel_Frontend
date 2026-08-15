@@ -28,6 +28,20 @@ export const isRoomBookedForStay = (room, stay) => {
 
   if (room.isAvailable === false || room.available === false) return true
   if (room.isBooked === true || room.fullyBooked === true) return true
+  if (room.availableForDates === false) return true
+
+  if (room.availability) {
+    if (room.availability.isAvailable === false) return true
+    if (room.availability.availableForDates === false) return true
+    if (room.availability.blockedByCalendar === true) return true
+    if (
+      room.availability.availableQuantity !== undefined &&
+      room.availability.availableQuantity !== null &&
+      Number(room.availability.availableQuantity) <= 0
+    ) {
+      return true
+    }
+  }
 
   const availableQty =
     room.availableQuantity ??

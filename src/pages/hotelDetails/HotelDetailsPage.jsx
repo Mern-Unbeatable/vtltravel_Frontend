@@ -179,7 +179,25 @@ const HotelDetailsPage = () => {
     .filter(Boolean)
   const roomsSource = apiRooms || hotel.roomTypes || []
   console.log("--- RENDERING HOTEL DETAILS ROOMS ---", { hotelId, stayParams, apiRooms, roomsSource })
-  const roomsList = roomsSource.filter((room) => room.isActive !== false).map(mapRoomType)
+  const roomsList = roomsSource
+    .filter((room) => {
+      if (room.isActive === false) return false
+      if (room.availableForDates === false) return false
+      if (room.availability) {
+        if (room.availability.blockedByCalendar === true) return false
+        if (room.availability.isAvailable === false) return false
+        if (room.availability.availableForDates === false) return false
+        if (
+          room.availability.availableQuantity !== undefined &&
+          room.availability.availableQuantity !== null &&
+          Number(room.availability.availableQuantity) <= 0
+        ) {
+          return false
+        }
+      }
+      return true
+    })
+    .map(mapRoomType)
   const todayIso = formatDateISO(new Date())
 
   return (
