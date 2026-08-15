@@ -47,7 +47,7 @@ const RoomCard = ({
   return (
     <article className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md">
       <div className="flex flex-col lg:flex-row">
-        <div className="relative h-[220px] w-full shrink-0 overflow-hidden bg-[#f3f4f6] lg:h-auto lg:w-[320px]">
+        <div className="relative h-55 w-full shrink-0 overflow-hidden bg-[#f3f4f6] lg:h-auto lg:w-[320px]">
           <FallbackImage
             src={roomImage}
             alt={room?.name || 'Room'}
