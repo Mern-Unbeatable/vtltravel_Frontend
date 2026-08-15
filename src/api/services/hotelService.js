@@ -38,6 +38,10 @@ export const hotelService = {
     return api.delete(API_ENDPOINTS.HOTEL_DETAILS(id));
   },
 
+  getRoomsForHotel: async (hotelId, params = {}) => {
+    return api.get(`/v1/rooms/hotel/${hotelId}`, { params });
+  },
+
   addRoom: async (hotelId, roomData) => {
     return api.post(`/v1/rooms/hotel/${hotelId}`, roomData, {
       headers: { 'Content-Type': 'multipart/form-data' }

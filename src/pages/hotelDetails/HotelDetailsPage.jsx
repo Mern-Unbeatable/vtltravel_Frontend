@@ -6,7 +6,7 @@ import HotelFacilitiesCard from './components/HotelFacilitiesCard'
 import HotelSummarySidebar from './components/HotelSummarySidebar'
 import HotelRoomsSection from './components/HotelRoomsSection'
 import RoomDetailsModal from './components/RoomDetailsModal'
-import { useHotel } from '../../hooks/useHotels'
+import { useHotel, useHotelRooms } from '../../hooks/useHotels'
 import { HotelDetailsSkeleton } from '../../components/skeletons/Skeleton'
 import { getStoredHotelSearch, saveHotelSearch } from '../../utils/hotelSearchStorage'
 import { formatDateISO } from '../../utils/hotelSearchParams'
@@ -72,6 +72,7 @@ const HotelDetailsPage = () => {
         }
       : {}
   const { data: hotel, isLoading, isFetching, isError } = useHotel(hotelId, stayParams)
+  const { data: apiRooms } = useHotelRooms(hotelId, stayParams)
   const maxRooms = Number(stay?.rooms) || 1
 
   const handleStaySearch = (nextStay) => {
@@ -176,7 +177,9 @@ const HotelDetailsPage = () => {
     .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
     .map((img) => img.url)
     .filter(Boolean)
-  const roomsList = (hotel.roomTypes || []).filter((room) => room.isActive !== false).map(mapRoomType)
+  const roomsSource = apiRooms || hotel.roomTypes || []
+  console.log("--- RENDERING HOTEL DETAILS ROOMS ---", { hotelId, stayParams, apiRooms, roomsSource })
+  const roomsList = roomsSource.filter((room) => room.isActive !== false).map(mapRoomType)
   const todayIso = formatDateISO(new Date())
 
   return (
