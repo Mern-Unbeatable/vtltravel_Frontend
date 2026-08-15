@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { IoFilterOutline, IoCloseOutline } from "react-icons/io5";
 import { useHotelFilterFacets } from "../../../hooks/useHotels";
 import { compactParams } from "../../../utils/hotelSearchParams";
+import { FilterFacetSkeleton } from "../../../components/skeletons/Skeleton";
 
 const starsList = ["5 ★", "4 ★", "3 ★", "1 ★", "Unclassified ★"];
 
@@ -141,7 +142,6 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
 
   return (
     <div className="lg:sticky lg:top-24 lg:h-[calc(100vh-240px)] lg:flex lg:flex-col lg:overflow-hidden lg:self-start">
-      {/* Mobile & Tablet Filter Toggle Button */}
       <div className="lg:hidden">
         <button
           type="button"
@@ -153,7 +153,6 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
         </button>
       </div>
 
-      {/* Dim Overlay backdrop (Mobile/Tablet) */}
       {isOpen && (
         <div
           className="fixed inset-0 z-[100] bg-black/40 lg:hidden"
@@ -161,7 +160,6 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
         />
       )}
 
-      {/* Filter Sidebar / Sliding Drawer */}
       <aside
         className={`
           fixed bottom-0 top-0 left-0 z-[101] w-[300px] bg-white p-6 shadow-2xl transition-transform duration-300 flex flex-col overflow-hidden
@@ -169,7 +167,6 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
         `}
       >
-        {/* Mobile/Tablet Header with Close Button */}
         <div className="flex items-center justify-between lg:hidden mb-4 pb-3 border-b border-[#05588E29] shrink-0">
           <h3 className="text-xl font-bold text-slate-900">Filters</h3>
           <button
@@ -181,7 +178,7 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
           </button>
         </div>
 
-        {/* Desktop Title Header */}
+     
         <div className="hidden lg:flex items-center justify-between mb-4 pb-3 border-b border-[#05588E29] shrink-0">
           <h3 className="text-xl font-semibold text-slate-900">Filter</h3>
           <button
@@ -299,7 +296,7 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
           {isFacetsLoading || bestFor.length > 0 ? (
             <FilterGroup title="Best For">
               {isFacetsLoading ? (
-                <p className="text-xs text-gray-400">Loading...</p>
+                <FilterFacetSkeleton rows={4} />
               ) : (
                 bestFor.map((item) => (
                   <FilterCheckboxRow
@@ -319,7 +316,7 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
           {isFacetsLoading || accommodationStyles.length > 0 ? (
             <FilterGroup title="Accommodation Style">
               {isFacetsLoading ? (
-                <p className="text-xs text-gray-400">Loading...</p>
+                <FilterFacetSkeleton rows={4} />
               ) : (
                 accommodationStyles.map((item) => (
                   <FilterCheckboxRow
@@ -339,7 +336,7 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
           {isFacetsLoading || resortFeatures.length > 0 ? (
             <FilterGroup title="Resort Features">
               {isFacetsLoading ? (
-                <p className="text-xs text-gray-400">Loading...</p>
+                <FilterFacetSkeleton rows={4} />
               ) : (
                 resortFeatures.map((item) => (
                   <FilterCheckboxRow
@@ -380,13 +377,13 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
 
         {/* Sticky Actions Footer (Transparent on Desktop) */}
         <div className="mt-auto pt-4 pb-2 border-t border-[#05588E29] flex items-center justify-between bg-white lg:bg-transparent shrink-0">
-          <button
+          {/* <button
             type="button"
             onClick={handleClearFilters}
             className="text-sky-500 hover:text-sky-600 hover:underline text-sm font-semibold cursor-pointer transition-all bg-transparent border-0"
           >
             Clear all
-          </button>
+          </button> */}
           <button
             type="button"
             onClick={handleApplyFilter}

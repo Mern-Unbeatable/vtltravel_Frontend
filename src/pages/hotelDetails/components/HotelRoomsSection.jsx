@@ -139,6 +139,7 @@ const HotelRoomsSection = ({
   }
 
   const handleSearchStay = () => {
+    // Special rates is optional — search must work with or without it
     if (!checkInDate || !checkOutDate) return
     if (onStaySearch) {
       onStaySearch({
@@ -150,6 +151,15 @@ const HotelRoomsSection = ({
       })
     }
   }
+
+  // Optional display filter only: when off, show every room; when on, prefer member deals
+  const visibleRooms = hasSpecialRate
+    ? rooms.filter((room) => room?.memberRate)
+    : rooms
+
+  // If "Special rates" is on but none exist, still fall back to all rooms so search results stay visible
+  const roomsToShow =
+    hasSpecialRate && visibleRooms.length === 0 ? rooms : visibleRooms
 
   const isSameDay = (d1, d2) => {
     if (!d1 || !d2) return false
@@ -416,10 +426,11 @@ const HotelRoomsSection = ({
           )}
         </div>
 
-        {/* Special Rates Toggle */}
+        {/* Special Rates Toggle (optional — does not block Search) */}
         <button
           type="button"
-          onClick={() => setHasSpecialRate(!hasSpecialRate)}
+          onClick={() => setHasSpecialRate((prev) => !prev)}
+          aria-pressed={hasSpecialRate}
           className={`flex items-center gap-2 rounded-xl px-3 py-2 border transition-all cursor-pointer ${
             hasSpecialRate
               ? 'bg-sky-50 border-sky-200 text-sky-700 font-semibold'
@@ -448,12 +459,12 @@ const HotelRoomsSection = ({
       
 
       <div className="mt-6 space-y-5">
-        {rooms.length === 0 ? (
+        {roomsToShow.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center">
             <p className="text-sm font-semibold text-gray-700">No rooms available</p>
           </div>
         ) : (
-          rooms.map((room) => (
+          roomsToShow.map((room) => (
             <RoomCard
               key={room.id}
               room={room}

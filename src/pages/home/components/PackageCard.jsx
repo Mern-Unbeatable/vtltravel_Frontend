@@ -1,6 +1,9 @@
 import { IoCalendarOutline } from 'react-icons/io5'
 import { useNavigate } from 'react-router-dom'
 import FallbackImage from '../../../components/FallbackImage'
+import { PackageCardSkeleton } from '../../../components/skeletons/Skeleton'
+
+export { PackageCardSkeleton }
 
 const PackageCard = ({ item, onExplore }) => {
   const navigate = useNavigate()

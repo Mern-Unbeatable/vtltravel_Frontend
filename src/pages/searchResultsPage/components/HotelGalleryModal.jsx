@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { IoClose } from 'react-icons/io5'
 import FallbackImage from '../../../components/FallbackImage'
-import Spinner from '../../../components/Spinner'
+import { GalleryGridSkeleton } from '../../../components/skeletons/Skeleton'
 import { useHotelImages } from '../../../hooks/useHotels'
 
 const CATEGORIES = [
@@ -225,7 +225,7 @@ const HotelGalleryModal = ({ open, onClose, hotelTitle, images, hotelId }) => {
 
           <div className="flex-1 overflow-y-auto p-5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 hover:[&::-webkit-scrollbar-thumb]:bg-gray-400 [&::-webkit-scrollbar-track]:bg-transparent">
             {showLoader ? (
-              <Spinner />
+              <GalleryGridSkeleton count={4} />
             ) : (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {filteredItems.length > 0 ? (
