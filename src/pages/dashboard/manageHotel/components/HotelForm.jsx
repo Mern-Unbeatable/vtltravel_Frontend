@@ -71,6 +71,7 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
       gallery: [],
       rooms: [],
       available: true,
+      isFeatured: false,
       addOns: [{ name: "", price: "" }],
     },
   });
@@ -90,6 +91,7 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
   const facilitiesVal = watch("facilities") || [];
   const roomsVal = watch("rooms") || [];
   const availableVal = watch("available");
+  const isFeaturedVal = watch("isFeatured");
 
   const activeHotelId = hotel?.id || hotel?._id;
 
@@ -139,6 +141,7 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
             : hotel.available !== undefined
               ? hotel.available
               : true,
+        isFeatured: hotel.isFeatured !== undefined ? hotel.isFeatured : false,
         addOns:
           hotel.addOns && hotel.addOns.length > 0
             ? hotel.addOns.map((a) => ({
@@ -428,29 +431,57 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase mb-2">
-                Availability Status
-              </label>
-              <div className="flex items-center gap-4 mt-2">
-                <label className="flex items-center gap-2 text-sm text-slate-700 font-semibold cursor-pointer">
-                  <input
-                    type="radio"
-                    checked={availableVal === true}
-                    onChange={() => setValue("available", true)}
-                    className="accent-primary"
-                  />
-                  Available (Active)
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-2">
+                  Availability Status
                 </label>
-                <label className="flex items-center gap-2 text-sm text-slate-700 font-semibold cursor-pointer">
-                  <input
-                    type="radio"
-                    checked={availableVal === false}
-                    onChange={() => setValue("available", false)}
-                    className="accent-primary"
-                  />
-                  Fully Booked / Unavailable
+                <div className="flex items-center gap-4 mt-2">
+                  <label className="flex items-center gap-2 text-sm text-slate-700 font-semibold cursor-pointer">
+                    <input
+                      type="radio"
+                      checked={availableVal === true}
+                      onChange={() => setValue("available", true)}
+                      className="accent-primary"
+                    />
+                    Available (Active)
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-slate-700 font-semibold cursor-pointer">
+                    <input
+                      type="radio"
+                      checked={availableVal === false}
+                      onChange={() => setValue("available", false)}
+                      className="accent-primary"
+                    />
+                    Fully Booked / Unavailable
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-2">
+                 Packages of the Month
                 </label>
+                <div className="flex items-center gap-4 mt-2">
+                  <label className="flex items-center gap-2 text-sm text-slate-700 font-semibold cursor-pointer">
+                    <input
+                      type="radio"
+                      checked={isFeaturedVal === true}
+                      onChange={() => setValue("isFeatured", true)}
+                      className="accent-primary"
+                    />
+                    Yes
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-slate-700 font-semibold cursor-pointer">
+                    <input
+                      type="radio"
+                      checked={isFeaturedVal === false}
+                      onChange={() => setValue("isFeatured", false)}
+                      className="accent-primary"
+                    />
+                    No
+                  </label>
+                </div>
               </div>
             </div>
 
