@@ -73,6 +73,7 @@ export const hotelSchema = z.object({
   available: z.boolean().default(true),
   addOns: z.array(
     z.object({
+      id: z.string().optional(),
       name: z.string().default(''),
       price: z.string().default(''),
     })

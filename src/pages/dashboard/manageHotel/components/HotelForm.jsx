@@ -142,6 +142,7 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
         addOns:
           hotel.addOns && hotel.addOns.length > 0
             ? hotel.addOns.map((a) => ({
+                id: a.id || a.addOn?.id || "",
                 name: a.addOn?.name || a.name || "",
                 price: String(a.addOn?.price || a.price || ""),
               }))
@@ -424,8 +425,9 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
     formData.append("facilitySlugs", slugs);
 
     // Convert add-ons to the format [{"name":"Breakfast","price":18}]
+    // Send only newly added add-ons (without an id) to prevent the backend from duplicating existing ones
     const filteredAddOns = data.addOns
-      .filter((a) => a.name && a.name.trim() !== "")
+      .filter((a) => a.name && a.name.trim() !== "" && !a.id)
       .map((a) => ({
         name: a.name,
         price: parseFloat(a.price) || 0,

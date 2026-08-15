@@ -63,8 +63,9 @@ const ManageHotel = () => {
         setIsFetchingHotel(true);
         try {
           const response = await hotelService.getHotelById(hotelId);
-          if (response && response.success && response.data) {
-            setFetchedHotel(response.data);
+          const hotelData = response?.data || response?.hotel || response;
+          if (hotelData) {
+            setFetchedHotel(hotelData);
           } else {
             toast.error("Failed to load hotel details.");
           }
