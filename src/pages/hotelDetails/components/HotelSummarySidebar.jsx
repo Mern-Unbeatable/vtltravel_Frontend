@@ -82,10 +82,6 @@ const HotelSummarySidebar = ({
   const selectedRooms = normalizeSelectedRooms(selectedRoomsProp, selectedRoom)
   const selectedRoomLegacy = selectedRooms[0] || null
 
-  if (isLoading) {
-    return <HotelSummarySidebarSkeleton />
-  }
-
   useEffect(() => {
     setCheckInDate(parseLocalDate(stay?.checkIn))
     setCheckOutDate(parseLocalDate(stay?.checkOut))
@@ -106,6 +102,10 @@ const HotelSummarySidebar = ({
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
+
+  if (isLoading) {
+    return <HotelSummarySidebarSkeleton />
+  }
 
   const title = hotel?.name || titleProp || ''
   const checkInTime = formatClockTime(hotel?.checkInTime)
