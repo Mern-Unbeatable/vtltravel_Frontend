@@ -8,30 +8,30 @@ import RoomCalendarContainer from "./RoomCalendarContainer";
 import RoomTypesSidebar from "./RoomTypesSidebar";
 import AddOnOptions from "./AddOnOptions";
 import RoomTypesTable from "./RoomTypesTable";
+import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import {
   FormInput,
   FormTextarea,
   FormFileInput,
 } from "../../../../components/FormFields";
-import { fileToBase64 } from "../../../../utils/fileHelpers";
+import { fileToBase64, base64ToFile } from "../../../../utils/fileHelpers";
 import { IoArrowBackOutline } from "react-icons/io5";
 import { hotelService } from "../../../../api/services/hotelService";
 import { toast } from "react-toastify";
 import { CgSpinner } from "react-icons/cg";
+import FacilitiesSelector from "./FacilitiesSelector";
+import HotelFormGallery from "./HotelFormGallery";
 
 import {
-  availableFacilitiesList,
-  GALLERY_CATEGORIES,
-  isCategoryMatch,
-  getBackendCategoryKey,
   hotelSchema,
+  mapRoomToFormData,
+  mapHotelFormToFormData,
 } from "./addHotelHelper";
 
 const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
   // Room modal sub-states
   const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState(null);
-  const [activeGalleryTab, setActiveGalleryTab] = useState("Hotel");
   const [roomDeleteId, setRoomDeleteId] = useState(null);
   const [isDeletingRoom, setIsDeletingRoom] = useState(false);
 
@@ -151,14 +151,6 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
     }
   }, [hotel, reset]);
 
-  const handleFacilityChange = (facility) => {
-    const isChecked = facilitiesVal.includes(facility);
-    const updated = isChecked
-      ? facilitiesVal.filter((f) => f !== facility)
-      : [...facilitiesVal, facility];
-    setValue("facilities", updated);
-  };
-
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -189,123 +181,13 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
     }
   };
 
-  const handleGalleryUpload = async (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length === 0) return;
-
-    try {
-      const promises = files.map((file) =>
-        fileToBase64(file, { maxSizeMB: 5 }),
-      );
-      const base64s = await Promise.all(promises);
-
-      const backendCategory = getBackendCategoryKey(activeGalleryTab);
-      const formattedMedia = base64s.map((url) => ({
-        url,
-        category: backendCategory,
-      }));
-
-      setValue("gallery", [...galleryVal, ...formattedMedia]);
-      toast.success("Media added to gallery locally!");
-    } catch (err) {
-      console.error("Gallery upload error:", err);
-      toast.error(err?.message || "Failed to load gallery media.");
-    }
-  };
-
-  const removeGalleryImage = (url) => {
-    setValue(
-      "gallery",
-      galleryVal.filter((img) => img.url !== url),
-    );
-  };
-
   // Rooms CRUD within Hotel Form
   const handleSaveRoom = async (savedRoom) => {
     const editingRoomId = editingRoom?.id || editingRoom?._id;
     const isEditingReal =
       editingRoomId && !String(editingRoomId).startsWith("mock-");
 
-    const formData = new FormData();
-    formData.append("name", savedRoom.name);
-
-    const slug = savedRoom.name
-      .toLowerCase()
-      .replace(/\s+/g, "-")
-      .replace(/[^a-z0-9-]/g, "");
-    formData.append("slug", slug);
-    formData.append("description", savedRoom.description || "");
-    formData.append("pricePerNight", String(savedRoom.price));
-    formData.append("basePrice", String(savedRoom.price));
-    formData.append(
-      "discountPrice",
-      String(
-        Number(savedRoom.price) > 20
-          ? Number(savedRoom.price) - 20
-          : savedRoom.price,
-      ),
-    );
-    formData.append("taxPerNight", "0");
-
-    const sizeLabel = savedRoom.size ? `${savedRoom.size}m²` : "";
-    formData.append("roomSize", sizeLabel);
-    formData.append("sizeLabel", sizeLabel);
-    formData.append("sizeSqm", String(savedRoom.size || 0));
-
-    formData.append("bedType", "King");
-    formData.append("bedCount", String(savedRoom.bedInfo || 1));
-    formData.append(
-      "bedInformation",
-      `${savedRoom.bedInfo || 1} King size bed(s)`,
-    );
-
-    const viewType =
-      savedRoom.tags && savedRoom.tags.length > 0
-        ? savedRoom.tags[0]
-        : "Ocean View";
-    formData.append("viewType", viewType);
-
-    formData.append("bathrooms", String(savedRoom.baths || 1));
-    formData.append("maxCapacity", String(savedRoom.capacity || 3));
-
-    const adults =
-      Number(savedRoom.capacity) > 1 ? Number(savedRoom.capacity) - 1 : 1;
-    formData.append("maxAdults", String(adults));
-    formData.append("maxChildren", "1");
-    formData.append("totalInventory", "5");
-
-    const alertLabel = savedRoom.roomsLeft
-      ? `Only ${savedRoom.roomsLeft} rooms left`
-      : "Only 2 rooms left";
-    formData.append("roomsLeftAlert", alertLabel);
-
-    formData.append("tags", JSON.stringify(savedRoom.tags || []));
-    formData.append("amenityIds", JSON.stringify([]));
-
-    const amenities = [
-      ...(savedRoom.foodBeverage || []),
-      ...(savedRoom.bathroom || []),
-      ...(savedRoom.mediaTech || []),
-      ...(savedRoom.serviceEquipment || []),
-    ];
-    const amenitySlugs = amenities.map((a) =>
-      a
-        .toLowerCase()
-        .replace(/\s+/g, "-")
-        .replace(/[^a-z0-9-]/g, ""),
-    );
-    formData.append("amenitySlugs", JSON.stringify(amenitySlugs));
-
-    formData.append("breakfastIncluded", "true");
-    formData.append("freeCancellation", "true");
-    formData.append("isMemberDeal", "false");
-    formData.append("smokingAllowed", "false");
-
-    if (savedRoom.imageFiles && savedRoom.imageFiles.length > 0) {
-      savedRoom.imageFiles.forEach((file) => {
-        formData.append("imageUrl", file);
-      });
-    }
+    const formData = mapRoomToFormData(savedRoom);
 
     // Log the request payload entries to console
     console.log("--- POSTING ROOM DATA (FormData Payload) ---");
@@ -379,6 +261,38 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
     setRoomDeleteId(roomId);
   };
 
+  const handleConfirmDeleteRoom = async () => {
+    if (!roomDeleteId) return;
+    setIsDeletingRoom(true);
+    try {
+      const isMock = String(roomDeleteId).startsWith("mock-");
+      if (!isMock) {
+        const response = await hotelService.deleteRoom(roomDeleteId);
+        if (response && response.success) {
+          toast.success(response.message || "Room deleted successfully!");
+        } else {
+          toast.error(
+            response?.message || "Failed to delete room from server.",
+          );
+          setIsDeletingRoom(false);
+          return;
+        }
+      } else {
+        toast.success("Room removed!");
+      }
+      setValue(
+        "rooms",
+        roomsVal.filter((r) => r.id !== roomDeleteId && r._id !== roomDeleteId),
+      );
+      setRoomDeleteId(null);
+    } catch (err) {
+      console.error("Error deleting room:", err);
+      toast.error(err?.message || "Failed to delete room.");
+    } finally {
+      setIsDeletingRoom(false);
+    }
+  };
+
   const handleSaveCalendarSettings = (roomId, settings) => {
     setValue(
       "rooms",
@@ -393,109 +307,7 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
   };
 
   const onSubmit = (data) => {
-    // We will build a FormData object as the backend expects multipart/form-data
-    const formData = new FormData();
-
-    // Add textual properties
-    formData.append("name", data.title);
-    formData.append("starRating", String(data.starNum));
-    formData.append("startingPrice", String(data.priceNum));
-    formData.append(
-      "availabilityStatus",
-      data.available ? "AVAILABLE" : "UNAVAILABLE",
-    );
-    formData.append("description", data.description || "");
-    formData.append("location", "Batam");
-    formData.append("city", "Batam");
-    formData.append("country", "Indonesia");
-
-    // Convert facilities array into a comma-separated slug string (e.g. 'free-wifi,swimming-pool,spa')
-    const slugMap = {
-      "Free Wi-Fi": "free-wifi",
-      "Wi-Fi": "free-wifi",
-      "Swimming Pool": "swimming-pool",
-      "Giant Swimming Pools": "swimming-pool",
-      Spa: "spa",
-      Restaurant: "restaurant",
-      "Free Parking": "free-parking",
-    };
-    const slugs = data.facilities
-      .map((fac) => slugMap[fac] || fac.toLowerCase().replace(/\s+/g, "-"))
-      .join(",");
-    formData.append("facilitySlugs", slugs);
-
-    // Convert add-ons to the format [{"name":"Breakfast","price":18}]
-    // Send only newly added add-ons (without an id) to prevent the backend from duplicating existing ones
-    const filteredAddOns = data.addOns
-      .filter((a) => a.name && a.name.trim() !== "" && !a.id)
-      .map((a) => ({
-        name: a.name,
-        price: parseFloat(a.price) || 0,
-      }));
-    formData.append("addOns", JSON.stringify(filteredAddOns));
-
-    // Helper to convert base64 to File
-    const base64ToFile = (base64String, filename) => {
-      if (!base64String || !base64String.startsWith("data:")) return null;
-      try {
-        const arr = base64String.split(",");
-        const mime = arr[0].match(/:(.*?);/)[1];
-        const bstr = atob(arr[1]);
-        let n = bstr.length;
-        const u8arr = new Uint8Array(n);
-        while (n--) {
-          u8arr[n] = bstr.charCodeAt(n);
-        }
-        return new File([u8arr], filename, { type: mime });
-      } catch (err) {
-        console.error("base64ToFile conversion error:", err);
-        return null;
-      }
-    };
-
-    if (data.image) {
-      if (data.image.startsWith("data:")) {
-        const fileObj = base64ToFile(data.image, "cover_image.png");
-        if (fileObj) formData.append("coverImageUrl", fileObj);
-      } else {
-        formData.append("coverImageUrl", data.image); // URL fallback
-      }
-    }
-
-    if (data.video) {
-      if (data.video.startsWith("data:")) {
-        const fileObj = base64ToFile(data.video, "video.mp4");
-        if (fileObj) formData.append("videoUrl", fileObj);
-      } else {
-        formData.append("videoUrl", data.video); // URL fallback
-      }
-    }
-
-    // Gallery images & videos (dynamically matching Postman keys like imagesHOTEL, imagesROOMS)
-    if (data.gallery && data.gallery.length > 0) {
-      data.gallery.forEach((img, idx) => {
-        const urlStr = img.url;
-        const cat = img.category || "Hotel";
-
-        // Map category names to uppercase and format (e.g., 'Hotel' -> 'HOTEL', 'Meetings and events' -> 'MEETINGS_AND_EVENTS')
-        const catUpper = cat.toUpperCase().replace(/\s+/g, "_");
-        const formKey = `images${catUpper}`;
-
-        const isVideo = catUpper === "VIDEOS";
-        const ext = isVideo ? "mp4" : "png";
-
-        if (urlStr.startsWith("data:")) {
-          const fileObj = base64ToFile(
-            urlStr,
-            `gallery_${catUpper.toLowerCase()}_${idx}.${ext}`,
-          );
-          if (fileObj) {
-            formData.append(formKey, fileObj);
-          }
-        }
-      });
-    }
-
+    const formData = mapHotelFormToFormData(data, base64ToFile);
     onSave(formData);
   };
 
@@ -651,27 +463,10 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
             />
 
             {/* Popular Facilities */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase mb-3">
-                Popular Facilities
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 bg-gray-50 p-4 rounded-xl border border-gray-200">
-                {availableFacilitiesList.map((fac) => (
-                  <label
-                    key={fac}
-                    className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={facilitiesVal.includes(fac)}
-                      onChange={() => handleFacilityChange(fac)}
-                      className="rounded text-primary accent-primary focus:ring-primary"
-                    />
-                    {fac}
-                  </label>
-                ))}
-              </div>
-            </div>
+            <FacilitiesSelector
+              value={facilitiesVal}
+              onChange={(updated) => setValue("facilities", updated)}
+            />
 
             <AddOnOptions
               register={register}
@@ -681,110 +476,10 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
             />
 
             {/* Gallery Photos & Videos Category Tab Manager */}
-            <div className="border-t border-gray-200 pt-6">
-              <label className="block text-xs font-bold text-slate-700 uppercase mb-3">
-                Gallery Sections (Categorized)
-              </label>
-
-              {/* Horizontal scrollable tab buttons */}
-              <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-thin">
-                {GALLERY_CATEGORIES.map((cat) => {
-                  const count = galleryVal.filter((img) =>
-                    isCategoryMatch(img.category, cat),
-                  ).length;
-                  const isActive =
-                    activeGalleryTab.toLowerCase() === cat.toLowerCase();
-                  return (
-                    <button
-                      key={cat}
-                      type="button"
-                      onClick={() => setActiveGalleryTab(cat)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
-                        isActive
-                          ? "bg-primary text-white"
-                          : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                      }`}
-                    >
-                      {cat} ({count})
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="space-y-4 bg-slate-50 p-5 rounded-2xl border border-slate-200">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-800">
-                      {activeGalleryTab} Gallery
-                    </h4>
-                    <p className="text-xs text-slate-500">
-                      Upload media specific to the {activeGalleryTab} section
-                    </p>
-                  </div>
-                  <input
-                    type="file"
-                    multiple
-                    accept={
-                      activeGalleryTab.toLowerCase() === "videos"
-                        ? "video/*"
-                        : "image/*"
-                    }
-                    onChange={handleGalleryUpload}
-                    className="text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer"
-                  />
-                </div>
-
-                {/* Filtered items display */}
-                {galleryVal.filter((img) =>
-                  isCategoryMatch(img.category, activeGalleryTab),
-                ).length === 0 ? (
-                  <div className="text-center py-8 text-xs font-semibold text-slate-400 border border-dashed border-slate-200 rounded-xl bg-white">
-                    No items uploaded under {activeGalleryTab} category yet.
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
-                    {galleryVal
-                      .filter((img) =>
-                        isCategoryMatch(img.category, activeGalleryTab),
-                      )
-                      .map((img, idx) => {
-                        const hasVideoExtension =
-                          img.url.endsWith(".mp4") ||
-                          img.url.endsWith(".mov") ||
-                          img.url.startsWith("data:video/") ||
-                          (img.category &&
-                            img.category.toUpperCase() === "VIDEOS");
-                        return (
-                          <div
-                            key={idx}
-                            className="relative group aspect-square rounded-lg overflow-hidden border border-gray-200 bg-white"
-                          >
-                            {hasVideoExtension ? (
-                              <video
-                                src={img.url}
-                                className="w-full h-full object-cover bg-black"
-                              />
-                            ) : (
-                              <img
-                                src={img.url}
-                                alt={`Gallery ${activeGalleryTab} ${idx + 1}`}
-                                className="w-full h-full object-cover"
-                              />
-                            )}
-                            <button
-                              type="button"
-                              onClick={() => removeGalleryImage(img.url)}
-                              className="absolute inset-0 bg-slate-900/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white text-xs font-bold cursor-pointer"
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        );
-                      })}
-                  </div>
-                )}
-              </div>
-            </div>
+            <HotelFormGallery
+              value={galleryVal}
+              onChange={(updated) => setValue("gallery", updated)}
+            />
           </>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-stretch">
@@ -857,69 +552,14 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
         room={editingRoom}
       />
       {/* Premium Room Deletion Confirmation Modal */}
-      {roomDeleteId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl w-full max-w-md border border-gray-200 shadow-xl overflow-hidden p-6 text-center space-y-4">
-            <div className="mx-auto w-12 h-12 bg-red-50 rounded-full flex items-center justify-center text-red-500">
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                />
-              </svg>
-            </div>
-            <h3 className="text-lg font-bold text-slate-900">
-              Delete Room Type?
-            </h3>
-            <p className="text-sm text-slate-500">
-              Are you sure you want to delete this room type? This action cannot
-              be undone.
-            </p>
-            <div className="flex gap-3 justify-end pt-3">
-              <button
-                type="button"
-                disabled={isDeletingRoom}
-                onClick={() => setRoomDeleteId(null)}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm text-slate-700 hover:bg-gray-50 font-semibold cursor-pointer disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                disabled={isDeletingRoom}
-                onClick={async () => {
-                  setIsDeletingRoom(true);
-                  try {
-                    setValue(
-                      "rooms",
-                      roomsVal.filter(
-                        (r) => r.id !== roomDeleteId && r._id !== roomDeleteId,
-                      ),
-                    );
-                    toast.success("Room deleted locally!");
-                    setRoomDeleteId(null);
-                  } catch (err) {
-                    console.error("Error deleting room:", err);
-                    toast.error("Failed to delete room.");
-                  } finally {
-                    setIsDeletingRoom(false);
-                  }
-                }}
-                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold shadow-sm cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {isDeletingRoom ? "Deleting..." : "Confirm Delete"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDeleteModal
+        isOpen={!!roomDeleteId}
+        isDeleting={isDeletingRoom}
+        onClose={() => setRoomDeleteId(null)}
+        onConfirm={handleConfirmDeleteRoom}
+        title="Delete Room Type?"
+        description="Are you sure you want to delete this room type? This action cannot be undone."
+      />
     </div>
   );
 };

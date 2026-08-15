@@ -4,8 +4,14 @@ import HotelList from "./components/HotelList";
 import HotelForm from "./components/HotelForm";
 import { toast } from "react-toastify";
 import { hotelService } from "../../../api/services/hotelService";
-import DeleteHotelModal from "./components/DeleteHotelModal";
+import ConfirmDeleteModal from "./components/ConfirmDeleteModal";
 import { CgSpinner } from "react-icons/cg";
+
+const LoadingSpinner = () => (
+  <div className="flex justify-center items-center py-16 bg-white border border-gray-200 rounded-2xl shadow-sm">
+    <CgSpinner className="animate-spin h-8 w-8 text-primary" />
+  </div>
+);
 
 const ManageHotel = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -126,42 +132,8 @@ const ManageHotel = () => {
     setSearchParams({});
   };
 
-  const handleDeleteClick = (id) => {
+  const toggleDeleteModal = (id = null) => {
     setDeleteTargetId(id);
-    setDeleteResult(null);
-    setIsDeleting(false);
-  };
-
-  const confirmDelete = async () => {
-    if (!deleteTargetId) return;
-    setIsDeleting(true);
-    try {
-      const response = await hotelService.deleteHotel(deleteTargetId);
-      if (response && response.success) {
-        setDeleteResult({
-          success: true,
-          message: response.message,
-        });
-        fetchHotels();
-      } else {
-        setDeleteResult({
-          success: false,
-          message: response.message,
-        });
-      }
-    } catch (err) {
-      console.error("Error deleting hotel:", err);
-      setDeleteResult({
-        success: false,
-        message: err.message || "Failed to delete the hotel listing.",
-      });
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const closeDeleteModal = () => {
-    setDeleteTargetId(null);
     setDeleteResult(null);
     setIsDeleting(false);
   };
@@ -181,9 +153,7 @@ const ManageHotel = () => {
 
       {cmsMode === "list" &&
         (isLoading ? (
-          <div className="flex justify-center items-center py-16 bg-white border border-gray-200 rounded-2xl shadow-sm">
-            <CgSpinner className="animate-spin h-8 w-8 text-primary" />
-          </div>
+          <LoadingSpinner />
         ) : isError ? (
           <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-red-600 font-semibold">
             Failed to load hotel listings.
@@ -192,16 +162,14 @@ const ManageHotel = () => {
           <HotelList
             hotels={hotels}
             onEdit={handleEditClick}
-            onDelete={handleDeleteClick}
+            onDelete={toggleDeleteModal}
             onAddNew={() => setSearchParams({ mode: "add" })}
           />
         ))}
 
       {(cmsMode === "add" || cmsMode === "edit") &&
         (isFetchingHotel && cmsMode === "edit" ? (
-          <div className="flex justify-center items-center py-16 bg-white border border-gray-200 rounded-2xl shadow-sm">
-            <CgSpinner className="animate-spin h-8 w-8 text-primary" />
-          </div>
+          <LoadingSpinner />
         ) : (
           <HotelForm
             hotel={cmsMode === "edit" ? fetchedHotel : null}
@@ -212,12 +180,40 @@ const ManageHotel = () => {
         ))}
 
       {/* Premium Deletion Confirmation & Response Modal Component */}
-      <DeleteHotelModal
+      <ConfirmDeleteModal
         isOpen={!!deleteTargetId}
         isDeleting={isDeleting}
         deleteResult={deleteResult}
-        onConfirm={confirmDelete}
-        onClose={closeDeleteModal}
+        onConfirm={async () => {
+          if (!deleteTargetId) return;
+          setIsDeleting(true);
+          try {
+            const response = await hotelService.deleteHotel(deleteTargetId);
+            if (response && response.success) {
+              setDeleteResult({
+                success: true,
+                message: response.message,
+              });
+              fetchHotels();
+            } else {
+              setDeleteResult({
+                success: false,
+                message: response.message,
+              });
+            }
+          } catch (err) {
+            console.error("Error deleting hotel:", err);
+            setDeleteResult({
+              success: false,
+              message: err.message || "Failed to delete the hotel listing.",
+            });
+          } finally {
+            setIsDeleting(false);
+          }
+        }}
+        onClose={() => toggleDeleteModal(null)}
+        title="Delete Hotel Listing?"
+        description="Are you sure you want to delete this hotel? All associated room configurations will be permanently removed. This action cannot be undone."
       />
     </div>
   );

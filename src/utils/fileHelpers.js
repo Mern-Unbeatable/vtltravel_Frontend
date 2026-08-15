@@ -31,3 +31,21 @@ export const fileToBase64 = (file, options = {}) => {
     reader.readAsDataURL(file);
   });
 };
+
+export const base64ToFile = (base64String, filename) => {
+  if (!base64String || !base64String.startsWith("data:")) return null;
+  try {
+    const arr = base64String.split(",");
+    const mime = arr[0].match(/:(.*?);/)[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, { type: mime });
+  } catch (err) {
+    console.error("base64ToFile conversion error:", err);
+    return null;
+  }
+};

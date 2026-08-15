@@ -71,6 +71,7 @@ export const hotelSchema = z.object({
   })).default([]),
   rooms: z.array(z.any()).default([]),
   available: z.boolean().default(true),
+  isFeatured: z.boolean().default(false),
   addOns: z.array(
     z.object({
       id: z.string().optional(),
@@ -79,3 +80,168 @@ export const hotelSchema = z.object({
     })
   ).default([]),
 });
+
+export const mapRoomToFormData = (savedRoom) => {
+  const formData = new FormData();
+  formData.append("name", savedRoom.name);
+
+  const slug = savedRoom.name
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "");
+  formData.append("slug", slug);
+  formData.append("description", savedRoom.description || "");
+  formData.append("pricePerNight", String(savedRoom.price));
+  formData.append("basePrice", String(savedRoom.price));
+  formData.append(
+    "discountPrice",
+    String(
+      Number(savedRoom.price) > 20
+        ? Number(savedRoom.price) - 20
+        : savedRoom.price,
+    ),
+  );
+  formData.append("taxPerNight", "0");
+
+  const sizeLabel = savedRoom.size ? `${savedRoom.size}m²` : "";
+  formData.append("roomSize", sizeLabel);
+  formData.append("sizeLabel", sizeLabel);
+  formData.append("sizeSqm", String(savedRoom.size || 0));
+
+  formData.append("bedType", "King");
+  formData.append("bedCount", String(savedRoom.bedInfo || 1));
+  formData.append(
+    "bedInformation",
+    `${savedRoom.bedInfo || 1} King size bed(s)`,
+  );
+
+  const viewType =
+    savedRoom.tags && savedRoom.tags.length > 0
+      ? savedRoom.tags[0]
+      : "Ocean View";
+  formData.append("viewType", viewType);
+
+  formData.append("bathrooms", String(savedRoom.baths || 1));
+  formData.append("maxCapacity", String(savedRoom.capacity || 3));
+
+  const adults =
+    Number(savedRoom.capacity) > 1 ? Number(savedRoom.capacity) - 1 : 1;
+  formData.append("maxAdults", String(adults));
+  formData.append("maxChildren", "1");
+  formData.append("totalInventory", "5");
+
+  const alertLabel = savedRoom.roomsLeft
+    ? `Only ${savedRoom.roomsLeft} rooms left`
+    : "Only 2 rooms left";
+  formData.append("roomsLeftAlert", alertLabel);
+
+  formData.append("tags", JSON.stringify(savedRoom.tags || []));
+  formData.append("amenityIds", JSON.stringify([]));
+
+  const amenities = [
+    ...(savedRoom.foodBeverage || []),
+    ...(savedRoom.bathroom || []),
+    ...(savedRoom.mediaTech || []),
+    ...(savedRoom.serviceEquipment || []),
+  ];
+  const amenitySlugs = amenities.map((a) =>
+    a
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9-]/g, ""),
+  );
+  formData.append("amenitySlugs", JSON.stringify(amenitySlugs));
+
+  formData.append("breakfastIncluded", "true");
+  formData.append("freeCancellation", "true");
+  formData.append("isMemberDeal", "false");
+  formData.append("smokingAllowed", "false");
+
+  if (savedRoom.imageFiles && savedRoom.imageFiles.length > 0) {
+    savedRoom.imageFiles.forEach((file) => {
+      formData.append("imageUrl", file);
+    });
+  }
+
+  return formData;
+};
+
+export const mapHotelFormToFormData = (data, base64ToFileFn) => {
+  const formData = new FormData();
+
+  formData.append("name", data.title);
+  formData.append("starRating", String(data.starNum));
+  formData.append("startingPrice", String(data.priceNum));
+  formData.append(
+    "availabilityStatus",
+    data.available ? "AVAILABLE" : "UNAVAILABLE",
+  );
+  formData.append("description", data.description || "");
+  formData.append("location", "Batam");
+  formData.append("city", "Batam");
+  formData.append("country", "Indonesia");
+  formData.append("isFeatured", String(data.isFeatured));
+
+  const slugMap = {
+    "Free Wi-Fi": "free-wifi",
+    "Wi-Fi": "free-wifi",
+    "Swimming Pool": "swimming-pool",
+    "Giant Swimming Pools": "swimming-pool",
+    Spa: "spa",
+    Restaurant: "restaurant",
+    "Free Parking": "free-parking",
+  };
+  const slugs = data.facilities
+    .map((fac) => slugMap[fac] || fac.toLowerCase().replace(/\s+/g, "-"))
+    .join(",");
+  formData.append("facilitySlugs", slugs);
+
+  const filteredAddOns = data.addOns
+    .filter((a) => a.name && a.name.trim() !== "" && !a.id)
+    .map((a) => ({
+      name: a.name,
+      price: parseFloat(a.price) || 0,
+    }));
+  formData.append("addOns", JSON.stringify(filteredAddOns));
+
+  if (data.image) {
+    if (data.image.startsWith("data:")) {
+      const fileObj = base64ToFileFn(data.image, "cover_image.png");
+      if (fileObj) formData.append("coverImageUrl", fileObj);
+    } else {
+      formData.append("coverImageUrl", data.image);
+    }
+  }
+
+  if (data.video) {
+    if (data.video.startsWith("data:")) {
+      const fileObj = base64ToFileFn(data.video, "video.mp4");
+      if (fileObj) formData.append("videoUrl", fileObj);
+    } else {
+      formData.append("videoUrl", data.video);
+    }
+  }
+
+  if (data.gallery && data.gallery.length > 0) {
+    data.gallery.forEach((img, idx) => {
+      const urlStr = img.url;
+      const cat = img.category || "Hotel";
+      const catUpper = cat.toUpperCase().replace(/\s+/g, "_");
+      const formKey = `images${catUpper}`;
+      const isVideo = catUpper === "VIDEOS";
+      const ext = isVideo ? "mp4" : "png";
+
+      if (urlStr.startsWith("data:")) {
+        const fileObj = base64ToFileFn(
+          urlStr,
+          `gallery_${catUpper.toLowerCase()}_${idx}.${ext}`,
+        );
+        if (fileObj) {
+          formData.append(formKey, fileObj);
+        }
+      }
+    });
+  }
+
+  return formData;
+};

@@ -2,12 +2,14 @@ import React from "react";
 import { IoWarningOutline, IoCheckmarkCircleOutline, IoCloseCircleOutline } from "react-icons/io5";
 import { CgSpinner } from "react-icons/cg";
 
-const DeleteHotelModal = ({
+const ConfirmDeleteModal = ({
   isOpen,
   isDeleting,
   deleteResult,
   onConfirm,
   onClose,
+  title = "Delete Confirm",
+  description = "Are you sure you want to delete this item? This action cannot be undone.",
 }) => {
   if (!isOpen) return null;
 
@@ -19,10 +21,8 @@ const DeleteHotelModal = ({
             <div className="mx-auto w-12 h-12 bg-red-50 rounded-full flex items-center justify-center text-red-500">
               <IoWarningOutline className="w-6 h-6 text-red-500 text-xl" style={{ strokeWidth: "36px" }} />
             </div>
-            <h3 className="text-lg font-bold text-slate-900">Delete Hotel Listing?</h3>
-            <p className="text-sm text-slate-500">
-              Are you sure you want to delete this hotel? All associated room configurations will be permanently removed. This action cannot be undone.
-            </p>
+            <h3 className="text-lg font-bold text-slate-900">{title}</h3>
+            <p className="text-sm text-slate-500">{description}</p>
             <div className="flex gap-3 justify-end pt-3">
               <button
                 type="button"
@@ -80,4 +80,4 @@ const DeleteHotelModal = ({
   );
 };
 
-export default DeleteHotelModal;
+export default ConfirmDeleteModal;
