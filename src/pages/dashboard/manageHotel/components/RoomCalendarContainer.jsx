@@ -289,53 +289,53 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
   ];
 
   return (
-    <div className="bg-white border border-slate-200/80 rounded-xl overflow-hidden p-6 shadow-sm h-full">
+    <div className="h-full overflow-hidden rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm xl:p-6">
       {/* Header & Legend */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center  pb-5 gap-4">
+      <div className="flex flex-col items-start justify-between gap-3 pb-4 md:flex-row md:items-center xl:gap-4 xl:pb-5">
         <div>
-          <h4 className="text-lg font-bold text-slate-900 tracking-tight">
+          <h4 className="text-base font-bold tracking-tight text-slate-900 xl:text-lg">
             Rates Calendar for {room.name}
           </h4>
-          <p className="text-xs text-slate-550 mt-0.5">
+          <p className="mt-0.5 text-xs text-slate-550">
             Configure daily room rates & availability blocks.
           </p>
 
           {/* Visual Legend */}
-          <div className="flex flex-wrap gap-3 mt-3">
+          <div className="mt-2 flex flex-wrap gap-2 xl:mt-3 xl:gap-3">
             <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-600">
-              <span className="w-3.5 h-3.5 bg-white border border-slate-200 rounded"></span>
+              <span className="h-3.5 w-3.5 rounded border border-slate-200 bg-white"></span>
               Default Price
             </div>
             <div className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-700">
-              <span className="w-3.5 h-3.5 bg-emerald-50 border border-emerald-250 rounded"></span>
+              <span className="h-3.5 w-3.5 rounded border border-emerald-250 bg-emerald-50"></span>
               Custom Rate
             </div>
             <div className="flex items-center gap-1.5 text-[10px] font-bold text-red-650">
-              <span className="w-3.5 h-3.5 bg-red-50 border border-red-200 rounded"></span>
+              <span className="h-3.5 w-3.5 rounded border border-red-200 bg-red-50"></span>
               Blocked / Sold Out
             </div>
             <div className="flex items-center gap-1.5 text-[10px] font-bold text-primary">
-              <span className="w-3.5 h-3.5 bg-primary/10 border-2 border-primary/20 rounded"></span>
+              <span className="h-3.5 w-3.5 rounded border-2 border-primary/20 bg-primary/10"></span>
               Selected
             </div>
           </div>
         </div>
-        <div className="bg-slate-50 border border-slate-200 px-4 py-3 rounded-xl text-right shadow-xs min-w-[120px]">
-          <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
+        <div className="min-w-[110px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-right shadow-xs xl:min-w-[120px] xl:px-4 xl:py-3">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
             Default Price
           </span>
-          <p className="text-xl font-extrabold text-primary">${basePrice}</p>
+          <p className="text-lg font-extrabold text-primary xl:text-xl">${basePrice}</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3 xl:gap-6">
         {/* Calendar Grid */}
-        <div className="xl:col-span-2 space-y-4">
-          <div className="flex justify-between items-center bg-primary/15 p-3 rounded-xl text-primary ">
+        <div className="space-y-3 xl:col-span-2 xl:space-y-4">
+          <div className="flex items-center justify-between rounded-xl bg-primary/15 p-2.5 text-primary xl:p-3">
             <button
               type="button"
               onClick={prevMonth}
-              className="px-3 py-1.5 hover:bg-white/15 rounded-lg transition text-primary text-xs font-bold cursor-pointer"
+              className="cursor-pointer rounded-lg px-2.5 py-1.5 text-xs font-bold text-primary transition hover:bg-white/15 xl:px-3"
             >
               &larr; Prev
             </button>
@@ -345,19 +345,19 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
             <button
               type="button"
               onClick={nextMonth}
-              className="px-3 py-1.5 hover:bg-white/15 rounded-lg transition text-primary text-xs font-bold cursor-pointer"
+              className="cursor-pointer rounded-lg px-2.5 py-1.5 text-xs font-bold text-primary transition hover:bg-white/15 xl:px-3"
             >
               Next &rarr;
             </button>
           </div>
 
-          <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-xs relative">
+          <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs">
             {isLoading && (
-              <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] z-20 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/60 backdrop-blur-[1px]">
+                <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
               </div>
             )}
-            <div className="grid grid-cols-7 bg-slate-50 text-center font-bold text-[10px] text-slate-500 py-3 border-b border-slate-150 uppercase tracking-wider">
+            <div className="grid grid-cols-7 border-b border-slate-150 bg-slate-50 py-2 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 xl:py-3">
               <div>Sun</div>
               <div>Mon</div>
               <div>Tue</div>
@@ -371,7 +371,7 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
               {Array.from({ length: firstDay }).map((_, idx) => (
                 <div
                   key={`empty-${idx}`}
-                  className="bg-slate-50/30 min-h-[85px]"
+                  className="min-h-[68px] bg-slate-50/30 xl:min-h-[85px]"
                 ></div>
               ))}
               {Array.from({ length: daysInMonth }).map((_, idx) => {
@@ -400,7 +400,7 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
                   <div
                     key={dateStr}
                     onClick={() => handleDateClick(dateStr)}
-                    className={`min-h-[85px] p-2.5 flex flex-col justify-between cursor-pointer transition-all duration-200 relative group select-none ${cellBg}`}
+                    className={`group relative flex min-h-[68px] cursor-pointer select-none flex-col justify-between p-1.5 transition-all duration-200 xl:min-h-[85px] xl:p-2.5 ${cellBg}`}
                   >
                     <div className="flex justify-between items-center">
                       <span
@@ -473,7 +473,7 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
         </div>
 
         {/* Configurations Side Panel */}
-        <div className="bg-slate-50/80 border border-slate-200 rounded-xl p-5 space-y-5 shadow-xs">
+        <div className="space-y-4 rounded-xl border border-slate-200 bg-slate-50/80 p-4 shadow-xs xl:space-y-5 xl:p-5">
           <div>
             <h5 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3">
               Bulk Selection Helper

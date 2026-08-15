@@ -16,22 +16,22 @@ const Sidebar = ({ handleLogout, isOpen, onClose }) => {
       {isOpen && (
         <div
           onClick={onClose}
-          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 lg:hidden"
+          className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm xl:hidden"
         ></div>
       )}
 
       {/* Sidebar Aside Panel */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 p-6 flex flex-col justify-between shrink-0 h-full transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:relative ${
+        className={`fixed inset-y-0 left-0 z-50 flex h-full w-64 shrink-0 flex-col justify-between border-r border-gray-200 bg-white p-6 transition-transform duration-300 ease-in-out xl:static xl:relative xl:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div>
-          <div className="flex justify-between items-center mb-8">
+          <div className="mb-8 flex items-center justify-between">
             <img src="/bintan-ferry-tickets-logo.webp" alt="VTL Travel" className="h-10 w-auto" />
             <button
               onClick={onClose}
-              className="p-1 text-gray-500 hover:text-slate-950 rounded-lg hover:bg-gray-100 lg:hidden cursor-pointer"
+              className="cursor-pointer rounded-lg p-1 text-gray-500 hover:bg-gray-100 hover:text-slate-950 xl:hidden"
               aria-label="Close sidebar"
             >
               <IoCloseOutline className="text-2xl" />

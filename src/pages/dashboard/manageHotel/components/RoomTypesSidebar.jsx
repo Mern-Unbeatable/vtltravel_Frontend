@@ -11,8 +11,8 @@ const RoomTypesSidebar = ({
   return (
     // Outer cell: height comes from right calendar (grid row).
     // Inner panel fills that height; room cards scroll inside.
-    <div className="relative min-h-[420px] lg:col-span-1 lg:min-h-0">
-      <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-slate-50 p-4 lg:absolute lg:inset-0">
+    <div className="relative min-h-[360px] lg:min-h-0 xl:col-span-1">
+      <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-slate-50 p-3 lg:absolute lg:inset-0 xl:p-4">
         <div className="flex shrink-0 items-center justify-between border-b border-gray-200 pb-2">
           <h3 className="text-xs font-bold uppercase tracking-wide text-slate-800">
             Room Types

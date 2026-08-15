@@ -84,7 +84,7 @@ const AdminLayout = () => {
   if (!isAuthenticated) return null;
 
   return (
-    <div className="h-screen bg-[#f7f8fa] text-slate-700 flex flex-col lg:flex-row overflow-hidden">
+    <div className="flex h-screen flex-col overflow-hidden bg-[#f7f8fa] text-slate-700 xl:flex-row">
       {/* Sidebar Component */}
       <Sidebar
         handleLogout={handleLogout}
@@ -93,32 +93,32 @@ const AdminLayout = () => {
       />
 
       {/* Main Container */}
-      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+      <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
         {/* Header Navbar */}
-        <header className="bg-white border-b border-gray-200 py-4 px-6 md:px-10 flex items-center justify-between sticky top-0 z-30">
+        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-gray-200 bg-white px-4 py-4 md:px-6 xl:px-10">
           <div className="flex items-center gap-3">
-            {/* Hamburger Button for Mobile/Tablet */}
+            {/* Hamburger: mobile + laptop (< xl) */}
             <button
               onClick={() => setIsMobileSidebarOpen(true)}
-              className="p-1 text-gray-500 hover:text-slate-900 rounded-lg hover:bg-gray-100 lg:hidden cursor-pointer"
+              className="cursor-pointer rounded-lg p-1 text-gray-500 hover:bg-gray-100 hover:text-slate-900 xl:hidden"
               aria-label="Open sidebar"
             >
               <IoMenuOutline className="text-2xl" />
             </button>
 
-            <span className="font-bold text-slate-800 hidden sm:inline-block">
+            <span className="hidden font-bold text-slate-800 sm:inline-block">
               Admin Workspace
             </span>
-            <span className="text-gray-300 hidden sm:inline-block">|</span>
-            <span className="text-xs font-semibold text-gray-500 capitalize">
+            <span className="hidden text-gray-300 sm:inline-block">|</span>
+            <span className="text-xs font-semibold capitalize text-gray-500">
               {getTabName()} Manager
             </span>
           </div>
 
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3">
-              <div className="hidden lg:block text-left">
-                <p className="text-lg font-bold text-slate-900 leading-none">
+              <div className="hidden text-left xl:block">
+                <p className="text-lg font-bold leading-none text-slate-900">
                   Admin
                 </p>
               </div>
@@ -127,8 +127,8 @@ const AdminLayout = () => {
         </header>
 
         {/* Scrollable Content Wrapper */}
-        <div className="flex-1 overflow-y-auto w-full">
-          <main className="p-2 py-6 px-4 md:px-8 w-full">
+        <div className="w-full flex-1 overflow-y-auto">
+          <main className="w-full px-3 py-5 md:px-5 xl:px-8 xl:py-6">
             {/* Header */}
             {getPageTitle() && (
               <div className="mb-8">

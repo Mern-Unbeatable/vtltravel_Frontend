@@ -335,7 +335,7 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8 shadow-sm">
+    <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm md:p-5 xl:p-8">
       <div className="flex items-center gap-3 mb-6">
         <button
           type="button"
@@ -529,7 +529,7 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
             />
           </>
         ) : (
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[200px_minmax(0,1fr)] lg:gap-5 xl:grid-cols-4 xl:gap-6">
             <RoomTypesSidebar
               roomsVal={roomsVal}
               selectedRoomId={selectedRoomId}
@@ -543,7 +543,7 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
             />
 
             {/* Right Side: Interactive rates calendar (sets shared row height) */}
-            <div className="lg:col-span-3">
+            <div className="min-w-0 lg:col-auto xl:col-span-3">
               {selectedRoomId &&
               roomsVal.find((r) => (r.id || r._id) === selectedRoomId) ? (
                 <RoomCalendarContainer
