@@ -96,8 +96,10 @@ export const mapRoomToFormData = (savedRoom) => {
   formData.append(
     "discountPrice",
     String(
-      Number(savedRoom.price) > 20
-        ? Number(savedRoom.price) - 20
+      savedRoom.discountPrice !== undefined &&
+        savedRoom.discountPrice !== null &&
+        String(savedRoom.discountPrice).trim() !== ""
+        ? savedRoom.discountPrice
         : savedRoom.price,
     ),
   );
@@ -138,11 +140,24 @@ export const mapRoomToFormData = (savedRoom) => {
   formData.append("tags", JSON.stringify(savedRoom.tags || []));
   formData.append("amenityIds", JSON.stringify([]));
 
+  // API expects comma-separated text; backend turns them into arrays in facilityGroups
+  const foodBeverage = savedRoom.foodBeverage || [];
+  const bathroomFacilities =
+    savedRoom.bathroomFacilities || savedRoom.bathroom || [];
+  const mediaTechnology =
+    savedRoom.mediaTechnology || savedRoom.mediaTech || [];
+  const serviceEquipment = savedRoom.serviceEquipment || [];
+
+  formData.append("foodBeverage", foodBeverage.join(", "));
+  formData.append("bathroomFacilities", bathroomFacilities.join(", "));
+  formData.append("mediaTechnology", mediaTechnology.join(", "));
+  formData.append("serviceEquipment", serviceEquipment.join(", "));
+
   const amenities = [
-    ...(savedRoom.foodBeverage || []),
-    ...(savedRoom.bathroom || []),
-    ...(savedRoom.mediaTech || []),
-    ...(savedRoom.serviceEquipment || []),
+    ...foodBeverage,
+    ...bathroomFacilities,
+    ...mediaTechnology,
+    ...serviceEquipment,
   ];
   const amenitySlugs = amenities.map((a) =>
     a

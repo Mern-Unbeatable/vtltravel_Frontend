@@ -8,14 +8,15 @@ import { fileToBase64 } from '../../../../utils/fileHelpers';
 const roomSchema = z.object({
   name: z.string().min(1, 'Room name is required'),
   price: z.string().min(1, 'Price is required'),
+  discountPrice: z.string().default(''),
   size: z.string().min(1, 'Size is required'),
   capacity: z.string().default('3 pers. max'),
   bedInfo: z.string().default('1 King size bed(s)'),
   baths: z.string().default('1 Bath(s)'),
   description: z.string().default(''),
   foodBeverage: z.string().default(''),
-  bathroom: z.string().default(''),
-  mediaTech: z.string().default(''),
+  bathroomFacilities: z.string().default(''),
+  mediaTechnology: z.string().default(''),
   serviceEquipment: z.string().default(''),
   tags: z.string().default(''),
   image: z.any().default([]),
@@ -35,14 +36,15 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
     defaultValues: {
       name: '',
       price: '',
+      discountPrice: '',
       size: '',
       capacity: '3 pers. max',
       bedInfo: '1 King size bed(s)',
       baths: '1 Bath(s)',
       description: '',
       foodBeverage: '',
-      bathroom: '',
-      mediaTech: '',
+      bathroomFacilities: '',
+      mediaTechnology: '',
       serviceEquipment: '',
       tags: '',
       image: [],
@@ -53,6 +55,12 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
   const [imageFiles, setImageFiles] = useState([]);
   const [previewUrls, setPreviewUrls] = useState([]);
 
+  const toCommaText = (value) => {
+    if (!value) return '';
+    if (Array.isArray(value)) return value.join(', ');
+    return String(value);
+  };
+
   useEffect(() => {
     if (room && isOpen) {
       const rawImage = room.image || room.imageUrl;
@@ -61,24 +69,39 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
         : (rawImage ? [rawImage] : []);
       
       const priceVal = room.price || room.pricePerNight || room.basePrice || '';
+      const discountPriceVal = room.discountPrice ?? '';
       const sizeVal = room.size || room.roomSize || room.sizeLabel || (room.sizesSqm ? String(room.sizesSqm) : '') || '';
       const capacityVal = room.capacity || room.maxCapacity || '';
       const bedInfoVal = room.bedInfo || room.bedInformation || '';
       const bathsVal = room.baths || room.bathrooms || '';
       const roomsLeftVal = room.roomsLeft || room.roomsLeftAlert || '';
+      const facilityGroups = room.facilityGroups || {};
 
       reset({
         name: room.name || '',
         price: priceVal ? String(priceVal).replace('$', '') : '',
+        discountPrice: discountPriceVal !== '' ? String(discountPriceVal).replace('$', '') : '',
         size: sizeVal || '',
         capacity: capacityVal || '3 pers. max',
         bedInfo: bedInfoVal || '1 King size bed(s)',
         baths: bathsVal || '1 Bath(s)',
         description: room.description || '',
-        foodBeverage: room.foodBeverage ? (Array.isArray(room.foodBeverage) ? room.foodBeverage.join(', ') : room.foodBeverage) : '',
-        bathroom: room.bathroom ? (Array.isArray(room.bathroom) ? room.bathroom.join(', ') : room.bathroom) : '',
-        mediaTech: room.mediaTech ? (Array.isArray(room.mediaTech) ? room.mediaTech.join(', ') : room.mediaTech) : '',
-        serviceEquipment: room.serviceEquipment ? (Array.isArray(room.serviceEquipment) ? room.serviceEquipment.join(', ') : room.serviceEquipment) : '',
+        foodBeverage: toCommaText(
+          room.foodBeverage || facilityGroups.foodBeverage,
+        ),
+        bathroomFacilities: toCommaText(
+          room.bathroomFacilities ||
+            room.bathroom ||
+            facilityGroups.bathroomFacilities,
+        ),
+        mediaTechnology: toCommaText(
+          room.mediaTechnology ||
+            room.mediaTech ||
+            facilityGroups.mediaTechnology,
+        ),
+        serviceEquipment: toCommaText(
+          room.serviceEquipment || facilityGroups.serviceEquipment,
+        ),
         tags: room.tags ? (Array.isArray(room.tags) ? room.tags.join(' ') : room.tags) : '',
         image: initialImages,
         roomsLeft: roomsLeftVal || 'Only 2 rooms left',
@@ -89,14 +112,15 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
       reset({
         name: '',
         price: '',
+        discountPrice: '',
         size: '',
         capacity: '',
         bedInfo: '',
         baths: '',
         description: '',
         foodBeverage: '',
-        bathroom: '',
-        mediaTech: '',
+        bathroomFacilities: '',
+        mediaTechnology: '',
         serviceEquipment: '',
         tags: '',
         image: [],
@@ -142,30 +166,56 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
 
   if (!isOpen) return null;
 
+  const splitToArray = (value = '') =>
+    value
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean);
+
   const onSubmit = async (data) => {
+    const foodBeverage = splitToArray(data.foodBeverage);
+    const bathroomFacilities = splitToArray(data.bathroomFacilities);
+    const mediaTechnology = splitToArray(data.mediaTechnology);
+    const serviceEquipment = splitToArray(data.serviceEquipment);
+
     const formattedRoom = {
       id: room ? (room.id || room._id) : Date.now(),
       name: data.name,
       price: data.price,
+      discountPrice: data.discountPrice,
       size: data.size,
       capacity: data.capacity,
       bedInfo: data.bedInfo,
       baths: data.baths,
       description: data.description,
-      foodBeverage: data.foodBeverage.split(',').map(t => t.trim()).filter(Boolean),
-      bathroom: data.bathroom.split(',').map(t => t.trim()).filter(Boolean),
-      mediaTech: data.mediaTech.split(',').map(t => t.trim()).filter(Boolean),
-      serviceEquipment: data.serviceEquipment.split(',').map(t => t.trim()).filter(Boolean),
-      tags: data.tags.split(/[\s,]+/).map(t => t.trim()).filter(Boolean),
-      existingImages: previewUrls.filter(url => url.startsWith('http')),
+      // UI → array; FormData mapper will re-join as comma string for API
+      foodBeverage,
+      bathroomFacilities,
+      mediaTechnology,
+      serviceEquipment,
+      tags: data.tags.split(/[\s,]+/).map((t) => t.trim()).filter(Boolean),
+      existingImages: previewUrls.filter((url) => url.startsWith('http')),
       roomsLeft: data.roomsLeft,
-      imageFiles: imageFiles, // pass multiple binary files
+      imageFiles: imageFiles,
     };
+
+    console.log('--- ROOM FORM SUBMIT (parsed arrays) ---', {
+      foodBeverage,
+      bathroomFacilities,
+      mediaTechnology,
+      serviceEquipment,
+      tags: formattedRoom.tags,
+      imageFilesCount: imageFiles.length,
+      formattedRoom,
+    });
+
     try {
-      await onSave(formattedRoom);
+      const response = await onSave(formattedRoom);
+      console.log('--- ROOM FORM onSave RESPONSE ---', response);
       onClose();
     } catch (err) {
-      console.error("Failed to save room:", err);
+      console.error('Failed to save room:', err);
+      console.error('--- ROOM FORM onSave ERROR ---', err);
     }
   };
 
@@ -197,7 +247,7 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
             rows={3}
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <FormInput
               label="Price per Night ($)"
               name="price"
@@ -205,6 +255,14 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
               register={register}
               error={errors.price}
               placeholder="e.g. 150"
+            />
+            <FormInput
+              label="Discount Price ($)"
+              name="discountPrice"
+              type="number"
+              register={register}
+              error={errors.discountPrice}
+              placeholder="e.g. 120"
             />
             <FormInput
               label="Room Size"
@@ -274,16 +332,16 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
               />
               <FormInput
                 label="Bathroom Facilities"
-                name="bathroom"
+                name="bathroomFacilities"
                 register={register}
-                error={errors.bathroom}
+                error={errors.bathroomFacilities}
                 placeholder="e.g. Hair dryer in bathroom, Make-up mirror"
               />
               <FormInput
                 label="Media & Technology"
-                name="mediaTech"
+                name="mediaTechnology"
                 register={register}
-                error={errors.mediaTech}
+                error={errors.mediaTechnology}
                 placeholder="e.g. Wireless internet, Children's TV Channels"
               />
               <FormInput

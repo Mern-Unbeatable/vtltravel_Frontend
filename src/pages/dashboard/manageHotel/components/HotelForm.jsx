@@ -192,7 +192,12 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
 
     const formData = mapRoomToFormData(savedRoom);
 
-    // Log the request payload entries to console
+    console.log("--- ROOM REQUEST (parsed facility arrays) ---", {
+      foodBeverage: savedRoom.foodBeverage,
+      bathroomFacilities: savedRoom.bathroomFacilities,
+      mediaTechnology: savedRoom.mediaTechnology,
+      serviceEquipment: savedRoom.serviceEquipment,
+    });
     console.log("--- POSTING ROOM DATA (FormData Payload) ---");
     for (let pair of formData.entries()) {
       if (pair[1] instanceof File) {
@@ -209,20 +214,28 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
       if (isEditingReal) {
         response = await hotelService.updateRoom(editingRoomId, formData);
         console.log("--- ROOM UPDATE API RESPONSE ---", response);
+        console.log(
+          "--- ROOM UPDATE facilityGroups ---",
+          response?.data?.facilityGroups || response?.facilityGroups,
+        );
         if (response && response.success) {
           toast.success("Room type updated successfully!");
         } else {
           toast.error(response?.message || "Failed to update room.");
-          return;
+          throw new Error(response?.message || "Failed to update room.");
         }
       } else {
         response = await hotelService.addRoom(activeHotelId, formData);
         console.log("--- ROOM CREATE API RESPONSE ---", response);
+        console.log(
+          "--- ROOM CREATE facilityGroups ---",
+          response?.data?.facilityGroups || response?.facilityGroups,
+        );
         if (response && response.success) {
           toast.success("Room type created successfully!");
         } else {
           toast.error(response?.message || "Failed to create room.");
-          return;
+          throw new Error(response?.message || "Failed to create room.");
         }
       }
 
@@ -245,10 +258,13 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
         // Fallback: Reload parent data
         toast.info("Please refresh to see the updated room list.");
       }
+
+      return response;
     } catch (err) {
       console.error("Error saving room:", err);
       console.error("--- ROOM API ERROR ---", err);
       toast.error(err.message || "Failed to save room details.");
+      throw err;
     }
   };
 
@@ -513,7 +529,7 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
             />
           </>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-stretch">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
             <RoomTypesSidebar
               roomsVal={roomsVal}
               selectedRoomId={selectedRoomId}
@@ -526,8 +542,8 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
               onDeleteRoom={handleDeleteRoom}
             />
 
-            {/* Right Side: Interactive rates calendar */}
-            <div className="lg:col-span-3 h-full">
+            {/* Right Side: Interactive rates calendar (sets shared row height) */}
+            <div className="lg:col-span-3">
               {selectedRoomId &&
               roomsVal.find((r) => (r.id || r._id) === selectedRoomId) ? (
                 <RoomCalendarContainer
