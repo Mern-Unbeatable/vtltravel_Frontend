@@ -46,8 +46,8 @@ const RoomCard = ({
 
   return (
     <article className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md">
-      <div className="flex flex-col lg:flex-row">
-        <div className="relative h-55 w-full shrink-0 overflow-hidden bg-[#f3f4f6] lg:h-auto lg:w-[320px]">
+      <div className="flex flex-col lg:h-[280px] lg:flex-row">
+        <div className="relative h-[220px] w-full shrink-0 overflow-hidden bg-[#f3f4f6] lg:h-full lg:w-[300px]">
           <FallbackImage
             src={roomImage}
             alt={room?.name || 'Room'}
@@ -57,26 +57,32 @@ const RoomCard = ({
           <button
             type="button"
             onClick={() => onOpenDetails && onOpenDetails(room)}
-            className="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-md bg-black/60 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-xs transition hover:bg-black/75 cursor-pointer"
+            className="absolute bottom-3 left-3 flex cursor-pointer items-center gap-1.5 rounded-md bg-black/60 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-xs transition hover:bg-black/75"
           >
             <HiOutlinePhotograph className="h-4 w-4" />
             <span>1/{roomGallery.length || 1}</span>
           </button>
         </div>
 
-        <div className="flex flex-1 flex-col justify-between p-5 md:p-6">
-          <div>
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col justify-between p-5 md:p-6">
+          <div className="min-h-0">
             {room?.name ? (
-              <h3 className="text-xl font-bold tracking-tight text-slate-900">{room.name}</h3>
+              <h3 className="line-clamp-1 text-xl font-bold tracking-tight text-slate-900">
+                {room.name}
+              </h3>
             ) : null}
-            {meta ? <p className="mt-1 text-xs md:text-sm font-medium text-gray-500">{meta}</p> : null}
+            {meta ? (
+              <p className="mt-1 line-clamp-1 text-xs font-medium text-gray-500 md:text-sm">
+                {meta}
+              </p>
+            ) : null}
 
             {roomTags.length > 0 ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {roomTags.map((tag) => (
+              <div className="mt-3 flex flex-wrap gap-2 overflow-hidden lg:max-h-[56px]">
+                {roomTags.slice(0, 4).map((tag) => (
                   <span
                     key={tag}
-                    className="rounded-md bg-sky-50 px-2.5 py-1 text-[11px] md:text-sm font-semibold text-[#3ea5dc]"
+                    className="rounded-md bg-sky-50 px-2.5 py-1 text-[11px] font-semibold text-[#3ea5dc] md:text-sm"
                   >
                     {tag}
                   </span>
@@ -85,21 +91,21 @@ const RoomCard = ({
             ) : null}
 
             {room?.description ? (
-              <p className="mt-3 line-clamp-2 text-sm   md:text-base leading-relaxed text-gray-500">
+              <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-gray-500 md:text-base">
                 {room.description}
               </p>
             ) : null}
           </div>
 
-          <div className="mt-6 flex flex-col items-start gap-4 border-t border-gray-100 pt-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="mt-4 flex shrink-0 flex-col items-start gap-4 border-t border-gray-100 pt-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               {room?.memberRate ? (
-                <span className="inline-block rounded-md bg-sky-100 px-2 py-0.5 text-[10px] md:text-sm font-bold text-[#3ea5dc] uppercase">
+                <span className="inline-block rounded-md bg-sky-100 px-2 py-0.5 text-[10px] font-bold uppercase text-[#3ea5dc] md:text-sm">
                   Member rate
                 </span>
               ) : null}
-              {(nights > 0 || adults > 0 || room?.taxes) ? (
-                <p className="mt-1 text-xs md:text-sm text-gray-400">
+              {nights > 0 || adults > 0 || room?.taxes ? (
+                <p className="mt-1 text-xs text-gray-400 md:text-sm">
                   {nights > 0 ? `${nights} night${nights !== 1 ? 's' : ''}` : ''}
                   {nights > 0 && adults > 0 ? ', ' : ''}
                   {adults > 0 ? `${adults} adult${adults !== 1 ? 's' : ''}` : ''}
@@ -107,28 +113,36 @@ const RoomCard = ({
                 </p>
               ) : null}
               {room?.roomsLeft ? (
-                <p className="text-[11px] md:text-sm font-semibold text-emerald-600">{room.roomsLeft}</p>
+                <p className="line-clamp-1 text-[11px] font-semibold text-emerald-600 md:text-sm">
+                  {room.roomsLeft}
+                </p>
               ) : null}
 
               <button
                 type="button"
                 onClick={() => onOpenDetails && onOpenDetails(room)}
-                className="mt-3 block text-xs md:text-sm font-medium text-[#3ea5dc] hover:underline cursor-pointer"
+                className="mt-2 block cursor-pointer text-xs font-medium text-[#3ea5dc] hover:underline md:text-sm"
               >
                 See the room details
               </button>
             </div>
 
             <div className="flex flex-col items-start text-left sm:items-end sm:text-right">
-              {room?.pricePreview && room.pricePreview.roomSubtotal !== undefined && room.pricePreview.roomSubtotal !== null ? (
+              {room?.pricePreview &&
+              room.pricePreview.roomSubtotal !== undefined &&
+              room.pricePreview.roomSubtotal !== null ? (
                 <div className="flex items-baseline gap-1">
                   <span className="text-xs text-gray-500">Total</span>
-                  <span className="text-2xl font-extrabold text-[#3ea5dc]">${room.pricePreview.roomSubtotal}</span>
+                  <span className="text-2xl font-extrabold text-[#3ea5dc]">
+                    ${room.pricePreview.roomSubtotal}
+                  </span>
                 </div>
               ) : room?.price ? (
                 <div className="flex items-baseline gap-1">
                   <span className="text-xs text-gray-500">From</span>
-                  <span className="text-2xl font-extrabold text-[#3ea5dc]">{room.price}</span>
+                  <span className="text-2xl font-extrabold text-[#3ea5dc]">
+                    {room.price}
+                  </span>
                 </div>
               ) : null}
               {room?.publicRate && room.publicRate !== room.price ? (
@@ -146,7 +160,7 @@ const RoomCard = ({
                   }
                   onSelectRoom?.(room)
                 }}
-                className={`group mt-3 rounded-full px-7 py-2.5 text-xs font-bold text-white shadow-md transition active:scale-95 cursor-pointer ${
+                className={`group mt-3 cursor-pointer rounded-full px-7 py-2.5 text-xs font-bold text-white shadow-md transition active:scale-95 ${
                   isSelected
                     ? 'bg-emerald-500 hover:bg-red-500'
                     : 'bg-[#3ea5dc] hover:bg-[#3296cc]'

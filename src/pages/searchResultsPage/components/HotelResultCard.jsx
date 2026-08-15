@@ -125,10 +125,10 @@ const HotelResultCard = ({ hotel, nights = 1, adults = 1, rooms = 1 }) => {
                 </p>
               ) : null}
 
-              <p className="mt-0.5 text-base text-gray-400">
+              {/* <p className="mt-0.5 text-base text-gray-400">
                 {nights} night{nights !== 0 ? 's' : ''} - {adults} adult{adults !== 0? 's' : ''}
                 {rooms > 1 ? ` - ${rooms} rooms` : ''}
-              </p>
+              </p> */}
 
               <button
                 type="button"

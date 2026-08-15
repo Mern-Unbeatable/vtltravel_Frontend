@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { hotelService } from '../api/services/hotelService';
-import { buildFilterFacets } from '../utils/hotelSearchParams';
+import { buildFilterFacets, mergeFilterFacets } from '../utils/hotelSearchParams';
 
 const emptyHotelsResult = {
   items: [],
@@ -44,9 +44,44 @@ export const useHotelFilterFacets = (params = {}) => {
   return useQuery({
     queryKey: ['hotel-filter-facets', params],
     queryFn: async () => {
-      const response = await hotelService.getHotels({ ...params, page: 1, limit: 100 });
-      const items = response?.data?.items || [];
-      return buildFilterFacets(items);
+      const [catalogResponse, scopedResponse, featuredResponse] =
+        await Promise.all([
+          // Full option catalog (always show all known filters)
+          hotelService.getHotels({ page: 1, limit: 100 }),
+          // Counts for current search context
+          hotelService.getHotels({ ...params, page: 1, limit: 100 }),
+          hotelService.getHotels({
+            ...params,
+            isFeatured: true,
+            page: 1,
+            limit: 1,
+          }),
+        ]);
+
+      const catalogFacets = buildFilterFacets(
+        catalogResponse?.data?.items || [],
+      );
+      const scopedFacets = buildFilterFacets(scopedResponse?.data?.items || []);
+      const merged = mergeFilterFacets(catalogFacets, scopedFacets);
+
+      const featuredTotal = Number(
+        featuredResponse?.data?.pagination?.total ??
+          featuredResponse?.data?.items?.filter((h) => h?.isFeatured === true)
+            ?.length ??
+          0,
+      );
+
+      return {
+        ...merged,
+        featuredPackages: [
+          {
+            name: 'Packages of the Month',
+            slug: 'featured',
+            // Real API total only — never invent a dummy count
+            count: Number.isFinite(featuredTotal) ? featuredTotal : 0,
+          },
+        ],
+      };
     },
     staleTime: 60_000,
   });

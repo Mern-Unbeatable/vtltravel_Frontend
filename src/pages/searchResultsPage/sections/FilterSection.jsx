@@ -6,10 +6,13 @@ import { compactParams } from "../../../utils/hotelSearchParams";
 import { FilterFacetSkeleton } from "../../../components/skeletons/Skeleton";
 
 const starsList = ["5 ★", "4 ★", "3 ★", "1 ★", "Unclassified ★"];
-
-const featuredPackages = [{ name: "Packages of the Month", count: 1 }];
+const MIN_PRICE = 0;
+const MAX_PRICE = 1000;
 
 const FilterCheckboxRow = ({ label, count, checked, onChange }) => {
+  const safeCount = Number(count);
+  const displayCount = Number.isFinite(safeCount) ? safeCount : 0;
+
   return (
     <label className="flex cursor-pointer items-center justify-between gap-3 text-sm text-gray-600 hover:text-gray-900">
       <span className="flex items-center gap-2">
@@ -17,11 +20,11 @@ const FilterCheckboxRow = ({ label, count, checked, onChange }) => {
           type="checkbox"
           checked={checked}
           onChange={(e) => onChange(label, e.target.checked)}
-          className="h-3.5 w-3.5 rounded border-[#05588E29] accent-primary cursor-pointer"
+          className="h-3.5 w-3.5 cursor-pointer rounded border-[#05588E29] accent-primary"
         />
         <span>{label}</span>
       </span>
-      <span className="text-gray-400 font-medium">{count}</span>
+      <span className="font-medium text-gray-400">{displayCount}</span>
     </label>
   );
 };
@@ -54,21 +57,35 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
 
   const { data: facets, isLoading: isFacetsLoading } =
     useHotelFilterFacets(facetParams);
+
   const bestFor = facets?.bestFor || [];
   const accommodationStyles = facets?.accommodationStyles || [];
   const resortFeatures = facets?.resortFeatures || [];
-
-  const MIN_PRICE = 48;
-  const MAX_PRICE = 466;
+  const featuredPackages = facets?.featuredPackages || [];
 
   const [minBudget, setMinBudget] = useState(MIN_PRICE);
   const [maxBudget, setMaxBudget] = useState(MAX_PRICE);
   const [selectedStars, setSelectedStars] = useState([]);
-  const [selectedOptions, setSelectedOptions] = useState({});
+  const [isFeatured, setIsFeatured] = useState(
+    searchParams.get("isFeatured") === "true",
+  );
   const [selectedTags, setSelectedTags] = useState([]);
   const [selectedFacilities, setSelectedFacilities] = useState([]);
   const [selectedStyles, setSelectedStyles] = useState([]);
   const [onlyAvailable, setOnlyAvailable] = useState(false);
+
+  const clampBudget = (value) =>
+    Math.min(MAX_PRICE, Math.max(MIN_PRICE, Number(value) || 0));
+
+  const handleMinBudgetChange = (raw) => {
+    const next = clampBudget(raw);
+    setMinBudget(Math.min(next, maxBudget));
+  };
+
+  const handleMaxBudgetChange = (raw) => {
+    const next = clampBudget(raw);
+    setMaxBudget(Math.max(next, minBudget));
+  };
 
   const toggleStar = (star) => {
     setSelectedStars((prev) =>
@@ -85,20 +102,13 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
     });
   };
 
-  const handleCheckboxChange = (name, isChecked) => {
-    setSelectedOptions((prev) => ({
-      ...prev,
-      [name]: isChecked,
-    }));
-  };
-
   const handleApplyFilter = () => {
     if (onFilterChange) {
       onFilterChange({
         minBudget,
         maxBudget,
         selectedStars,
-        selectedOptions,
+        isFeatured,
         selectedTags,
         selectedFacilities,
         selectedStyles,
@@ -108,12 +118,11 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
     setIsOpen(false);
   };
 
-  const hasSelectedOptions = Object.values(selectedOptions).some(Boolean);
   const hasCreatedFilter =
     minBudget !== MIN_PRICE ||
     maxBudget !== MAX_PRICE ||
     selectedStars.length > 0 ||
-    hasSelectedOptions ||
+    isFeatured ||
     selectedTags.length > 0 ||
     selectedFacilities.length > 0 ||
     selectedStyles.length > 0 ||
@@ -123,7 +132,7 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
     setMinBudget(MIN_PRICE);
     setMaxBudget(MAX_PRICE);
     setSelectedStars([]);
-    setSelectedOptions({});
+    setIsFeatured(false);
     setSelectedTags([]);
     setSelectedFacilities([]);
     setSelectedStyles([]);
@@ -140,13 +149,16 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
     }
   };
 
+  const minPercent = ((minBudget - MIN_PRICE) / (MAX_PRICE - MIN_PRICE)) * 100;
+  const maxPercent = ((maxBudget - MIN_PRICE) / (MAX_PRICE - MIN_PRICE)) * 100;
+
   return (
-    <div className="lg:sticky lg:top-24 lg:h-[calc(100vh-240px)] lg:flex lg:flex-col lg:overflow-hidden lg:self-start">
+    <div className="lg:sticky lg:top-24 lg:flex lg:h-[calc(100vh-240px)] lg:flex-col lg:self-start lg:overflow-hidden">
       <div className="lg:hidden">
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="inline-flex items-center gap-2 rounded-xl border border-[#05588E29] bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 active:scale-95 transition-all"
+          className="inline-flex items-center gap-2 rounded-xl border border-[#05588E29] bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition-all hover:bg-gray-50 active:scale-95"
         >
           <IoFilterOutline className="text-lg text-primary" />
           <span>Filters</span>
@@ -162,48 +174,44 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
 
       <aside
         className={`
-          fixed bottom-0 top-0 left-0 z-[101] w-[300px] bg-white p-6 shadow-2xl transition-transform duration-300 flex flex-col overflow-hidden
-          lg:static lg:z-auto lg:w-auto lg:p-0 lg:shadow-none lg:translate-x-0 lg:bg-transparent lg:flex lg:flex-col lg:overflow-hidden lg:h-full lg:w-full
+          fixed bottom-0 top-0 left-0 z-[101] flex w-[300px] flex-col overflow-hidden bg-white p-6 shadow-2xl transition-transform duration-300
+          lg:static lg:z-auto lg:h-full lg:w-full lg:translate-x-0 lg:bg-transparent lg:p-0 lg:shadow-none
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
         `}
       >
-        <div className="flex items-center justify-between lg:hidden mb-4 pb-3 border-b border-[#05588E29] shrink-0">
+        <div className="mb-4 flex shrink-0 items-center justify-between border-b border-[#05588E29] pb-3 lg:hidden">
           <h3 className="text-xl font-bold text-slate-900">Filters</h3>
           <button
             type="button"
             onClick={() => setIsOpen(false)}
-            className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 cursor-pointer"
+            className="cursor-pointer rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
           >
             <IoCloseOutline className="text-2xl" />
           </button>
         </div>
 
-     
-        <div className="hidden lg:flex items-center justify-between mb-4 pb-3 border-b border-[#05588E29] shrink-0">
+        <div className="mb-4 hidden shrink-0 items-center justify-between border-b border-[#05588E29] pb-3 lg:flex">
           <h3 className="text-xl font-semibold text-slate-900">Filter</h3>
           <button
             type="button"
             onClick={handleClearFilters}
-            className="text-sm font-semibold text-primary hover:underline cursor-pointer"
+            className="cursor-pointer text-sm font-semibold text-primary hover:underline"
           >
             Reset All
           </button>
         </div>
 
-        {/* Mobile Reset Action */}
-        <div className="flex items-center justify-between lg:hidden mb-3 shrink-0">
+        <div className="mb-3 flex shrink-0 items-center justify-between lg:hidden">
           <button
             type="button"
             onClick={handleClearFilters}
-            className="text-sm font-semibold text-primary hover:underline cursor-pointer"
+            className="cursor-pointer text-sm font-semibold text-primary hover:underline"
           >
             Reset All Filters
           </button>
         </div>
 
-        {/* Scrollable Filters Content Area (No Scrollbar) */}
-        <div className="flex-1 overflow-y-auto pr-1 pb-6 space-y-5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          {/* Budget Filter */}
+        <div className="flex-1 space-y-5 overflow-y-auto pb-6 pr-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div>
             <div className="flex items-center justify-between">
               <p className="text-sm font-semibold text-gray-800">Budget</p>
@@ -211,7 +219,9 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
                 ${minBudget} - ${maxBudget}
               </span>
             </div>
-            <p className="mt-0.5 text-xs text-gray-400">Price for 1 night - 1 room, 1 adult.</p>
+            <p className="mt-0.5 text-xs text-gray-400">
+              Price for 1 night - 1 room, 1 adult.
+            </p>
 
             <div className="mt-3 grid grid-cols-2 gap-2">
               <div>
@@ -223,8 +233,8 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
                     min={MIN_PRICE}
                     max={maxBudget}
                     value={minBudget}
-                    onChange={(e) => setMinBudget(Number(e.target.value))}
-                    className="w-full rounded-lg border border-[#05588E29] pl-6 pr-2 py-1.5 text-xs font-semibold text-[#262626] outline-none focus:border-primary bg-white"
+                    onChange={(e) => handleMinBudgetChange(e.target.value)}
+                    className="w-full rounded-lg border border-[#05588E29] bg-white py-1.5 pl-6 pr-2 text-xs font-semibold text-[#262626] outline-none focus:border-primary"
                   />
                 </div>
               </div>
@@ -237,26 +247,48 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
                     min={minBudget}
                     max={MAX_PRICE}
                     value={maxBudget}
-                    onChange={(e) => setMaxBudget(Number(e.target.value))}
-                    className="w-full rounded-lg border border-[#05588E29] pl-6 pr-2 py-1.5 text-xs font-semibold text-[#262626] outline-none focus:border-primary bg-white"
+                    onChange={(e) => handleMaxBudgetChange(e.target.value)}
+                    className="w-full rounded-lg border border-[#05588E29] bg-white py-1.5 pl-6 pr-2 text-xs font-semibold text-[#262626] outline-none focus:border-primary"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="mt-3">
+            {/* Dual range slider: drag min/max between $0 – $1000 */}
+            <div className="relative mt-5 h-6">
+              <div className="absolute top-1/2 h-1.5 w-full -translate-y-1/2 rounded-full bg-gray-200" />
+              <div
+                className="absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-primary"
+                style={{
+                  left: `${minPercent}%`,
+                  width: `${Math.max(0, maxPercent - minPercent)}%`,
+                }}
+              />
               <input
                 type="range"
                 min={MIN_PRICE}
                 max={MAX_PRICE}
-                value={maxBudget}
-                onChange={(e) => setMaxBudget(Number(e.target.value))}
-                className="w-full cursor-pointer accent-primary"
+                step={1}
+                value={minBudget}
+                onChange={(e) => handleMinBudgetChange(e.target.value)}
+                className="pointer-events-none absolute inset-0 z-10 m-0 h-6 w-full appearance-none bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-primary [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:relative [&::-webkit-slider-thumb]:z-20 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:cursor-grab [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary active:[&::-webkit-slider-thumb]:cursor-grabbing"
               />
+              <input
+                type="range"
+                min={MIN_PRICE}
+                max={MAX_PRICE}
+                step={1}
+                value={maxBudget}
+                onChange={(e) => handleMaxBudgetChange(e.target.value)}
+                className="pointer-events-none absolute inset-0 z-20 m-0 h-6 w-full appearance-none bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-primary [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:relative [&::-webkit-slider-thumb]:z-30 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:cursor-grab [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary active:[&::-webkit-slider-thumb]:cursor-grabbing"
+              />
+            </div>
+            <div className="mt-1 flex justify-between text-[10px] text-gray-400">
+              <span>$0</span>
+              <span>$1000</span>
             </div>
           </div>
 
-          {/* Stars Filter */}
           <div className="border-t border-[#05588E29] pt-4">
             <p className="text-xs font-bold text-gray-800">Stars</p>
             <div className="mt-2.5 flex flex-wrap gap-2">
@@ -267,9 +299,9 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
                     key={item}
                     type="button"
                     onClick={() => toggleStar(item)}
-                    className={`rounded-lg border px-3 py-1.5 text-xs transition-all cursor-pointer ${
+                    className={`cursor-pointer rounded-lg border px-3 py-1.5 text-xs transition-all ${
                       isSelected
-                        ? "border-primary bg-primary text-white shadow-xs font-semibold"
+                        ? "border-primary bg-primary font-semibold text-white shadow-xs"
                         : "border-[#05588E29] bg-white text-gray-600 hover:bg-gray-50"
                     }`}
                   >
@@ -280,88 +312,92 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
             </div>
           </div>
 
-          {/* Checkbox Groups */}
           <FilterGroup title="Featured Packages">
-            {featuredPackages.map((item) => (
-              <FilterCheckboxRow
-                key={item.name}
-                label={item.name}
-                count={item.count}
-                checked={!!selectedOptions[item.name]}
-                onChange={handleCheckboxChange}
-              />
-            ))}
+            {isFacetsLoading ? (
+              <FilterFacetSkeleton rows={1} />
+            ) : (
+              featuredPackages.map((item) => (
+                <FilterCheckboxRow
+                  key={item.slug}
+                  label={item.name}
+                  count={item.count}
+                  checked={isFeatured}
+                  onChange={(_, checked) => setIsFeatured(checked)}
+                />
+              ))
+            )}
           </FilterGroup>
 
-          {isFacetsLoading || bestFor.length > 0 ? (
-            <FilterGroup title="Best For">
-              {isFacetsLoading ? (
-                <FilterFacetSkeleton rows={4} />
-              ) : (
-                bestFor.map((item) => (
-                  <FilterCheckboxRow
-                    key={item.slug}
-                    label={item.name}
-                    count={item.count}
-                    checked={selectedTags.includes(item.slug)}
-                    onChange={(_, isChecked) =>
-                      toggleSlug(setSelectedTags)(item.slug, isChecked)
-                    }
-                  />
-                ))
-              )}
-            </FilterGroup>
-          ) : null}
+          <FilterGroup title="Best For">
+            {isFacetsLoading ? (
+              <FilterFacetSkeleton rows={4} />
+            ) : bestFor.length > 0 ? (
+              bestFor.map((item) => (
+                <FilterCheckboxRow
+                  key={item.slug}
+                  label={item.name}
+                  count={item.count}
+                  checked={selectedTags.includes(item.slug)}
+                  onChange={(_, isChecked) =>
+                    toggleSlug(setSelectedTags)(item.slug, isChecked)
+                  }
+                />
+              ))
+            ) : (
+              <p className="text-xs text-gray-400">No options available yet.</p>
+            )}
+          </FilterGroup>
 
-          {isFacetsLoading || accommodationStyles.length > 0 ? (
-            <FilterGroup title="Accommodation Style">
-              {isFacetsLoading ? (
-                <FilterFacetSkeleton rows={4} />
-              ) : (
-                accommodationStyles.map((item) => (
-                  <FilterCheckboxRow
-                    key={item.slug}
-                    label={item.name}
-                    count={item.count}
-                    checked={selectedStyles.includes(item.slug)}
-                    onChange={(_, isChecked) =>
-                      toggleSlug(setSelectedStyles)(item.slug, isChecked)
-                    }
-                  />
-                ))
-              )}
-            </FilterGroup>
-          ) : null}
+          <FilterGroup title="Accommodation Style">
+            {isFacetsLoading ? (
+              <FilterFacetSkeleton rows={4} />
+            ) : accommodationStyles.length > 0 ? (
+              accommodationStyles.map((item) => (
+                <FilterCheckboxRow
+                  key={item.slug}
+                  label={item.name}
+                  count={item.count}
+                  checked={selectedStyles.includes(item.slug)}
+                  onChange={(_, isChecked) =>
+                    toggleSlug(setSelectedStyles)(item.slug, isChecked)
+                  }
+                />
+              ))
+            ) : (
+              <p className="text-xs text-gray-400">No options available yet.</p>
+            )}
+          </FilterGroup>
 
-          {isFacetsLoading || resortFeatures.length > 0 ? (
-            <FilterGroup title="Resort Features">
-              {isFacetsLoading ? (
-                <FilterFacetSkeleton rows={4} />
-              ) : (
-                resortFeatures.map((item) => (
-                  <FilterCheckboxRow
-                    key={item.slug}
-                    label={item.name}
-                    count={item.count}
-                    checked={selectedFacilities.includes(item.slug)}
-                    onChange={(_, isChecked) =>
-                      toggleSlug(setSelectedFacilities)(item.slug, isChecked)
-                    }
-                  />
-                ))
-              )}
-            </FilterGroup>
-          ) : null}
+          <FilterGroup title="Resort Features">
+            {isFacetsLoading ? (
+              <FilterFacetSkeleton rows={4} />
+            ) : resortFeatures.length > 0 ? (
+              resortFeatures.map((item) => (
+                <FilterCheckboxRow
+                  key={item.slug}
+                  label={item.name}
+                  count={item.count}
+                  checked={selectedFacilities.includes(item.slug)}
+                  onChange={(_, isChecked) =>
+                    toggleSlug(setSelectedFacilities)(item.slug, isChecked)
+                  }
+                />
+              ))
+            ) : (
+              <p className="text-xs text-gray-400">No options available yet.</p>
+            )}
+          </FilterGroup>
 
-          {/* Availability Toggle */}
           <div className="border-t border-[#05588E29] pt-4">
             <p className="text-xs font-bold text-gray-800">Availability</p>
             <div className="mt-3 flex items-center justify-between">
-              <span className="text-xs md:text-sm text-gray-600">Show only available hotels</span>
+              <span className="text-xs text-gray-600 md:text-sm">
+                Show only available hotels
+              </span>
               <button
                 type="button"
                 onClick={() => setOnlyAvailable((prev) => !prev)}
-                className={`relative flex h-6 w-11 items-center rounded-full p-0.5 transition-colors cursor-pointer ${
+                className={`relative flex h-6 w-11 cursor-pointer items-center rounded-full p-0.5 transition-colors ${
                   onlyAvailable ? "bg-primary" : "bg-gray-300"
                 }`}
               >
@@ -375,23 +411,15 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
           </div>
         </div>
 
-        {/* Sticky Actions Footer (Transparent on Desktop) */}
-        <div className="mt-auto pt-4 pb-2 border-t border-[#05588E29] flex items-center justify-between bg-white lg:bg-transparent shrink-0">
-          {/* <button
-            type="button"
-            onClick={handleClearFilters}
-            className="text-sky-500 hover:text-sky-600 hover:underline text-sm font-semibold cursor-pointer transition-all bg-transparent border-0"
-          >
-            Clear all
-          </button> */}
+        <div className="mt-auto flex shrink-0 items-center justify-between border-t border-[#05588E29] bg-white pb-2 pt-4 lg:bg-transparent">
           <button
             type="button"
             onClick={handleApplyFilter}
             disabled={!hasCreatedFilter}
             className={`rounded-full px-8 py-2.5 text-sm font-semibold shadow-sm transition-all ${
               hasCreatedFilter
-                ? "bg-primary text-white hover:bg-primary/90 cursor-pointer active:scale-95"
-                : "bg-[#A3A6C5] text-white cursor-not-allowed opacity-80"
+                ? "cursor-pointer bg-primary text-white hover:bg-primary/90 active:scale-95"
+                : "cursor-not-allowed bg-[#A3A6C5] text-white opacity-80"
             }`}
           >
             Filter

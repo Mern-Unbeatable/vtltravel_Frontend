@@ -12,6 +12,7 @@ export const HOTEL_SEARCH_KEYS = [
   'facilities',
   'breakfastIncluded',
   'freeCancellation',
+  'isFeatured',
   'sort',
   'page',
   'limit',
@@ -22,6 +23,7 @@ const STAR_SLUGS = {
   '4 ★': '4',
   '3 ★': '3',
   '1 ★': '1',
+  'Unclassified ★': 'unclassified',
 }
 
 const formatAccommodationStyle = (style) => {
@@ -42,6 +44,8 @@ export const buildFilterFacets = (hotels = []) => {
   const tags = new Map()
   const styles = new Map()
   const facilities = new Map()
+  const stars = new Map()
+  const prices = []
 
   hotels.forEach((hotel) => {
     ;(hotel.tags || []).forEach((item) => {
@@ -64,6 +68,21 @@ export const buildFilterFacets = (hotels = []) => {
       if (!facility?.slug) return
       incrementFacet(facilities, facility.slug, facility.name || facility.slug)
     })
+
+    const starValue = Number(hotel.starRating)
+    if (Number.isFinite(starValue) && starValue > 0) {
+      const starSlug = String(Math.round(starValue))
+      incrementFacet(stars, starSlug, `${starSlug} ★`)
+    } else {
+      incrementFacet(stars, 'unclassified', 'Unclassified ★')
+    }
+
+    const price = Number(
+      hotel.fromPrice ?? hotel.startingPrice ?? hotel.price ?? NaN,
+    )
+    if (Number.isFinite(price) && price >= 0) {
+      prices.push(price)
+    }
   })
 
   const byCount = (a, b) => b.count - a.count || a.name.localeCompare(b.name)
@@ -72,6 +91,75 @@ export const buildFilterFacets = (hotels = []) => {
     bestFor: [...tags.values()].sort(byCount),
     accommodationStyles: [...styles.values()].sort(byCount),
     resortFeatures: [...facilities.values()].sort(byCount),
+    starRatings: [...stars.values()].sort((a, b) => {
+      if (a.slug === 'unclassified') return 1
+      if (b.slug === 'unclassified') return -1
+      return Number(b.slug) - Number(a.slug)
+    }),
+    priceRange:
+      prices.length > 0
+        ? {
+            min: Math.floor(Math.min(...prices)),
+            max: Math.ceil(Math.max(...prices)),
+          }
+        : { min: 0, max: 0 },
+    featuredCount: hotels.filter((hotel) => hotel?.isFeatured === true).length,
+  }
+}
+
+/** Keep full option list from catalog; apply current-search counts (0 if none). */
+export const mergeFilterFacets = (catalog = {}, scoped = {}) => {
+  const byCount = (a, b) => b.count - a.count || a.name.localeCompare(b.name)
+
+  const mergeList = (allItems = [], scopedItems = []) => {
+    const scopedMap = new Map(
+      scopedItems.map((item) => [item.slug, Number(item.count) || 0]),
+    )
+
+    const merged = allItems.map((item) => ({
+      name: item.name,
+      slug: item.slug,
+      count: scopedMap.has(item.slug) ? scopedMap.get(item.slug) : 0,
+    }))
+
+    scopedItems.forEach((item) => {
+      if (!merged.some((row) => row.slug === item.slug)) {
+        merged.push({
+          name: item.name,
+          slug: item.slug,
+          count: Number(item.count) || 0,
+        })
+      }
+    })
+
+    return merged.sort(byCount)
+  }
+
+  const catalogPrice = catalog.priceRange || { min: 0, max: 0 }
+  const scopedPrice = scoped.priceRange || { min: 0, max: 0 }
+  const hasScopedPrice = scopedPrice.max > 0
+  const hasCatalogPrice = catalogPrice.max > 0
+
+  return {
+    bestFor: mergeList(catalog.bestFor, scoped.bestFor),
+    accommodationStyles: mergeList(
+      catalog.accommodationStyles,
+      scoped.accommodationStyles,
+    ),
+    resortFeatures: mergeList(catalog.resortFeatures, scoped.resortFeatures),
+    starRatings: mergeList(catalog.starRatings, scoped.starRatings).sort(
+      (a, b) => {
+        if (a.slug === 'unclassified') return 1
+        if (b.slug === 'unclassified') return -1
+        return Number(b.slug) - Number(a.slug)
+      },
+    ),
+    // Prefer current-search price bounds; fallback to catalog
+    priceRange: hasScopedPrice
+      ? scopedPrice
+      : hasCatalogPrice
+        ? catalogPrice
+        : { min: 0, max: 0 },
   }
 }
 
@@ -110,6 +198,7 @@ export const buildHotelApiParams = (values = {}) => {
       : values.facilities,
     breakfastIncluded: values.breakfastIncluded,
     freeCancellation: values.freeCancellation,
+    isFeatured: values.isFeatured,
     sort: values.sort,
     page: values.page || 1,
     limit: values.limit || 12,
@@ -142,8 +231,9 @@ export const mapUiFiltersToApi = (filters) => {
   if (!filters) return {}
 
   const starRating = (filters.selectedStars || [])
-    .map((star) => STAR_SLUGS[star])
+    .map((star) => STAR_SLUGS[star] || star)
     .filter(Boolean)
+    .filter((star) => star !== 'unclassified')
 
   return compactParams({
     minPrice: filters.minBudget,
@@ -151,6 +241,7 @@ export const mapUiFiltersToApi = (filters) => {
     starRating: starRating.join(','),
     tags: (filters.selectedTags || []).join(','),
     facilities: (filters.selectedFacilities || []).join(','),
+    isFeatured: filters.isFeatured ? true : undefined,
   })
 }
 
