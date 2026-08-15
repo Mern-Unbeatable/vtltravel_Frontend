@@ -111,51 +111,39 @@ const HotelDetailsPage = () => {
   const handleSelectRoom = (room) => {
     if (isRoomBookedForStay(room, stay)) {
       toast.error(ROOM_BOOKED_MESSAGE)
+      return
     }
 
-    setSelectedRooms((prev) => {
-      const currentTotal = getSelectedRoomsQuantity(prev)
-      const stayMax = Number(stay?.rooms) || 1
-      // Allow choosing rooms without first setting room count in the filter bar
-      const effectiveMax = Math.max(stayMax, currentTotal + 1)
-      const result = upsertSelectedRoom(prev, room, effectiveMax)
+    setSelectedRooms([{ ...room, quantity: 1 }])
 
-      if (result.error) {
-        toast.info(result.error)
-        return prev
-      }
-
-      const nextTotal = getSelectedRoomsQuantity(result.rooms)
-      if (nextTotal > stayMax) {
-        const saved = saveHotelSearch({
-          ...(stay || {}),
-          checkIn: stay?.checkIn || '',
-          checkOut: stay?.checkOut || '',
-          adults: Number(stay?.adults) || 1,
-          children: Number(stay?.children) || 0,
-          rooms: nextTotal,
-        })
-        setStay(saved)
-      }
-
-      return result.rooms
-    })
+    if (Number(stay?.rooms) !== 1) {
+      const saved = saveHotelSearch({
+        ...(stay || {}),
+        checkIn: stay?.checkIn || '',
+        checkOut: stay?.checkOut || '',
+        adults: Number(stay?.adults) || 1,
+        children: Number(stay?.children) || 0,
+        rooms: 1,
+      })
+      setStay(saved)
+    }
   }
 
   const handleCancelRoom = (room) => {
-    setSelectedRooms((prev) => updateSelectedRoomQuantity(prev, room.id, 0))
+    setSelectedRooms([])
   }
 
   const handleRoomQuantityChange = (roomId, quantity) => {
     setSelectedRooms((prev) => {
-      const currentTotal = getSelectedRoomsQuantity(prev)
-      const currentRoom = prev.find((room) => room.id === roomId)
-      const currentQty = Number(currentRoom?.quantity) || 0
-      if (quantity > currentQty && currentTotal >= maxRooms) {
-        toast.info(`You can select up to ${maxRooms} room${maxRooms !== 1 ? 's' : ''}.`)
+      const nextQty = Number(quantity) || 0
+      if (nextQty <= 0) {
+        return []
+      }
+      if (nextQty > 1) {
+        toast.info("You can select only 1 room.")
         return prev
       }
-      return updateSelectedRoomQuantity(prev, roomId, quantity)
+      return prev.map((r) => r.id === roomId ? { ...r, quantity: 1 } : r)
     })
   }
 
