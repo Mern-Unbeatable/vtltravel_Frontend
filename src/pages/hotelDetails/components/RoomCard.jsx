@@ -19,7 +19,26 @@ const RoomCard = ({
   const roomGallery = (room?.gallery || room?.images || [])
     .map((img) => (typeof img === 'string' ? img : img?.url))
     .filter(Boolean)
-  const roomTags = (room?.tags || []).filter(Boolean)
+  const rawTags = room?.tags || []
+  const roomTags = (() => {
+    const joined = rawTags.join(',').trim()
+    if (joined.startsWith('[') && joined.endsWith(']')) {
+      try {
+        const parsed = JSON.parse(joined)
+        if (Array.isArray(parsed)) {
+          return parsed.map((t) => (typeof t === 'string' ? t.replace(/^["']|["']$/g, '').trim() : String(t))).filter(Boolean)
+        }
+      } catch (e) {
+        // ignore and fallback
+      }
+    }
+    return rawTags
+      .map((tag) => {
+        if (typeof tag !== 'string') return String(tag)
+        return tag.replace(/[\[\]\\"]/g, '').trim()
+      })
+      .filter(Boolean)
+  })()
   const nights = stay?.nights || 0
   const adults = Number(stay?.adults) || 0
   const meta = [room?.bedInfo, room?.capacity, room?.size].filter(Boolean).join(' | ')
@@ -88,7 +107,7 @@ const RoomCard = ({
                 </p>
               ) : null}
               {room?.roomsLeft ? (
-                <p className="text-[11px] md:text-sm font-semibold text-emerald-600"></p>
+                <p className="text-[11px] md:text-sm font-semibold text-emerald-600">{room.roomsLeft}</p>
               ) : null}
 
               <button
@@ -101,7 +120,12 @@ const RoomCard = ({
             </div>
 
             <div className="flex flex-col items-start text-left sm:items-end sm:text-right">
-              {room?.price ? (
+              {room?.pricePreview && room.pricePreview.roomSubtotal !== undefined && room.pricePreview.roomSubtotal !== null ? (
+                <div className="flex items-baseline gap-1">
+                  <span className="text-xs text-gray-500">Total</span>
+                  <span className="text-2xl font-extrabold text-[#3ea5dc]">${room.pricePreview.roomSubtotal}</span>
+                </div>
+              ) : room?.price ? (
                 <div className="flex items-baseline gap-1">
                   <span className="text-xs text-gray-500">From</span>
                   <span className="text-2xl font-extrabold text-[#3ea5dc]">{room.price}</span>
