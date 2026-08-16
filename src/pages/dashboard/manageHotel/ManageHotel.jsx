@@ -49,7 +49,6 @@ const ManageHotel = () => {
         setIsError(true);
       }
     } catch (err) {
-      console.error("Error fetching hotels:", err);
       setIsError(true);
     } finally {
       setIsLoading(false);
@@ -72,12 +71,11 @@ const ManageHotel = () => {
           const hotelData = response?.data || response?.hotel || response;
           if (hotelData) {
             setFetchedHotel(hotelData);
-          } else {
-            toast.error("Failed to load hotel details.");
+          } else if (response?.message) {
+            toast.error(response.message);
           }
         } catch (err) {
-          console.error("Error loading hotel details:", err);
-          toast.error("Failed to load hotel details.");
+          if (err?.message) toast.error(err.message);
         } finally {
           setIsFetchingHotel(false);
         }
@@ -94,35 +92,29 @@ const ManageHotel = () => {
     try {
       let response;
       if (cmsMode === "edit" && hotelId) {
-        console.log("--- HOTEL UPDATE REQUEST ---", { hotelId });
         response = await hotelService.updateHotel(hotelId, formData);
-        console.log("--- HOTEL UPDATE API RESPONSE ---", response);
         if (response && response.success) {
-          toast.success("Hotel details updated successfully!");
+          if (response.message) toast.success(response.message);
           setSearchParams({});
-        } else {
-          toast.error(response?.message || "Failed to update hotel.");
+        } else if (response?.message) {
+          toast.error(response.message);
         }
       } else {
-        console.log("--- HOTEL CREATE REQUEST ---");
         response = await hotelService.addHotel(formData);
-        console.log("--- HOTEL CREATE API RESPONSE ---", response);
         if (response && response.success) {
-          toast.success("Hotel listing created successfully!");
+          if (response.message) toast.success(response.message);
           const newId = response.data?.id || response.data?._id;
           if (newId) {
             setSearchParams({ mode: "edit", id: newId, tab: "calendar" });
           } else {
             setSearchParams({});
           }
-        } else {
-          toast.error(response?.message || "Failed to save hotel.");
+        } else if (response?.message) {
+          toast.error(response.message);
         }
       }
     } catch (err) {
-      console.error("Error saving hotel:", err);
-      console.error("--- HOTEL API ERROR ---", err);
-      toast.error(err.message || "Failed to save hotel.");
+      if (err?.message) toast.error(err.message);
     } finally {
       setIsSaving(false);
     }
@@ -206,10 +198,9 @@ const ManageHotel = () => {
               });
             }
           } catch (err) {
-            console.error("Error deleting hotel:", err);
             setDeleteResult({
               success: false,
-              message: err.message || "Failed to delete the hotel listing.",
+              message: err?.message || "",
             });
           } finally {
             setIsDeleting(false);

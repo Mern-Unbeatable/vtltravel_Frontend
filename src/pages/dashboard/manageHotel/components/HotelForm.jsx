@@ -198,54 +198,26 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
 
     const formData = mapRoomToFormData(savedRoom);
 
-    console.log("--- ROOM REQUEST (parsed facility arrays) ---", {
-      foodBeverage: savedRoom.foodBeverage,
-      bathroomFacilities: savedRoom.bathroomFacilities,
-      mediaTechnology: savedRoom.mediaTechnology,
-      serviceEquipment: savedRoom.serviceEquipment,
-    });
-    console.log("--- POSTING ROOM DATA (FormData Payload) ---");
-    for (let pair of formData.entries()) {
-      if (pair[1] instanceof File) {
-        console.log(
-          `${pair[0]}: File [name: ${pair[1].name}, size: ${pair[1].size} bytes, type: ${pair[1].type}]`,
-        );
-      } else {
-        console.log(`${pair[0]}:`, pair[1]);
-      }
-    }
-
     try {
       let response;
       if (isEditingReal) {
         response = await hotelService.updateRoom(editingRoomId, formData);
-        console.log("--- ROOM UPDATE API RESPONSE ---", response);
-        console.log(
-          "--- ROOM UPDATE facilityGroups ---",
-          response?.data?.facilityGroups || response?.facilityGroups,
-        );
         if (response && response.success) {
-          toast.success("Room type updated successfully!");
+          if (response.message) toast.success(response.message);
         } else {
-          toast.error(response?.message || "Failed to update room.");
+          if (response?.message) toast.error(response.message);
           throw new Error(response?.message || "Failed to update room.");
         }
       } else {
         response = await hotelService.addRoom(activeHotelId, formData);
-        console.log("--- ROOM CREATE API RESPONSE ---", response);
-        console.log(
-          "--- ROOM CREATE facilityGroups ---",
-          response?.data?.facilityGroups || response?.facilityGroups,
-        );
         if (response && response.success) {
-          toast.success("Room type created successfully!");
+          if (response.message) toast.success(response.message);
         } else {
-          toast.error(response?.message || "Failed to create room.");
+          if (response?.message) toast.error(response.message);
           throw new Error(response?.message || "Failed to create room.");
         }
       }
 
-      // Update the local state with the returned room object to refresh UI instantly
       const newRoomData = response.data || response.room || response.roomType;
       if (newRoomData) {
         if (isEditingReal) {
@@ -260,16 +232,11 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
         } else {
           setValue("rooms", [...roomsVal, newRoomData]);
         }
-      } else {
-        // Fallback: Reload parent data
-        toast.info("Please refresh to see the updated room list.");
       }
 
       return response;
     } catch (err) {
-      console.error("Error saving room:", err);
-      console.error("--- ROOM API ERROR ---", err);
-      toast.error(err.message || "Failed to save room details.");
+      if (err?.message) toast.error(err.message);
       throw err;
     }
   };
@@ -294,16 +261,12 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
       if (!isMock) {
         const response = await hotelService.deleteRoom(roomDeleteId);
         if (response && response.success) {
-          toast.success(response.message || "Room deleted successfully!");
+          if (response.message) toast.success(response.message);
         } else {
-          toast.error(
-            response?.message || "Failed to delete room from server.",
-          );
+          if (response?.message) toast.error(response.message);
           setIsDeletingRoom(false);
           return;
         }
-      } else {
-        toast.success("Room removed!");
       }
       setValue(
         "rooms",
@@ -311,8 +274,7 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
       );
       setRoomDeleteId(null);
     } catch (err) {
-      console.error("Error deleting room:", err);
-      toast.error(err?.message || "Failed to delete room.");
+      if (err?.message) toast.error(err.message);
     } finally {
       setIsDeletingRoom(false);
     }
@@ -328,7 +290,7 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
         return r;
       }),
     );
-    toast.success("Calendar settings updated locally!");
+   
   };
 
   const onSubmit = (data) => {
@@ -336,9 +298,7 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
     onSave(formData);
   };
 
-  const onError = (formErrors) => {
-    console.error("HotelForm Validation Errors:", formErrors);
-  };
+  const onError = () => {};
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm md:p-5 xl:p-8">

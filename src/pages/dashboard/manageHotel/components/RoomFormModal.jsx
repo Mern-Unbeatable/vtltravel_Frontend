@@ -199,23 +199,11 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
       imageFiles: imageFiles,
     };
 
-    console.log('--- ROOM FORM SUBMIT (parsed arrays) ---', {
-      foodBeverage,
-      bathroomFacilities,
-      mediaTechnology,
-      serviceEquipment,
-      tags: formattedRoom.tags,
-      imageFilesCount: imageFiles.length,
-      formattedRoom,
-    });
-
     try {
-      const response = await onSave(formattedRoom);
-      console.log('--- ROOM FORM onSave RESPONSE ---', response);
+      await onSave(formattedRoom);
       onClose();
     } catch (err) {
-      console.error('Failed to save room:', err);
-      console.error('--- ROOM FORM onSave ERROR ---', err);
+      // parent (HotelForm) already shows toast from API message
     }
   };
 
