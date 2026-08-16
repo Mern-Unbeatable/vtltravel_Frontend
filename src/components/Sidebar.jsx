@@ -1,5 +1,5 @@
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import { IoCloseOutline } from "react-icons/io5";
 
 const Sidebar = ({ handleLogout, isOpen, onClose }) => {
@@ -28,7 +28,13 @@ const Sidebar = ({ handleLogout, isOpen, onClose }) => {
       >
         <div>
           <div className="mb-8 flex items-center justify-between">
-            <img src="/bintan-ferry-tickets-logo.webp" alt="VTL Travel" className="h-10 w-auto" />
+            <Link to="/" onClick={onClose} className="inline-flex shrink-0">
+              <img
+                src="/bintan-ferry-tickets-logo.webp"
+                alt="VTL Travel"
+                className="h-10 w-auto cursor-pointer"
+              />
+            </Link>
             <button
               onClick={onClose}
               className="cursor-pointer rounded-lg p-1 text-gray-500 hover:bg-gray-100 hover:text-slate-950 xl:hidden"

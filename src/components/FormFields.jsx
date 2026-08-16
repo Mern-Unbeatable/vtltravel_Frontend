@@ -98,7 +98,6 @@ export const FormFileInput = ({
         </label>
       )}
       <div className="space-y-2">
-        {/* Hidden File Input */}
         <input
           id={fileInputId}
           type="file"
@@ -107,76 +106,91 @@ export const FormFileInput = ({
           multiple={multiple}
           className="hidden"
         />
-        
-        {/* Dropzone container */}
-        <label
-          htmlFor={fileInputId}
-          className="relative flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-2xl bg-slate-50 hover:bg-slate-100/80 hover:border-primary/50 transition-all cursor-pointer group text-center min-h-[140px] overflow-hidden"
-        >
-          {isMultiple && valueText.length > 0 ? (
-            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 p-4 w-full h-full max-h-[250px] overflow-y-auto">
+
+        {isMultiple && valueText.length > 0 ? (
+          <div className="rounded-2xl border-2 border-dashed border-gray-300 bg-slate-50 p-4">
+            <div className="grid max-h-[320px] grid-cols-3 gap-3 overflow-y-auto sm:grid-cols-4">
               {valueText.map((url, idx) => (
-                <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 bg-white">
-                  <img src={url} alt={`Preview ${idx + 1}`} className="w-full h-full object-cover" />
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      if (onRemoveFile) onRemoveFile(idx);
-                    }}
-                    className="absolute inset-0 bg-slate-900/60 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity text-white text-xs font-bold cursor-pointer"
-                  >
-                    Remove
-                  </button>
+                <div
+                  key={`${url}-${idx}`}
+                  className="relative aspect-square overflow-hidden rounded-lg border border-gray-200 bg-white"
+                >
+                  <img
+                    src={url}
+                    alt={`Preview ${idx + 1}`}
+                    className="h-full w-full object-cover"
+                  />
+                  {onRemoveFile ? (
+                    <button
+                      type="button"
+                      onClick={() => onRemoveFile(idx)}
+                      className="absolute right-1.5 top-1.5 z-10 rounded-full bg-slate-900/80 px-2 py-0.5 text-[10px] font-bold text-white hover:bg-red-600"
+                    >
+                      Remove
+                    </button>
+                  ) : null}
                 </div>
               ))}
-              {/* Box overlay acting as dropzone link to add more */}
-              <div className="border border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center aspect-square hover:bg-slate-100 hover:border-primary/50 transition-all text-slate-500">
+              <label
+                htmlFor={fileInputId}
+                className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 text-slate-500 transition-all hover:border-primary/50 hover:bg-slate-100"
+              >
                 <span className="text-xl font-bold">+</span>
                 <span className="text-[10px] font-semibold uppercase">Add</span>
-              </div>
+              </label>
             </div>
-          ) : !isMultiple && valueText ? (
-            <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-slate-100">
-              {isVideo ? (
-                <video src={valueText} className="w-full h-full object-cover" />
-              ) : (
-                <img src={valueText} alt="Preview" className="w-full h-full object-cover" />
-              )}
-              {/* Hover Overlay to click to upload new */}
-              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <span className="text-white text-xs font-bold bg-slate-900/60 px-3 py-1.5 rounded-lg backdrop-blur-xs">
-                  Change {isVideo ? 'Video' : 'Photo'}
-                </span>
-              </div>
-            </div>
-          ) : (
-            <>
-              <div className="w-12 h-12 rounded-xl bg-blue-50 text-primary flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
+          </div>
+        ) : (
+          <label
+            htmlFor={fileInputId}
+            className="relative flex min-h-[140px] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-gray-300 bg-slate-50 text-center transition-all hover:border-primary/50 hover:bg-slate-100/80 group"
+          >
+            {!isMultiple && valueText ? (
+              <div className="absolute inset-0 flex h-full w-full items-center justify-center bg-slate-100">
                 {isVideo ? (
-                  <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
+                  <video src={valueText} className="h-full w-full object-cover" />
                 ) : (
-                  <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
+                  <img
+                    src={valueText}
+                    alt="Preview"
+                    className="h-full w-full object-cover"
+                  />
                 )}
+                <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+                  <span className="rounded-lg bg-slate-900/60 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-xs">
+                    Change {isVideo ? 'Video' : 'Photo'}
+                  </span>
+                </div>
               </div>
-              
-              <p className="text-sm font-semibold text-slate-700">
-                Drop your {isVideo ? 'video' : 'image'} here, or <span className="text-primary hover:underline">browse</span>
-              </p>
-              <p className="text-xs text-gray-400 mt-1.5 font-medium">
-                {isVideo ? 'Supports: MP4, WEBM, MOV' : 'Supports: JPG, JPEG, PNG, WEBP, AVIF'}
-              </p>
-            </>
-          )}
-        </label>
+            ) : (
+              <>
+                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-primary transition-transform group-hover:scale-105">
+                  {isVideo ? (
+                    <svg className="h-6 w-6 text-primary" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  ) : (
+                    <svg className="h-6 w-6 text-primary" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  )}
+                </div>
+                <p className="text-sm font-semibold text-slate-700">
+                  Drop your {isVideo ? 'video' : 'image'} here, or{' '}
+                  <span className="text-primary hover:underline">browse</span>
+                </p>
+                <p className="mt-1.5 text-xs font-medium text-gray-400">
+                  {isVideo
+                    ? 'Supports: MP4, WEBM, MOV'
+                    : 'Supports: JPG, JPEG, PNG, WEBP, AVIF'}
+                </p>
+              </>
+            )}
+          </label>
+        )}
 
         {error && (
-          <span className="text-red-500 text-xs mt-1 block font-medium">
+          <span className="mt-1 block text-xs font-medium text-red-500">
             {error.message}
           </span>
         )}

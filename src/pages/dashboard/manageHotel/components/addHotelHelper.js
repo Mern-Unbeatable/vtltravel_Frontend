@@ -61,6 +61,9 @@ export const hotelSchema = z.object({
   title: z.string().min(1, 'Hotel title is required'),
   starNum: z.number().min(1).max(5),
   priceNum: z.string().min(1, 'Starting price is required'),
+  location: z.string().min(1, 'Location is required'),
+  city: z.string().min(1, 'City is required'),
+  country: z.string().min(1, 'Country is required'),
   image: z.string().min(1, 'Cover image is required'),
   video: z.string().optional().default(''),
   description: z.string().min(1, 'Description is required'),
@@ -172,8 +175,25 @@ export const mapRoomToFormData = (savedRoom) => {
   formData.append("isMemberDeal", "false");
   formData.append("smokingAllowed", "false");
 
-  if (savedRoom.imageFiles && savedRoom.imageFiles.length > 0) {
-    savedRoom.imageFiles.forEach((file) => {
+  // Postman PUT /api/v1/rooms/:id — only send imageUrl when photos actually changed.
+  // No image change → omit image fields so existing files stay untouched.
+  const imagesChanged = Boolean(savedRoom.imagesChanged);
+  const existingImages = Array.isArray(savedRoom.existingImages)
+    ? savedRoom.existingImages.filter(Boolean)
+    : [];
+  const newFiles =
+    imagesChanged &&
+    Array.isArray(savedRoom.imageFiles) &&
+    savedRoom.imageFiles.length > 0
+      ? savedRoom.imageFiles
+      : [];
+
+  if (imagesChanged) {
+    formData.append("existingImageUrls", JSON.stringify(existingImages));
+    existingImages.forEach((url) => {
+      formData.append("existingImages", url);
+    });
+    newFiles.forEach((file) => {
       formData.append("imageUrl", file);
     });
   }
@@ -192,9 +212,9 @@ export const mapHotelFormToFormData = (data, base64ToFileFn) => {
     data.available ? "AVAILABLE" : "UNAVAILABLE",
   );
   formData.append("description", data.description || "");
-  formData.append("location", "Batam");
-  formData.append("city", "Batam");
-  formData.append("country", "Indonesia");
+  formData.append("location", data.location || "");
+  formData.append("city", data.city || "");
+  formData.append("country", data.country || "");
   formData.append("isFeatured", String(data.isFeatured));
 
   const slugMap = {

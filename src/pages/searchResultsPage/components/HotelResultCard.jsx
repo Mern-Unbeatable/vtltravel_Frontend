@@ -64,7 +64,7 @@ const HotelResultCard = ({ hotel, nights = 1, adults = 1, rooms = 1 }) => {
   return (
     <>
       <article className="flex w-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm md:flex-row">
-        <div className="relative h-[220px] w-full shrink-0 overflow-hidden bg-[#f3f4f6] sm:h-[240px] md:h-auto md:min-h-[280px] md:w-[42%] lg:w-[320px]">
+        <div className="relative h-55 w-full shrink-0 overflow-hidden bg-[#f3f4f6] sm:h-60 md:h-auto md:min-h-70 md:w-[42%] lg:w-[320px]">
           <FallbackImage
             src={imageUrl}
             alt={title || 'Hotel'}

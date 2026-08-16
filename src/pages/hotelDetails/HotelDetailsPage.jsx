@@ -13,7 +13,6 @@ import { formatDateISO } from '../../utils/hotelSearchParams'
 import { isRoomBookedForStay, ROOM_BOOKED_MESSAGE } from '../../utils/roomAvailability'
 import {
   normalizeSelectedRooms,
-  upsertSelectedRoom,
   updateSelectedRoomQuantity,
   getSelectedRoomsQuantity,
 } from '../../utils/selectedRooms'
@@ -73,7 +72,65 @@ const HotelDetailsPage = () => {
       : {}
   const { data: hotel, isLoading, isFetching, isError } = useHotel(hotelId, stayParams)
   const { data: apiRooms } = useHotelRooms(hotelId, stayParams)
-  const maxRooms = Number(stay?.rooms) || 1
+
+  const getRoomAvailableQuantity = (room) => {
+    // Prefer "Only X rooms left" inventory text — availability.availableQuantity
+    // is often scoped to the search rooms count (e.g. 1) and blocks checkout +.
+    const alertText = room?.roomsLeftAlert || room?.roomsLeft || ''
+    const alertMatch = String(alertText).match(/(\d+)/)
+    if (alertMatch) return Math.max(0, Number(alertMatch[1]))
+
+    for (const key of ['totalRooms', 'totalQuantity', 'inventory', 'stock']) {
+      const value = room?.[key]
+      if (value !== undefined && value !== null && value !== '') {
+        const n = Number(value)
+        if (!Number.isNaN(n) && n > 0) return Math.max(0, n)
+      }
+    }
+
+    const fromAvailability = room?.availability?.availableQuantity ?? room?.availableQuantity
+    if (fromAvailability !== undefined && fromAvailability !== null && fromAvailability !== '') {
+      const n = Number(fromAvailability)
+      if (!Number.isNaN(n)) return Math.max(0, n)
+    }
+    return null
+  }
+
+  const resolveRoomInventory = (roomId, fallbackRoom = null) => {
+    const fromApi = (apiRooms || []).find((item) => item.id === roomId)
+    const fromHotel = (hotel?.roomTypes || []).find((item) => item.id === roomId)
+    return {
+      ...fromHotel,
+      ...fromApi,
+      ...fallbackRoom,
+      roomsLeftAlert:
+        fromApi?.roomsLeftAlert ||
+        fromHotel?.roomsLeftAlert ||
+        fallbackRoom?.roomsLeftAlert ||
+        '',
+      roomsLeft:
+        fallbackRoom?.roomsLeft ||
+        fromApi?.roomsLeftAlert ||
+        fromHotel?.roomsLeftAlert ||
+        fromApi?.roomsLeft ||
+        fromHotel?.roomsLeft ||
+        '',
+    }
+  }
+
+  const syncStayRoomCount = (rooms) => {
+    const total = getSelectedRoomsQuantity(rooms)
+    if (total <= 0 || Number(stay?.rooms) === total) return
+    const saved = saveHotelSearch({
+      ...(stay || {}),
+      checkIn: stay?.checkIn || '',
+      checkOut: stay?.checkOut || '',
+      adults: Number(stay?.adults) || 1,
+      children: Number(stay?.children) || 0,
+      rooms: total,
+    })
+    setStay(saved)
+  }
 
   const handleStaySearch = (nextStay) => {
     const saved = saveHotelSearch(nextStay)
@@ -81,6 +138,8 @@ const HotelDetailsPage = () => {
     const nextMax = Number(saved.rooms) || 1
     setSelectedRooms((prev) => {
       const normalized = normalizeSelectedRooms(prev)
+      const total = getSelectedRoomsQuantity(normalized)
+      if (total <= nextMax) return normalized
       let remaining = nextMax
       const trimmed = []
       for (const room of normalized) {
@@ -114,37 +173,53 @@ const HotelDetailsPage = () => {
       return
     }
 
-    setSelectedRooms([{ ...room, quantity: 1 }])
+    const inventoryRoom = resolveRoomInventory(room.id, room)
+    const current = normalizeSelectedRooms(selectedRooms)
+    const existing = current.find((item) => item.id === room.id)
+    const currentQty = Number(existing?.quantity) || 0
+    const available = getRoomAvailableQuantity(inventoryRoom)
 
-    if (Number(stay?.rooms) !== 1) {
-      const saved = saveHotelSearch({
-        ...(stay || {}),
-        checkIn: stay?.checkIn || '',
-        checkOut: stay?.checkOut || '',
-        adults: Number(stay?.adults) || 1,
-        children: Number(stay?.children) || 0,
-        rooms: 1,
-      })
-      setStay(saved)
+    if (available !== null && currentQty >= available) {
+      toast.info(
+        `Only ${available} room${available !== 1 ? 's' : ''} available for this type.`,
+      )
+      return
     }
+
+    const next = existing
+      ? current.map((item) =>
+          item.id === room.id
+            ? { ...item, ...room, quantity: item.quantity + 1 }
+            : item,
+        )
+      : [...current, { ...room, quantity: 1 }]
+
+    setSelectedRooms(next)
+    syncStayRoomCount(next)
   }
 
   const handleCancelRoom = (room) => {
-    setSelectedRooms([])
+    const next = updateSelectedRoomQuantity(selectedRooms, room.id, 0)
+    setSelectedRooms(next)
+    syncStayRoomCount(next)
   }
 
   const handleRoomQuantityChange = (roomId, quantity) => {
-    setSelectedRooms((prev) => {
-      const nextQty = Number(quantity) || 0
-      if (nextQty <= 0) {
-        return []
-      }
-      if (nextQty > 1) {
-        toast.info("You can select only 1 room.")
-        return prev
-      }
-      return prev.map((r) => r.id === roomId ? { ...r, quantity: 1 } : r)
-    })
+    const currentRoom = selectedRooms.find((room) => room.id === roomId)
+    const inventoryRoom = resolveRoomInventory(roomId, currentRoom)
+    const nextQty = Number(quantity) || 0
+    const available = getRoomAvailableQuantity(inventoryRoom)
+
+    if (available !== null && nextQty > available) {
+      toast.info(
+        `Only ${available} room${available !== 1 ? 's' : ''} available for this type.`,
+      )
+      return
+    }
+
+    const next = updateSelectedRoomQuantity(selectedRooms, roomId, nextQty)
+    setSelectedRooms(next)
+    syncStayRoomCount(next)
   }
 
   if (isLoading) {
