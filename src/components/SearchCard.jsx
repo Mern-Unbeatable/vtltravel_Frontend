@@ -303,7 +303,7 @@ const SearchCard = ({
               </div>
 
               {showSuggestions && (
-                <div className="absolute left-0 top-full z-[100] mt-2 max-h-[320px] w-full min-w-[260px] overflow-y-auto rounded-2xl border border-gray-100 bg-white py-2 shadow-2xl">
+                <div className="absolute left-0 top-full z-100 mt-2 max-h-80 w-full min-w-65 overflow-y-auto rounded-2xl border border-gray-100 bg-white py-2 shadow-2xl">
                   {isSuggestionsLoading && <SearchSuggestionsSkeleton />}
 
                   {!isSuggestionsLoading && !hasSuggestions && (
@@ -407,7 +407,7 @@ const SearchCard = ({
 
             {/* Date Picker Popover */}
             {showDatePicker && (
-              <div className="absolute left-0 top-full z-[100] mt-2 w-full min-w-[320px] max-w-sm rounded-2xl border border-gray-100 bg-white p-4 shadow-2xl md:min-w-[360px]">
+              <div className="absolute left-0 top-full z-100 mt-2 w-full min-w-[320px] max-w-sm rounded-2xl border border-gray-100 bg-white p-4 shadow-2xl md:min-w-90">
                 {/* Month Controls */}
                 <div className="mb-3 flex items-center justify-between">
                   <button
@@ -543,7 +543,7 @@ const SearchCard = ({
 
             {/* Guests Popover */}
             {showGuestsPicker && (
-              <div className="absolute right-0 top-full z-[100] mt-2 w-full min-w-[280px] max-w-xs rounded-2xl border border-gray-100 bg-white p-4 shadow-2xl">
+              <div className="absolute right-0 top-full z-100 mt-2 w-full min-w-70 max-w-xs rounded-2xl border border-gray-100 bg-white p-4 shadow-2xl">
                 <div className="space-y-4">
                   {/* Rooms Counter */}
                   <div className="flex items-center justify-between">
@@ -659,7 +659,7 @@ const SearchCard = ({
 
       {showDestinationModal ? (
         <div
-          className="fixed inset-0 z-[120] flex items-center justify-center bg-black/50 p-4"
+          className="fixed inset-0 z-120 flex items-center justify-center bg-black/50 p-4"
           onClick={closeDestinationModal}
         >
           <div
