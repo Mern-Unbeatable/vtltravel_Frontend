@@ -64,6 +64,9 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
       title: "",
       starNum: 4,
       priceNum: "",
+      location: "",
+      city: "",
+      country: "",
       image: "",
       video: "",
       description: "",
@@ -129,6 +132,9 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
           hotel.startingPrice || hotel.priceNum
             ? String(hotel.startingPrice || hotel.priceNum)
             : "",
+        location: hotel.location || "",
+        city: hotel.city || "",
+        country: hotel.country || "",
         image: hotel.coverImageUrl || hotel.image || "",
         video: hotel.videoUrl || hotel.video || "",
         description: hotel.description || "",
@@ -425,6 +431,32 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
                   placeholder="e.g. 87"
                 />
               </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <FormInput
+                label="Country"
+                name="country"
+                register={register}
+                error={errors.country}
+                placeholder="e.g. Indonesia"
+              />
+                 <FormInput
+                label="City"
+                name="city"
+                register={register}
+                error={errors.city}
+                placeholder="e.g. Dhaka"
+              />
+              <FormInput
+                label="Location"
+                name="location"
+                register={register}
+                error={errors.location}
+                placeholder="e.g. DHAKA"
+              />
+           
+           
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

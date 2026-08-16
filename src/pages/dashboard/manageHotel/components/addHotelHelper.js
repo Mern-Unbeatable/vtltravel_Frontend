@@ -61,6 +61,9 @@ export const hotelSchema = z.object({
   title: z.string().min(1, 'Hotel title is required'),
   starNum: z.number().min(1).max(5),
   priceNum: z.string().min(1, 'Starting price is required'),
+  location: z.string().min(1, 'Location is required'),
+  city: z.string().min(1, 'City is required'),
+  country: z.string().min(1, 'Country is required'),
   image: z.string().min(1, 'Cover image is required'),
   video: z.string().optional().default(''),
   description: z.string().min(1, 'Description is required'),
@@ -192,9 +195,9 @@ export const mapHotelFormToFormData = (data, base64ToFileFn) => {
     data.available ? "AVAILABLE" : "UNAVAILABLE",
   );
   formData.append("description", data.description || "");
-  formData.append("location", "Batam");
-  formData.append("city", "Batam");
-  formData.append("country", "Indonesia");
+  formData.append("location", data.location || "");
+  formData.append("city", data.city || "");
+  formData.append("country", data.country || "");
   formData.append("isFeatured", String(data.isFeatured));
 
   const slugMap = {
