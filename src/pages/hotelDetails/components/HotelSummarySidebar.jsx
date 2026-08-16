@@ -83,6 +83,42 @@ const HotelSummarySidebar = ({
   const selectedRoomLegacy = selectedRooms[0] || null
 
   useEffect(() => {
+    if (selectedRooms.length === 0) return
+    const nextPricing = getSelectedRoomsPricing(selectedRooms, extraPrice)
+    console.log('[HotelSummarySidebar] data sources', {
+      fromBackend: {
+        hotel: {
+          id: hotel?.id,
+          name: hotel?.name,
+          checkInTime: hotel?.checkInTime,
+          checkOutTime: hotel?.checkOutTime,
+        },
+        selectedRoomsRaw: selectedRooms.map((room) => ({
+          id: room.id,
+          name: room.name,
+          basePrice: room.basePrice,
+          discountPrice: room.discountPrice,
+          taxPerNight: room.taxPerNight,
+          pricePreview: room.pricePreview,
+          image: room.image,
+          quantity: room.quantity,
+        })),
+      },
+      fromFrontend: {
+        stay,
+        nights: getNightsBetween(stay?.checkIn, stay?.checkOut),
+        adults: Number(stay?.adults) || 1,
+        rooms: Number(stay?.rooms) || 1,
+        children: Number(stay?.children) || 0,
+      },
+      computedOnFrontend: {
+        pricing: nextPricing,
+        breakdownText: nextPricing.breakdownText,
+      },
+    })
+  }, [hotel, stay, selectedRooms, extraPrice])
+
+  useEffect(() => {
     setCheckInDate(parseLocalDate(stay?.checkIn))
     setCheckOutDate(parseLocalDate(stay?.checkOut))
     setAdultsCount(Number(stay?.adults) || 1)

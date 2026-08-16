@@ -89,7 +89,7 @@ const GalleryMedia = ({ item, alt }) => {
         src={item.url}
         controls
         preload="metadata"
-        className="h-[180px] w-full object-cover sm:h-[200px] md:h-[220px]"
+        className="h-45 w-full object-cover sm:h-50 md:h-55"
       >
         <track kind="captions" />
       </video>
@@ -100,7 +100,7 @@ const GalleryMedia = ({ item, alt }) => {
     <FallbackImage
       src={item?.url}
       alt={item?.altText || item?.caption || alt}
-      className="h-[180px] w-full object-cover sm:h-[200px] md:h-[220px]"
+      className="h-45 w-full object-cover sm:h-50 md:h-55"
       dummyClassName="h-[180px] w-full object-contain p-8 sm:h-[200px] md:h-[220px]"
     />
   )
@@ -152,7 +152,7 @@ const HotelGalleryModal = ({ open, onClose, hotelTitle, images, hotelId }) => {
 
   return (
     <div
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-4"
+      className="fixed inset-0 z-80 flex items-center justify-center bg-black/50 p-4"
       onClick={onClose}
     >
       <div
@@ -162,7 +162,7 @@ const HotelGalleryModal = ({ open, onClose, hotelTitle, images, hotelId }) => {
         aria-modal="true"
         aria-label={`${hotelTitle || 'Hotel'} gallery`}
       >
-        <aside className="hidden w-[220px] shrink-0 border-r border-gray-200 md:block">
+        <aside className="hidden w-55 shrink-0 border-r border-gray-200 md:block">
           <nav className="h-full overflow-y-auto py-4">
             {CATEGORIES.map((category) => {
               const isActive = category === activeCategory
@@ -180,7 +180,7 @@ const HotelGalleryModal = ({ open, onClose, hotelTitle, images, hotelId }) => {
                 >
                   {category}
                   {isActive ? (
-                    <span className="absolute bottom-2 right-0 top-2 w-[3px] rounded-l bg-primary" />
+                    <span className="absolute bottom-2 right-0 top-2 w-0.75 rounded-l bg-primary" />
                   ) : null}
                 </button>
               )
@@ -201,7 +201,7 @@ const HotelGalleryModal = ({ open, onClose, hotelTitle, images, hotelId }) => {
             </button>
           </div>
 
-          <div className="border-b border-gray-100 px-5 py-3 md:hidden overflow-x-auto whitespace-nowrap [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] shrink-0">
+          <div className="border-b border-gray-100 px-5 py-3 md:hidden overflow-x-auto whitespace-nowrap [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] scrollbar-none shrink-0">
             <div className="flex gap-2">
               {CATEGORIES.map((category) => {
                 const isActive = category === activeCategory

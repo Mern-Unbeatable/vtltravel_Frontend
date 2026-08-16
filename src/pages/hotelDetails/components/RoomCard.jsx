@@ -46,39 +46,39 @@ const RoomCard = ({
 
   return (
     <article className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md">
-      <div className="flex flex-col lg:h-[280px] lg:flex-row">
-        <div className="relative h-[220px] w-full shrink-0 overflow-hidden bg-[#f3f4f6] lg:h-full lg:w-[300px]">
+      <div className="flex flex-col lg:flex-row">
+        <div className="relative h-[220px] w-full shrink-0 overflow-hidden bg-[#f3f4f6] lg:h-auto lg:w-[300px] lg:self-stretch">
           <FallbackImage
             src={roomImage}
             alt={room?.name || 'Room'}
-            className="h-full w-full object-cover"
-            dummyClassName="h-full w-full object-contain p-10"
+            className="h-full w-full object-cover lg:absolute lg:inset-0"
+            dummyClassName="h-full w-full object-contain p-10 lg:absolute lg:inset-0"
           />
           <button
             type="button"
             onClick={() => onOpenDetails && onOpenDetails(room)}
-            className="absolute bottom-3 left-3 flex cursor-pointer items-center gap-1.5 rounded-md bg-black/60 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-xs transition hover:bg-black/75"
+            className="absolute bottom-3 left-3 z-10 flex cursor-pointer items-center gap-1.5 rounded-md bg-black/60 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-xs transition hover:bg-black/75"
           >
             <HiOutlinePhotograph className="h-4 w-4" />
             <span>1/{roomGallery.length || 1}</span>
           </button>
         </div>
 
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col justify-between p-5 md:p-6">
-          <div className="min-h-0">
+        <div className="flex min-w-0 flex-1 flex-col gap-4 p-5 md:p-6">
+          <div className="min-w-0">
             {room?.name ? (
-              <h3 className="line-clamp-1 text-xl font-bold tracking-tight text-slate-900">
+              <h3 className="text-xl font-bold tracking-tight text-slate-900">
                 {room.name}
               </h3>
             ) : null}
             {meta ? (
-              <p className="mt-1 line-clamp-1 text-xs font-medium text-gray-500 md:text-sm">
+              <p className="mt-1 text-xs font-medium text-gray-500 md:text-sm">
                 {meta}
               </p>
             ) : null}
 
             {roomTags.length > 0 ? (
-              <div className="mt-3 flex flex-wrap gap-2 overflow-hidden lg:max-h-[56px]">
+              <div className="mt-3 flex flex-wrap gap-2">
                 {roomTags.slice(0, 4).map((tag) => (
                   <span
                     key={tag}
@@ -91,13 +91,13 @@ const RoomCard = ({
             ) : null}
 
             {room?.description ? (
-              <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-gray-500 md:text-base">
+              <p className="mt-3 text-sm leading-relaxed text-gray-500 md:text-base">
                 {room.description}
               </p>
             ) : null}
           </div>
 
-          <div className="mt-4 flex shrink-0 flex-col items-start gap-4 border-t border-gray-100 pt-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="mt-auto flex shrink-0 flex-col items-start gap-4 border-t border-gray-100 pt-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               {room?.memberRate ? (
                 <span className="inline-block rounded-md bg-sky-100 px-2 py-0.5 text-[10px] font-bold uppercase text-[#3ea5dc] md:text-sm">
@@ -118,13 +118,13 @@ const RoomCard = ({
                 </p>
               ) : null}
 
-              <button
+              {/* <button
                 type="button"
                 onClick={() => onOpenDetails && onOpenDetails(room)}
                 className="mt-2 block cursor-pointer text-xs font-medium text-[#3ea5dc] hover:underline md:text-sm"
               >
                 See the room details
-              </button>
+              </button> */}
             </div>
 
             <div className="flex flex-col items-start text-left sm:items-end sm:text-right">
