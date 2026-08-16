@@ -192,11 +192,22 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
 
   // Rooms CRUD within Hotel Form
   const handleSaveRoom = async (savedRoom) => {
-    const editingRoomId = editingRoom?.id || editingRoom?._id;
+    const editingRoomId =
+      editingRoom?.id || editingRoom?._id || savedRoom?.id || savedRoom?._id;
     const isEditingReal =
-      editingRoomId && !String(editingRoomId).startsWith("mock-");
+      (savedRoom?.isEdit || editingRoomId) &&
+      editingRoomId &&
+      !String(editingRoomId).startsWith("mock-");
 
     const formData = mapRoomToFormData(savedRoom);
+
+    console.log("[HotelForm] room save", {
+      method: isEditingReal ? "PUT" : "POST",
+      roomId: editingRoomId,
+      imagesChanged: Boolean(savedRoom.imagesChanged),
+      existingImages: savedRoom.existingImages?.length || 0,
+      newImageFiles: savedRoom.imageFiles?.length || 0,
+    });
 
     try {
       let response;

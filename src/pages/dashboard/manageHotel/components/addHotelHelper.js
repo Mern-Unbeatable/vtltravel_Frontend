@@ -175,8 +175,25 @@ export const mapRoomToFormData = (savedRoom) => {
   formData.append("isMemberDeal", "false");
   formData.append("smokingAllowed", "false");
 
-  if (savedRoom.imageFiles && savedRoom.imageFiles.length > 0) {
-    savedRoom.imageFiles.forEach((file) => {
+  // Postman PUT /api/v1/rooms/:id — only send imageUrl when photos actually changed.
+  // No image change → omit image fields so existing files stay untouched.
+  const imagesChanged = Boolean(savedRoom.imagesChanged);
+  const existingImages = Array.isArray(savedRoom.existingImages)
+    ? savedRoom.existingImages.filter(Boolean)
+    : [];
+  const newFiles =
+    imagesChanged &&
+    Array.isArray(savedRoom.imageFiles) &&
+    savedRoom.imageFiles.length > 0
+      ? savedRoom.imageFiles
+      : [];
+
+  if (imagesChanged) {
+    formData.append("existingImageUrls", JSON.stringify(existingImages));
+    existingImages.forEach((url) => {
+      formData.append("existingImages", url);
+    });
+    newFiles.forEach((file) => {
       formData.append("imageUrl", file);
     });
   }
