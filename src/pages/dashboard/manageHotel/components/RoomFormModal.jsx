@@ -6,8 +6,6 @@ import { toast } from 'react-toastify';
 import { FormInput, FormFileInput, FormTextarea } from '../../../../components/FormFields';
 import { fileToBase64 } from '../../../../utils/fileHelpers';
 
-const MAX_ROOM_IMAGES = 12;
-
 const roomSchema = z.object({
   name: z.string().min(1, 'Room name is required'),
   price: z.string().min(1, 'Price is required'),
@@ -233,30 +231,16 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
     const files = Array.from(input.files || []);
     if (files.length === 0) return;
 
-    const remaining = MAX_ROOM_IMAGES - imageItems.length;
-    if (remaining <= 0) {
-      toast.info(`You can upload up to ${MAX_ROOM_IMAGES} photos per room.`);
-      input.value = '';
-      return;
-    }
-
-    const accepted = files.slice(0, remaining);
-    if (files.length > remaining) {
-      toast.info(
-        `Only ${remaining} more photo${remaining !== 1 ? 's' : ''} can be added (max ${MAX_ROOM_IMAGES}).`,
-      );
-    }
-
     try {
       const base64s = await Promise.all(
-        accepted.map((file) =>
+        files.map((file) =>
           fileToBase64(file, { maxSizeMB: 5, allowedTypes: ['image/*'] }),
         ),
       );
       setImageItems((prev) => {
         const next = [
           ...prev,
-          ...accepted.map((file, index) => ({
+          ...files.map((file, index) => ({
             id: `new-${Date.now()}-${index}-${file.name}`,
             url: base64s[index],
             file,
@@ -310,10 +294,10 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
     const imagesRemoved =
       initialImageUrls.length !== existingImages.length ||
       initialImageUrls.some((url) => !existingImages.includes(url));
-    // PUT: only touch imageUrl when user actually changed photos
-    const imagesChanged = hasNewImages || imagesRemoved;
     const roomId = room ? room.id || room._id : null;
     const isEdit = Boolean(roomId);
+    // POST create: always include new uploads. PUT edit: only when photos changed.
+    const imagesChanged = isEdit ? hasNewImages || imagesRemoved : hasNewImages;
 
     // Display/input is comma-separated; API still gets JSON array via mapRoomToFormData
     const tagsArray = normalizeTagsToCommaText(data.tags)
@@ -322,13 +306,15 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
       .filter(Boolean);
 
     console.log('[RoomFormModal] save payload', {
-      mode: isEdit ? 'PUT /api/v1/rooms/:id' : 'POST create',
-      roomId,
+      mode: isEdit
+        ? 'PUT /api/v1/rooms/:roomId'
+        : 'POST /api/v1/rooms/hotel/:hotelId',
+      roomId: isEdit ? roomId : null,
       tags: { display: data.tags, tagsArray, formDataTags: JSON.stringify(tagsArray) },
       images: {
         imagesChanged,
         hasNewImages,
-        imagesRemoved,
+        imagesRemoved: isEdit ? imagesRemoved : false,
         existingKept: existingImages.length,
         newUploads: imageFiles.length,
         omitImageUrlOnPut: isEdit && !imagesChanged,
@@ -336,7 +322,7 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
     });
 
     const formattedRoom = {
-      id: roomId || Date.now(),
+      id: isEdit ? roomId : undefined,
       isEdit,
       name: data.name,
       price: data.price,
@@ -351,7 +337,7 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
       mediaTechnology,
       serviceEquipment,
       tags: tagsArray,
-      existingImages: imagesChanged ? existingImages : [],
+      existingImages: isEdit && imagesChanged ? existingImages : [],
       roomsLeft: data.roomsLeft,
       imageFiles: hasNewImages ? imageFiles : [],
       imagesChanged,
@@ -513,7 +499,7 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
             </div>
 
             <FormFileInput
-              label={`Room Photos (max ${MAX_ROOM_IMAGES})`}
+              label="Room Photos (Multiple)"
               accept="image/*"
               onChange={handleImageUpload}
               valueText={previewUrls}

@@ -192,18 +192,28 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
 
   // Rooms CRUD within Hotel Form
   const handleSaveRoom = async (savedRoom) => {
-    const editingRoomId =
-      editingRoom?.id || editingRoom?._id || savedRoom?.id || savedRoom?._id;
+    // Only treat as update when modal was opened via Edit (editingRoom set).
+    // Never use Date.now()/temp ids — that wrongly triggered PUT on Add.
+    const editingRoomId = editingRoom?.id || editingRoom?._id || null;
     const isEditingReal =
-      (savedRoom?.isEdit || editingRoomId) &&
-      editingRoomId &&
+      Boolean(editingRoom) &&
+      Boolean(editingRoomId) &&
       !String(editingRoomId).startsWith("mock-");
+
+    if (!isEditingReal && !activeHotelId) {
+      toast.error("Save the hotel first, then add room types.");
+      throw new Error("Hotel id is required to add a room.");
+    }
 
     const formData = mapRoomToFormData(savedRoom);
 
     console.log("[HotelForm] room save", {
       method: isEditingReal ? "PUT" : "POST",
-      roomId: editingRoomId,
+      endpoint: isEditingReal
+        ? `/api/v1/rooms/${editingRoomId}`
+        : `/api/v1/rooms/hotel/${activeHotelId}`,
+      roomId: isEditingReal ? editingRoomId : null,
+      hotelId: activeHotelId,
       imagesChanged: Boolean(savedRoom.imagesChanged),
       existingImages: savedRoom.existingImages?.length || 0,
       newImageFiles: savedRoom.imageFiles?.length || 0,
