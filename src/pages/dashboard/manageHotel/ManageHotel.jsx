@@ -94,7 +94,9 @@ const ManageHotel = () => {
     try {
       let response;
       if (cmsMode === "edit" && hotelId) {
+        console.log("--- HOTEL UPDATE REQUEST ---", { hotelId });
         response = await hotelService.updateHotel(hotelId, formData);
+        console.log("--- HOTEL UPDATE API RESPONSE ---", response);
         if (response && response.success) {
           toast.success("Hotel details updated successfully!");
           setSearchParams({});
@@ -102,7 +104,9 @@ const ManageHotel = () => {
           toast.error(response?.message || "Failed to update hotel.");
         }
       } else {
+        console.log("--- HOTEL CREATE REQUEST ---");
         response = await hotelService.addHotel(formData);
+        console.log("--- HOTEL CREATE API RESPONSE ---", response);
         if (response && response.success) {
           toast.success("Hotel listing created successfully!");
           const newId = response.data?.id || response.data?._id;
