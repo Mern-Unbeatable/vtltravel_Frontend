@@ -130,13 +130,29 @@ const RoomCard = ({
             <div className="flex flex-col items-start text-left sm:items-end sm:text-right">
               {(() => {
                 const basePriceNum = Number(room?.basePrice)
-                if (!Number.isFinite(basePriceNum) || basePriceNum <= 0) return null
+                const discountPriceNum = Number(room?.discountPrice)
+                const hasBase = Number.isFinite(basePriceNum) && basePriceNum > 0
+                const hasDiscount = Number.isFinite(discountPriceNum) && discountPriceNum > 0
+                if (!hasBase && !hasDiscount) return null
                 return (
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-2xl font-extrabold text-[#3ea5dc]">
-                      ${basePriceNum}
-                    </span>
-                    <span className="text-xs text-gray-500">/night</span>
+                  <div className="flex items-baseline gap-1.5">
+                    {hasDiscount ? (
+                      <>
+                        {hasBase ? (
+                          <span className="text-lg font-semibold text-gray-400 line-through">
+                            ${basePriceNum}
+                          </span>
+                        ) : null}
+                        <span className="text-3xl font-extrabold text-[#3ea5dc]">
+                          ${discountPriceNum}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-3xl font-extrabold text-[#3ea5dc]">
+                        ${basePriceNum}
+                      </span>
+                    )}
+                    <span className="text-base text-gray-500">/night</span>
                   </div>
                 )
               })()}
