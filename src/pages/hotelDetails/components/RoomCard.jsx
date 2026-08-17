@@ -128,28 +128,18 @@ const RoomCard = ({
             </div>
 
             <div className="flex flex-col items-start text-left sm:items-end sm:text-right">
-              {room?.pricePreview &&
-              room.pricePreview.roomSubtotal !== undefined &&
-              room.pricePreview.roomSubtotal !== null ? (
-                <div className="flex items-baseline gap-1">
-                  <span className="text-xs text-gray-500">Total</span>
-                  <span className="text-2xl font-extrabold text-[#3ea5dc]">
-                    ${room.pricePreview.roomSubtotal}
-                  </span>
-                </div>
-              ) : room?.price ? (
-                <div className="flex items-baseline gap-1">
-                  <span className="text-xs text-gray-500">From</span>
-                  <span className="text-2xl font-extrabold text-[#3ea5dc]">
-                    {room.price}
-                  </span>
-                </div>
-              ) : null}
-              {room?.publicRate && room.publicRate !== room.price ? (
-                <p className="mt-0.5 text-xs text-gray-500">
-                  Public rate from <span className="font-semibold">{room.publicRate}</span>
-                </p>
-              ) : null}
+              {(() => {
+                const basePriceNum = Number(room?.basePrice)
+                if (!Number.isFinite(basePriceNum) || basePriceNum <= 0) return null
+                return (
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-2xl font-extrabold text-[#3ea5dc]">
+                      ${basePriceNum}
+                    </span>
+                    <span className="text-xs text-gray-500">/night</span>
+                  </div>
+                )
+              })()}
 
               <button
                 type="button"
