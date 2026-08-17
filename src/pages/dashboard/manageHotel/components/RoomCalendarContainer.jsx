@@ -74,6 +74,8 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
 
   const getDaysInMonth = (y, m) => new Date(y, m + 1, 0).getDate();
   const getFirstDayOfMonth = (y, m) => new Date(y, m, 1).getDay();
+  // Weekend = Sunday (0) only; Mon–Sat are weekdays
+  const isWeekendDay = (dayOfWeek) => dayOfWeek === 0;
 
   const daysInMonth = getDaysInMonth(year, month);
   const firstDay = getFirstDayOfMonth(year, month);
@@ -94,8 +96,7 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
   const handleSelectAllWeekends = () => {
     const nextSelected = new Set(selectedDates);
     for (let d = 1; d <= daysInMonth; d++) {
-      const dayOfWeek = new Date(year, month, d).getDay();
-      if (dayOfWeek === 0 || dayOfWeek === 6) {
+      if (isWeekendDay(new Date(year, month, d).getDay())) {
         nextSelected.add(formatDateString(year, month, d));
       }
     }
@@ -105,8 +106,7 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
   const handleSelectAllWeekdays = () => {
     const nextSelected = new Set(selectedDates);
     for (let d = 1; d <= daysInMonth; d++) {
-      const dayOfWeek = new Date(year, month, d).getDay();
-      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+      if (!isWeekendDay(new Date(year, month, d).getDay())) {
         nextSelected.add(formatDateString(year, month, d));
       }
     }
@@ -306,6 +306,10 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
               <span className="h-3.5 w-3.5 rounded border border-slate-200 bg-white"></span>
               Default Price
             </div>
+            <div className="flex items-center gap-1.5 text-[10px] font-bold text-amber-800">
+              <span className="h-3.5 w-3.5 rounded border border-amber-300 bg-amber-100"></span>
+              Weekend (Sun)
+            </div>
             <div className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-700">
               <span className="h-3.5 w-3.5 rounded border border-emerald-250 bg-emerald-50"></span>
               Custom Rate
@@ -380,17 +384,20 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
                 const isSelected = selectedDates.has(dateStr);
                 const rule = calendarSettings[dateStr];
                 const hasCustomRule = !!rule;
-                const dayOfWeek = new Date(year, month, d).getDay();
-                const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+                const isWeekend = isWeekendDay(new Date(year, month, d).getDay());
 
                 let cellBg = isWeekend
-                  ? "bg-slate-50/40 hover:bg-slate-100/50"
+                  ? "bg-amber-50 hover:bg-amber-100/70"
                   : "bg-white hover:bg-slate-50/70";
                 if (isSelected) {
                   cellBg =
                     "bg-primary/10 border-2 border-primary/40 z-10 scale-95";
                 } else if (rule?.isBlocked) {
                   cellBg = "bg-red-50/70 hover:bg-red-100/70 border-red-100";
+                } else if (hasCustomRule && isWeekend) {
+                  // Keep weekend tint visible even with custom rate
+                  cellBg =
+                    "bg-amber-100 hover:bg-amber-200/60 border border-amber-200/80";
                 } else if (hasCustomRule) {
                   cellBg =
                     "bg-emerald-50/70 hover:bg-emerald-100/70 border-emerald-100";
@@ -404,7 +411,13 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
                   >
                     <div className="flex justify-between items-center">
                       <span
-                        className={`text-xs font-bold ${isSelected ? "text-primary font-extrabold scale-110" : "text-slate-800"}`}
+                        className={`text-xs font-bold ${
+                          isSelected
+                            ? "text-primary font-extrabold scale-110"
+                            : isWeekend
+                              ? "text-amber-800"
+                              : "text-slate-800"
+                        }`}
                       >
                         {d}
                       </span>
@@ -447,21 +460,21 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
             </div>
           </div>
 
-          {/* <div className="flex flex-wrap gap-2 pt-1">
+          <div className="flex flex-wrap gap-2 pt-1">
             <button
               type="button"
               onClick={handleSelectAllWeekends}
               className="px-3.5 py-2 border border-slate-300 hover:bg-slate-50 text-slate-800 text-xs font-bold rounded-xl transition cursor-pointer"
             >
-              Select All Weekends
-            </button>
-            <button
-              type="button"
-              onClick={handleSelectAllWeekdays}
-              className="px-3.5 py-2 border border-slate-300 hover:bg-slate-50 text-slate-800 text-xs font-bold rounded-xl transition cursor-pointer"
-            >
-              Select All Weekdays
-            </button>
+              Select Weekends (Sun)
+              </button>
+              <button
+                type="button"
+                onClick={handleSelectAllWeekdays}
+                className="px-3.5 py-2 border border-slate-300 hover:bg-slate-50 text-slate-800 text-xs font-bold rounded-xl transition cursor-pointer"
+              >
+                Select Weekdays (Mon–Sat)
+              </button>
             <button
               type="button"
               onClick={() => setSelectedDates(new Set())}
@@ -469,7 +482,7 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
             >
               Clear Selected ({selectedDates.size})
             </button>
-          </div> */}
+          </div>
         </div>
 
         {/* Configurations Side Panel */}
