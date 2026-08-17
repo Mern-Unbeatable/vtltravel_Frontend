@@ -33,42 +33,37 @@ export const buildRoomsPayload = (selectedRooms = []) =>
       quantity: Math.max(1, Number(room.quantity) || 1),
     }))
 
-const unitFromPreview = (preview, key) => {
-  const total = Number(preview?.[key])
-  if (Number.isNaN(total)) return 0
-  const previewRooms = Math.max(1, Number(preview?.rooms) || 1)
-  return total / previewRooms
-}
-
 export const getSelectedRoomsPricing = (selectedRooms = [], extraPrice = 0) => {
   const rooms = normalizeSelectedRooms(selectedRooms)
   let roomSubtotal = 0
   let taxAmount = 0
   let nightlyBase = 0
+  let previewTotal = 0
   let hasPreview = false
   let breakdownText = ''
   let previewNights = 0
 
   rooms.forEach((room) => {
-    const quantity = Math.max(1, Number(room.quantity) || 1)
     const preview = room.pricePreview
     const pricePerNight =
       Number(preview?.pricePerNight ?? room.priceNum ?? room.discountPrice ?? room.basePrice) || 0
 
     if (preview && preview.roomSubtotal != null && preview.taxAmount != null && preview.totalPrice != null) {
       hasPreview = true
-      roomSubtotal += unitFromPreview(preview, 'roomSubtotal') * quantity
-      taxAmount += unitFromPreview(preview, 'taxAmount') * quantity
+      roomSubtotal += Number(preview.roomSubtotal) || 0
+      taxAmount += Number(preview.taxAmount) || 0
+      previewTotal += Number(preview.totalPrice) || 0
       previewNights = Number(preview.nights) || previewNights
       if (!breakdownText && preview.breakdownText) breakdownText = preview.breakdownText
     } else {
-      roomSubtotal += pricePerNight * quantity
+      roomSubtotal += pricePerNight
     }
 
-    nightlyBase += pricePerNight * quantity
+    nightlyBase += pricePerNight
   })
 
-  const totalPrice = hasPreview ? roomSubtotal + taxAmount + Number(extraPrice || 0) : roomSubtotal + Number(extraPrice || 0)
+  const extra = Number(extraPrice || 0)
+  const totalPrice = hasPreview ? previewTotal + extra : roomSubtotal + extra
 
   return {
     rooms,

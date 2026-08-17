@@ -5,10 +5,6 @@ import {
   IoPersonOutline,
   IoChevronUp,
   IoChevronDown,
-  IoChevronBack,
-  IoChevronForward,
-  IoAdd,
-  IoRemove,
 } from 'react-icons/io5'
 import { toast } from 'react-toastify'
 import FallbackImage from '../../../components/FallbackImage'
@@ -155,6 +151,13 @@ const HotelSummarySidebar = ({
   const adults = adultsCount
   const rooms = roomsCount
   const children = childrenCount
+  const guestSummaryLabel = [
+    `${adults} adult${adults !== 1 ? 's' : ''}`,
+    children > 0 ? `${children} child${children !== 1 ? 'ren' : ''}` : null,
+    `${rooms} room${rooms !== 1 ? 's' : ''}`,
+  ]
+    .filter(Boolean)
+    .join(' · ')
   const targetId = hotel?.id || hotel?.slug || hotelId
   const isFerryPage = location.pathname.includes('/book-ferry')
   const isRoomBooked = isAnySelectedRoomBooked(selectedRooms, stay)
@@ -271,118 +274,15 @@ const HotelSummarySidebar = ({
     })
   }
 
+  // Sidebar stay summary is read-only — date/guest pickers live in Rooms available section.
   const stayDates = (
     <div className="mt-4 space-y-2">
-      <div ref={datePickerRef} className="relative">
-        <button
-          type="button"
-          onClick={() => {
-            setShowDatePicker((prev) => !prev)
-            setShowGuestsPicker(false)
-            setActiveDateTab(checkInDate ? 'checkOut' : 'checkIn')
-          }}
-          className={`flex w-full items-center gap-2 rounded-xl px-0 py-1 text-left text-[#3ea5dc] font-medium text-xs cursor-pointer transition ${
-            showDatePicker ? 'text-[#3296cc]' : 'hover:opacity-80'
-          }`}
-        >
-          <IoCalendarOutline className="text-sm shrink-0" />
-          <span>
-            {checkInLabel || 'Select check-in'}
-            {` → ${checkOutLabel || 'Select check-out'}`}
-          </span>
-        </button>
-
-        {showDatePicker ? (
-          <div className="absolute left-0 top-full z-[120] mt-2 w-full min-w-[260px] rounded-2xl border border-gray-100 bg-white p-3 shadow-2xl">
-            <div className="mb-3 flex items-center justify-between rounded-xl bg-gray-100 p-1">
-              <button
-                type="button"
-                onClick={() => setActiveDateTab('checkIn')}
-                className={`flex-1 rounded-lg py-1 text-[11px] font-semibold transition ${
-                  activeDateTab === 'checkIn'
-                    ? 'bg-primary text-white shadow-xs'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                In: {formatDateDisplay(checkInDate) || 'Select'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveDateTab('checkOut')}
-                className={`flex-1 rounded-lg py-1 text-[11px] font-semibold transition ${
-                  activeDateTab === 'checkOut'
-                    ? 'bg-primary text-white shadow-xs'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                Out: {formatDateDisplay(checkOutDate) || 'Select'}
-              </button>
-            </div>
-
-            <div className="mb-3 flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() => setCurrentCalendarMonth(new Date(year, month - 1, 1))}
-                className="flex h-7 w-7 items-center justify-center rounded-full text-gray-600 hover:bg-gray-100"
-              >
-                <IoChevronBack className="text-sm" />
-              </button>
-              <span className="text-xs font-bold text-gray-800">
-                {MONTH_NAMES[month]} {year}
-              </span>
-              <button
-                type="button"
-                onClick={() => setCurrentCalendarMonth(new Date(year, month + 1, 1))}
-                className="flex h-7 w-7 items-center justify-center rounded-full text-gray-600 hover:bg-gray-100"
-              >
-                <IoChevronForward className="text-sm" />
-              </button>
-            </div>
-
-            <div className="mb-2 grid grid-cols-7 text-center">
-              {DAYS_OF_WEEK.map((d) => (
-                <span key={d} className="text-[10px] font-semibold text-gray-400">
-                  {d}
-                </span>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-7 gap-1 text-center text-[11px]">
-              {Array.from({ length: firstDayIndex }).map((_, idx) => (
-                <div key={`empty-${idx}`} />
-              ))}
-              {Array.from({ length: totalDaysInMonth }).map((_, idx) => {
-                const dayNum = idx + 1
-                const currentDayDate = new Date(year, month, dayNum)
-                const selectedIn = isSameDay(currentDayDate, checkInDate)
-                const selectedOut = isSameDay(currentDayDate, checkOutDate)
-                const inRange = isInRange(currentDayDate)
-                const disabled = isPast(currentDayDate)
-
-                let dayStyle = 'hover:bg-gray-100 text-gray-700'
-                if (disabled) {
-                  dayStyle = 'text-gray-300 pointer-events-none'
-                } else if (selectedIn || selectedOut) {
-                  dayStyle = 'bg-primary text-white font-bold rounded-md'
-                } else if (inRange) {
-                  dayStyle = 'bg-sky-100 text-primary font-semibold'
-                }
-
-                return (
-                  <button
-                    key={`day-${dayNum}`}
-                    type="button"
-                    disabled={disabled}
-                    onClick={() => handleSelectDay(dayNum)}
-                    className={`flex h-7 w-full items-center justify-center rounded-sm font-medium transition ${dayStyle}`}
-                  >
-                    {dayNum}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        ) : null}
+      <div className="flex w-full items-center gap-2 rounded-xl px-0 py-1 text-left text-xs font-medium text-[#3ea5dc]">
+        <IoCalendarOutline className="shrink-0 text-sm" />
+        <span>
+          {checkInLabel || 'Select check-in'}
+          {` → ${checkOutLabel || 'Select check-out'}`}
+        </span>
       </div>
 
       {nights > 0 ? (
@@ -397,106 +297,9 @@ const HotelSummarySidebar = ({
         </p>
       ) : null}
 
-      <div ref={guestsPickerRef} className="relative mt-3">
-        <button
-          type="button"
-          onClick={() => {
-            setShowGuestsPicker((prev) => !prev)
-            setShowDatePicker(false)
-          }}
-          className={`flex w-full items-center gap-2 rounded-xl px-0 py-1 text-left text-[#3ea5dc] font-medium text-xs cursor-pointer transition ${
-            showGuestsPicker ? 'text-[#3296cc]' : 'hover:opacity-80'
-          }`}
-        >
-          <IoPersonOutline className="text-sm shrink-0" />
-          <span>
-            {adults} adult{adults !== 1 ? 's' : ''}
-            {children > 0 ? ` - ${children} child${children !== 1 ? 'ren' : ''}` : ''}
-            {` - ${rooms} room${rooms !== 1 ? 's' : ''}`}
-          </span>
-        </button>
-
-        {showGuestsPicker ? (
-          <div className="absolute left-0 top-full z-[120] mt-2 w-full min-w-[220px] rounded-2xl border border-gray-100 bg-white p-4 shadow-2xl">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-bold text-gray-800">Rooms</p>
-                <div className="flex items-center gap-3 rounded-lg bg-gray-100 px-2 py-1">
-                  <button
-                    type="button"
-                    onClick={() => updateGuests({ rooms: roomsCount - 1 })}
-                    disabled={roomsCount <= 1}
-                    className="text-gray-600 disabled:opacity-40"
-                  >
-                    <IoRemove className="text-xs" />
-                  </button>
-                  <span className="text-xs font-bold text-primary">{roomsCount}</span>
-                  <button
-                    type="button"
-                    onClick={() => updateGuests({ rooms: roomsCount + 1 })}
-                    className="text-gray-600"
-                  >
-                    <IoAdd className="text-xs" />
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between border-t border-gray-100 pt-3">
-                <p className="text-xs font-bold text-gray-800">Adults</p>
-                <div className="flex items-center gap-3 rounded-lg bg-gray-100 px-2 py-1">
-                  <button
-                    type="button"
-                    onClick={() => updateGuests({ adults: adultsCount - 1 })}
-                    disabled={adultsCount <= 1}
-                    className="text-gray-600 disabled:opacity-40"
-                  >
-                    <IoRemove className="text-xs" />
-                  </button>
-                  <span className="text-xs font-bold text-primary">{adultsCount}</span>
-                  <button
-                    type="button"
-                    onClick={() => updateGuests({ adults: adultsCount + 1 })}
-                    className="text-gray-600"
-                  >
-                    <IoAdd className="text-xs" />
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between border-t border-gray-100 pt-3">
-                <p className="text-xs font-bold text-gray-800">Children</p>
-                <div className="flex items-center gap-3 rounded-lg bg-gray-100 px-2 py-1">
-                  <button
-                    type="button"
-                    onClick={() => updateGuests({ children: childrenCount - 1 })}
-                    disabled={childrenCount <= 0}
-                    className="text-gray-600 disabled:opacity-40"
-                  >
-                    <IoRemove className="text-xs" />
-                  </button>
-                  <span className="text-xs font-bold text-primary">{childrenCount}</span>
-                  <button
-                    type="button"
-                    onClick={() => updateGuests({ children: childrenCount + 1 })}
-                    className="text-gray-600"
-                  >
-                    <IoAdd className="text-xs" />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-4 border-t border-gray-100 pt-3">
-              <button
-                type="button"
-                onClick={() => setShowGuestsPicker(false)}
-                className="w-full rounded-lg bg-primary py-1.5 text-[11px] font-semibold text-white transition hover:bg-primary/90"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        ) : null}
+      <div className="mt-3 flex w-full items-center gap-2 rounded-xl px-0 py-1 text-left text-xs font-medium text-[#3ea5dc]">
+        <IoPersonOutline className="shrink-0 text-sm" />
+        <span>{guestSummaryLabel}</span>
       </div>
     </div>
   )
@@ -524,15 +327,7 @@ const HotelSummarySidebar = ({
     roomSubtotal: displayRoomSubtotal,
     taxAmount: displayTaxAmount,
     totalPrice,
-    breakdownText,
   } = pricing
-
-  const handleQuantityChange = (roomId, quantity) => {
-    if (onRoomQuantityChange) {
-      onRoomQuantityChange(roomId, quantity)
-      return
-    }
-  }
 
   return (
     <aside className="sticky top-24 rounded-2xl border border-gray-200 bg-white p-5 text-xs shadow-sm">
@@ -568,10 +363,10 @@ const HotelSummarySidebar = ({
                 roomData.discountPrice ??
                 roomData.basePrice,
             ) || 0
-          const previewRooms = Math.max(1, Number(preview?.rooms) || 1)
-          const lineSubtotal = preview?.roomSubtotal != null
-            ? (Number(preview.roomSubtotal) / previewRooms) * roomData.quantity
-            : pricePerNight * roomData.quantity
+          const lineSubtotal =
+            preview?.roomSubtotal != null
+              ? Number(preview.roomSubtotal)
+              : pricePerNight
 
           return (
             <div key={roomData.id} className="flex items-start gap-3">
@@ -597,37 +392,11 @@ const HotelSummarySidebar = ({
                 {roomData.capacity ? (
                   <p className="mt-1 text-[11px] text-gray-400">{roomData.capacity}</p>
                 ) : null}
-                <div className="mt-2 flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleQuantityChange(roomData.id, roomData.quantity - 1)}
-                    className="flex h-6 w-6 items-center justify-center rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50"
-                  >
-                    <IoRemove className="text-xs" />
-                  </button>
-                  <span className="min-w-[1.5rem] text-center text-xs font-bold text-slate-800">
-                    {roomData.quantity}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => handleQuantityChange(roomData.id, roomData.quantity + 1)}
-                    className="flex h-6 w-6 items-center justify-center rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50"
-                  >
-                    <IoAdd className="text-xs" />
-                  </button>
-                  <span className="text-[11px] text-gray-400">
-                    room{roomData.quantity !== 1 ? 's' : ''}
-                  </span>
-                </div>
               </div>
             </div>
           )
         })}
       </div>
-
-      {breakdownText ? (
-        <p className="mt-3 text-[11px] text-gray-400">{breakdownText}</p>
-      ) : null}
 
       <div className="mt-3 flex justify-end">
         <button
@@ -644,11 +413,10 @@ const HotelSummarySidebar = ({
         <div className="mt-3 rounded-xl bg-[#f8fbfe] p-3.5 space-y-3">
           {selectedRooms.map((roomData) => {
             const preview = roomData.pricePreview || null
-            const previewRooms = Math.max(1, Number(preview?.rooms) || 1)
-            const lineSubtotal = preview?.roomSubtotal != null
-              ? (Number(preview.roomSubtotal) / previewRooms) * roomData.quantity
-              : (Number(roomData.priceNum ?? roomData.discountPrice ?? roomData.basePrice) || 0) *
-                roomData.quantity
+            const lineSubtotal =
+              preview?.roomSubtotal != null
+                ? Number(preview.roomSubtotal)
+                : Number(roomData.priceNum ?? roomData.discountPrice ?? roomData.basePrice) || 0
 
             return (
               <div key={`detail-${roomData.id}`} className="flex items-start justify-between gap-2">

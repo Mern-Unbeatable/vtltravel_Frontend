@@ -206,7 +206,7 @@ const HotelRoomsSection = ({
 
           {/* Date Picker Popover */}
           {showDatePicker && (
-            <div className="absolute left-0 top-full z-[100] mt-2 w-[320px] rounded-2xl border border-gray-100 bg-white p-4 shadow-2xl md:w-[350px]">
+            <div className="absolute left-0 top-full z-100 mt-2 w-[320px] rounded-2xl border border-gray-100 bg-white p-4 shadow-2xl md:w-[350px]">
               {/* Active Tab Toggle */}
               <div className="mb-3 flex items-center justify-between rounded-xl bg-gray-100 p-1">
                 <button
@@ -333,7 +333,7 @@ const HotelRoomsSection = ({
 
           {/* Guest Picker Popover */}
           {showGuestsPicker && (
-            <div className="absolute left-0 top-full z-[100] mt-2 w-60 rounded-2xl border border-gray-100 bg-white p-4 shadow-2xl">
+            <div className="absolute left-0 top-full z-100 mt-2 w-60 rounded-2xl border border-gray-100 bg-white p-4 shadow-2xl">
               <div className="space-y-4">
                 
                 {/* Rooms Counter */}

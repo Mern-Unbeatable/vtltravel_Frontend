@@ -9,7 +9,6 @@ import RoomDetailsModal from './components/RoomDetailsModal'
 import { useHotel, useHotelRooms } from '../../hooks/useHotels'
 import { HotelDetailsSkeleton } from '../../components/skeletons/Skeleton'
 import { getStoredHotelSearch, saveHotelSearch } from '../../utils/hotelSearchStorage'
-import { formatDateISO } from '../../utils/hotelSearchParams'
 import { isRoomBookedForStay, ROOM_BOOKED_MESSAGE } from '../../utils/roomAvailability'
 import {
   normalizeSelectedRooms,
@@ -48,7 +47,14 @@ const mapRoomType = (room) => {
     bedInfo,
     taxes: room.taxPerNight ? `$${room.taxPerNight}` : '',
     taxNum: Number(room.taxPerNight) || 0,
-    roomsLeft: room.roomsLeftAlert || '',
+    roomsLeft: (() => {
+      const raw = room.roomsLeftAlert || room.roomsLeft || ''
+      if (!raw) return ''
+      const match = String(raw).match(/(\d+)/)
+      if (!match) return String(raw)
+      const count = Number(match[1])
+      return `Only ${count} room${count !== 1 ? 's' : ''} left`
+    })(),
     memberRate: Boolean(room.isMemberDeal),
     pricePreview: room.pricePreview || null,
     availableForDates: room.availableForDates,
@@ -118,20 +124,6 @@ const HotelDetailsPage = () => {
     }
   }
 
-  const syncStayRoomCount = (rooms) => {
-    const total = getSelectedRoomsQuantity(rooms)
-    if (total <= 0 || Number(stay?.rooms) === total) return
-    const saved = saveHotelSearch({
-      ...(stay || {}),
-      checkIn: stay?.checkIn || '',
-      checkOut: stay?.checkOut || '',
-      adults: Number(stay?.adults) || 1,
-      children: Number(stay?.children) || 0,
-      rooms: total,
-    })
-    setStay(saved)
-  }
-
   const handleStaySearch = (nextStay) => {
     const saved = saveHotelSearch(nextStay)
     setStay(saved)
@@ -173,11 +165,27 @@ const HotelDetailsPage = () => {
       return
     }
 
+    const maxRooms = Math.max(1, Number(stay?.rooms) || 1)
     const inventoryRoom = resolveRoomInventory(room.id, room)
     const current = normalizeSelectedRooms(selectedRooms)
     const existing = current.find((item) => item.id === room.id)
     const currentQty = Number(existing?.quantity) || 0
+    const currentTotal = getSelectedRoomsQuantity(current)
     const available = getRoomAvailableQuantity(inventoryRoom)
+
+    if (currentTotal >= maxRooms && !existing) {
+      toast.info(
+        `You can select up to ${maxRooms} room${maxRooms !== 1 ? 's' : ''} for this search.`,
+      )
+      return
+    }
+
+    if (existing && currentTotal >= maxRooms) {
+      toast.info(
+        `You can select up to ${maxRooms} room${maxRooms !== 1 ? 's' : ''} for this search.`,
+      )
+      return
+    }
 
     if (available !== null && currentQty >= available) {
       toast.info(
@@ -195,20 +203,27 @@ const HotelDetailsPage = () => {
       : [...current, { ...room, quantity: 1 }]
 
     setSelectedRooms(next)
-    syncStayRoomCount(next)
   }
 
   const handleCancelRoom = (room) => {
-    const next = updateSelectedRoomQuantity(selectedRooms, room.id, 0)
-    setSelectedRooms(next)
-    syncStayRoomCount(next)
+    setSelectedRooms(updateSelectedRoomQuantity(selectedRooms, room.id, 0))
   }
 
   const handleRoomQuantityChange = (roomId, quantity) => {
     const currentRoom = selectedRooms.find((room) => room.id === roomId)
     const inventoryRoom = resolveRoomInventory(roomId, currentRoom)
     const nextQty = Number(quantity) || 0
+    const currentQty = Number(currentRoom?.quantity) || 0
+    const maxRooms = Math.max(1, Number(stay?.rooms) || 1)
+    const currentTotal = getSelectedRoomsQuantity(selectedRooms)
     const available = getRoomAvailableQuantity(inventoryRoom)
+
+    if (nextQty > currentQty && currentTotal >= maxRooms) {
+      toast.info(
+        `You can select up to ${maxRooms} room${maxRooms !== 1 ? 's' : ''} for this search.`,
+      )
+      return
+    }
 
     if (available !== null && nextQty > available) {
       toast.info(
@@ -217,9 +232,7 @@ const HotelDetailsPage = () => {
       return
     }
 
-    const next = updateSelectedRoomQuantity(selectedRooms, roomId, nextQty)
-    setSelectedRooms(next)
-    syncStayRoomCount(next)
+    setSelectedRooms(updateSelectedRoomQuantity(selectedRooms, roomId, nextQty))
   }
 
   if (isLoading) {
@@ -261,7 +274,6 @@ const HotelDetailsPage = () => {
       return true
     })
     .map(mapRoomType)
-  const todayIso = formatDateISO(new Date())
 
   return (
     <div className="">
@@ -278,8 +290,8 @@ const HotelDetailsPage = () => {
             />
             <HotelRoomsSection
               rooms={roomsList}
-              initialCheckIn={todayIso}
-              initialCheckOut=""
+              initialCheckIn={stay?.checkIn || ''}
+              initialCheckOut={stay?.checkOut || ''}
               initialRooms={stay?.rooms || 1}
               initialAdults={stay?.adults || 1}
               initialChildren={stay?.children || 0}
