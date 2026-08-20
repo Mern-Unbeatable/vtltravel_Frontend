@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { HiOutlinePhotograph } from 'react-icons/hi'
 import {
   IoLeafOutline,
@@ -7,7 +6,6 @@ import {
   IoCheckmarkCircleOutline,
 } from 'react-icons/io5'
 import { MdOutlineDeck, MdOutlineBathtub } from 'react-icons/md'
-import HotelGalleryModal from '../../searchResultsPage/components/HotelGalleryModal'
 import FallbackImage from '../../../components/FallbackImage'
 
 const amenityIcons = {
@@ -17,11 +15,16 @@ const amenityIcons = {
   shower: IoWaterOutline,
   wifi: IoWifiOutline,
   'free-wifi': IoWifiOutline,
+  'air-conditioning': IoCheckmarkCircleOutline,
+  'mini-bar': IoCheckmarkCircleOutline,
+  balcony: IoCheckmarkCircleOutline,
 }
 
 const getAmenityIcon = (name) => {
   const key = String(name).toLowerCase()
-  const match = Object.keys(amenityIcons).find((slug) => key.includes(slug))
+  const match = Object.keys(amenityIcons).find(
+    (slug) => key.includes(slug.replace(/-/g, ' ')) || key.includes(slug),
+  )
   return match ? amenityIcons[match] : IoCheckmarkCircleOutline
 }
 
@@ -49,6 +52,52 @@ const parseRoomTags = (rawTags = []) => {
     .filter(Boolean)
 }
 
+const extractViewFromName = (name = '') => {
+  if (!name) return ''
+  const parts = String(name).split(',').map((part) => part.trim())
+  const viewPart = parts.find((part) => /view/i.test(part))
+  return viewPart || ''
+}
+
+const pickViewBadge = (tags, amenityNames, roomName = '') => {
+  const viewTag = tags.find((tag) => /view/i.test(tag))
+  if (viewTag) return viewTag
+
+  const fromName = extractViewFromName(roomName)
+  if (fromName) return fromName
+
+  const amenitySet = new Set(amenityNames.map((item) => item.toLowerCase()))
+  const standalone = tags.find((tag) => !amenitySet.has(tag.toLowerCase()))
+  return standalone || ''
+}
+
+const getRoomsLeftLabel = (room) => {
+  if (room?.roomsLeft) return room.roomsLeft
+
+  const raw = room?.roomsLeftAlert || ''
+  if (raw) {
+    const match = String(raw).match(/(\d+)/)
+    if (match) {
+      const count = Number(match[1])
+      return `Only ${count} room${count !== 1 ? 's' : ''} left`
+    }
+    return String(raw)
+  }
+
+  const count = Number(
+    room?.availableQuantity ??
+      room?.availability?.availableQuantity ??
+      room?.totalInventory ??
+      room?.quantityAvailable ??
+      room?.roomsAvailable,
+  )
+  if (Number.isFinite(count) && count >= 0) {
+    return `Only ${count} room${count !== 1 ? 's' : ''} left`
+  }
+
+  return ''
+}
+
 const RoomCard = ({
   room,
   selectedQuantity = 0,
@@ -56,7 +105,6 @@ const RoomCard = ({
   onCancelRoom,
   onOpenDetails,
 }) => {
-  const [isGalleryOpen, setIsGalleryOpen] = useState(false)
   const roomImage =
     room?.image ||
     (typeof room?.images?.[0] === 'string' ? room.images[0] : room?.images?.[0]?.url) ||
@@ -67,11 +115,12 @@ const RoomCard = ({
 
   const allTags = parseRoomTags(room?.tags || [])
   const amenityNames = (room?.amenityNames || []).filter(Boolean)
-  const viewBadge = allTags[0] || ''
-  const amenityItems =
+  const viewBadge = pickViewBadge(allTags, amenityNames, room?.name)
+  const amenityItems = (
     amenityNames.length > 0
-      ? amenityNames.slice(0, 4)
-      : allTags.slice(1, 5)
+      ? amenityNames
+      : allTags.filter((tag) => tag !== viewBadge)
+  ).slice(0, 4)
 
   const meta = [room?.bedInfo, room?.capacity, room?.size].filter(Boolean).join(' | ')
   const isSelected = selectedQuantity > 0
@@ -82,13 +131,14 @@ const RoomCard = ({
   const hasDiscount = Number.isFinite(discountPriceNum) && discountPriceNum > 0
   const displayPrice = hasDiscount ? discountPriceNum : basePriceNum
   const hasPrice = hasBase || hasDiscount
+  const roomsLeftLabel = getRoomsLeftLabel(room)
 
   return (
     <>
-      <article className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md">
-        <div className="flex flex-col lg:flex-row lg:items-stretch">
-          {/* Image */}
-          <div className="relative h-[220px] w-full shrink-0 overflow-hidden bg-[#f3f4f6] lg:h-auto lg:w-[280px] xl:w-[300px]">
+      <article className="rounded-2xl border border-gray-200 bg-white p-3 shadow-sm">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
+          {/* Left — tall inset image */}
+          <div className="relative h-52 w-full shrink-0 overflow-hidden rounded-xl bg-[#f3f4f6] lg:h-auto lg:min-h-60 lg:w-72">
             <FallbackImage
               src={roomImage}
               alt={room?.name || 'Room'}
@@ -97,30 +147,30 @@ const RoomCard = ({
             />
             <button
               type="button"
-              onClick={() => setIsGalleryOpen(true)}
-              className="absolute bottom-3 left-3 z-10 flex cursor-pointer items-center gap-1.5 rounded-md bg-black/55 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-xs transition hover:bg-black/70"
+              onClick={() => onOpenDetails?.(room)}
+              className="absolute bottom-2.5 left-2.5 z-10 flex cursor-pointer items-center gap-1 rounded bg-black/55 px-2 py-0.5 text-[11px] font-semibold text-white backdrop-blur-xs transition hover:bg-black/70"
             >
               <HiOutlinePhotograph className="h-3.5 w-3.5" />
               <span>1/{roomGallery.length || 1}</span>
             </button>
           </div>
 
-          {/* Details + pricing */}
+          {/* Middle + right */}
           <div className="flex min-w-0 flex-1 flex-col lg:flex-row">
-            {/* Middle: room info */}
-            <div className="flex min-w-0 flex-1 flex-col p-5 md:p-6">
+            {/* Middle */}
+            <div className="flex min-w-0 flex-1 flex-col lg:min-h-60 lg:py-1 lg:pr-2">
               {room?.name ? (
-                <h3 className="text-xl font-bold tracking-tight text-slate-900 md:text-[22px]">
+                <h3 className="text-xl font-bold leading-snug text-slate-900">
                   {room.name}
                 </h3>
               ) : null}
 
               {meta ? (
-                <p className="mt-1 text-sm font-medium text-gray-500">{meta}</p>
+                <p className="mt-1 text-sm text-gray-500">{meta}</p>
               ) : null}
 
               {viewBadge ? (
-                <span className="mt-3 inline-flex w-fit items-center gap-1.5 rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-[#3ea5dc]">
+                <span className="mt-2.5 inline-flex w-fit items-center gap-1.5 rounded-md border border-sky-200 bg-sky-50 px-2.5 py-1 text-xs font-semibold text-[#3ea5dc]">
                   <IoLeafOutline className="h-3.5 w-3.5" />
                   {viewBadge}
                 </span>
@@ -152,42 +202,35 @@ const RoomCard = ({
                 </>
               ) : null}
 
-              {room?.roomsLeft ? (
-                <div className="mt-4 inline-flex w-fit items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                  {room.roomsLeft}
+              {roomsLeftLabel ? (
+                <div className="mt-5 inline-flex w-fit items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 lg:mt-auto">
+                  <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500" />
+                  {roomsLeftLabel}
                 </div>
-              ) : null}
-
-              {room?.memberRate ? (
-                <span className="mt-3 inline-block w-fit rounded-md bg-sky-100 px-2 py-0.5 text-[10px] font-bold uppercase text-[#3ea5dc]">
-                  Member rate
-                </span>
               ) : null}
             </div>
 
-            {/* Right: price + CTA */}
-            <div className="flex shrink-0 flex-col items-center justify-between border-t border-gray-100 px-5 py-5 lg:w-[190px] lg:border-l lg:border-t-0 lg:px-6 lg:py-6">
-              <div className="flex w-full flex-col items-center text-center">
+            {/* Right — price + button */}
+            <div className="flex shrink-0 flex-col justify-end border-t border-gray-100 pt-4 lg:min-h-60 lg:w-50 lg:border-l lg:border-t-0 lg:pl-6 lg:pr-2 lg:pt-0">
+              <div className="mt-auto w-full">
                 {hasPrice ? (
-                  <>
-                    <div className="flex flex-wrap items-baseline justify-center gap-1.5">
+                  <div className="mb-5 text-center">
+                    <div className="flex flex-wrap items-baseline justify-center gap-x-1">
                       {hasDiscount && hasBase ? (
-                        <span className="text-sm font-semibold text-gray-400 line-through">
+                        <span className="text-sm text-gray-400 line-through">
                           ${basePriceNum}
                         </span>
                       ) : null}
-                      <span className="text-3xl font-extrabold leading-none text-[#3ea5dc]">
+                      <span className="text-[32px] font-extrabold leading-none text-[#3ea5dc]">
                         ${displayPrice}
                       </span>
                       <span className="text-sm text-gray-500">/night</span>
                     </div>
                     <p className="mt-1.5 text-xs text-gray-400">Per room / night</p>
-                  </>
+                  </div>
                 ) : null}
-              </div>
 
-              <button
+                <button
                 type="button"
                 onClick={() => {
                   if (isSelected) {
@@ -196,7 +239,7 @@ const RoomCard = ({
                   }
                   onSelectRoom?.(room)
                 }}
-                className={`group mt-5 w-full cursor-pointer rounded-full px-5 py-2.5 text-sm font-bold text-white shadow-md transition active:scale-95 ${
+                className={`group w-full cursor-pointer rounded-xl px-5 py-3 text-sm font-bold text-white shadow-sm transition active:scale-95 ${
                   isSelected
                     ? 'bg-emerald-500 hover:bg-red-500'
                     : 'bg-[#3ea5dc] hover:bg-[#3296cc]'
@@ -211,17 +254,12 @@ const RoomCard = ({
                   'Choose this room'
                 )}
               </button>
+              </div>
             </div>
           </div>
         </div>
       </article>
 
-      <HotelGalleryModal
-        open={isGalleryOpen}
-        onClose={() => setIsGalleryOpen(false)}
-        hotelTitle={room?.name}
-        images={roomGallery}
-      />
     </>
   )
 }
