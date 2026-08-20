@@ -75,6 +75,8 @@ export const hotelSchema = z.object({
   rooms: z.array(z.any()).default([]),
   available: z.boolean().default(true),
   isFeatured: z.boolean().default(false),
+  bestFor: z.array(z.string()).default([]),
+  accommodationStyle: z.string().default(''),
   addOns: z.array(
     z.object({
       id: z.string().optional(),
@@ -216,6 +218,15 @@ export const mapHotelFormToFormData = (data, base64ToFileFn) => {
   formData.append("city", data.city || "");
   formData.append("country", data.country || "");
   formData.append("isFeatured", String(data.isFeatured));
+  formData.append("accommodationStyle", data.accommodationStyle || "");
+  formData.append("bestFor", JSON.stringify(data.bestFor || []));
+
+  const bestForTags = (data.bestFor || []).map((name) => ({
+    name,
+    slug: String(name).toLowerCase().replace(/\s+/g, "-"),
+    category: "best_for",
+  }));
+  formData.append("tags", JSON.stringify(bestForTags));
 
   const slugMap = {
     "Free Wi-Fi": "free-wifi",

@@ -28,6 +28,12 @@ import {
   mapHotelFormToFormData,
 } from "./addHotelHelper";
 
+const BEST_FOR_OPTIONS = ["Business", "Couples", "Luxury"];
+const ACCOMMODATION_STYLE_OPTIONS = [
+  { value: "LUXURY_HOTEL", label: "Luxury Hotel" },
+  { value: "RESORT", label: "Resort" },
+];
+
 const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
   // Room modal sub-states
   const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
@@ -75,6 +81,8 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
       rooms: [],
       available: true,
       isFeatured: false,
+      bestFor: [],
+      accommodationStyle: "",
       addOns: [{ name: "", price: "" }],
     },
   });
@@ -95,6 +103,7 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
   const roomsVal = watch("rooms") || [];
   const availableVal = watch("available");
   const isFeaturedVal = watch("isFeatured");
+  const bestForVal = watch("bestFor") || [];
 
   const activeHotelId = hotel?.id || hotel?._id;
 
@@ -148,6 +157,12 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
               ? hotel.available
               : true,
         isFeatured: hotel.isFeatured !== undefined ? hotel.isFeatured : false,
+        bestFor: (hotel.tags || [])
+          .map((item) => item?.tag || item)
+          .filter((tag) => tag?.category === "best_for")
+          .map((tag) => tag?.name)
+          .filter(Boolean),
+        accommodationStyle: hotel.accommodationStyle || "",
         addOns:
           hotel.addOns && hotel.addOns.length > 0
             ? hotel.addOns.map((a) => ({
@@ -510,6 +525,57 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
                     />
                     No
                   </label>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-2">
+                  Best For
+                </label>
+                <div className="space-y-2 rounded-xl border border-gray-200 bg-slate-50 p-3">
+                  {BEST_FOR_OPTIONS.map((item) => (
+                    <label
+                      key={item}
+                      className="flex items-center justify-between text-sm text-slate-700 cursor-pointer"
+                    >
+                      <span className="font-medium">{item}</span>
+                      <input
+                        type="checkbox"
+                        checked={bestForVal.includes(item)}
+                        onChange={(e) => {
+                          const current = new Set(bestForVal);
+                          if (e.target.checked) current.add(item);
+                          else current.delete(item);
+                          setValue("bestFor", Array.from(current));
+                        }}
+                        className="h-4 w-4 accent-primary"
+                      />
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-2">
+                  Accommodation Style
+                </label>
+                <div className="space-y-2 rounded-xl border border-gray-200 bg-slate-50 p-3">
+                  {ACCOMMODATION_STYLE_OPTIONS.map((option) => (
+                    <label
+                      key={option.value}
+                      className="flex items-center justify-between text-sm text-slate-700 cursor-pointer"
+                    >
+                      <span className="font-medium">{option.label}</span>
+                      <input
+                        type="radio"
+                        checked={watch("accommodationStyle") === option.value}
+                        onChange={() => setValue("accommodationStyle", option.value)}
+                        className="h-4 w-4 accent-primary"
+                      />
+                    </label>
+                  ))}
                 </div>
               </div>
             </div>
