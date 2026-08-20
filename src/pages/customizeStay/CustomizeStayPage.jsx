@@ -28,6 +28,7 @@ const formatPriceUnit = (unit) => {
 const mapAddOn = (item) => {
   const addOn = item?.addOn || item
   const priceValue = Number(addOn?.price)
+  const minPaxValue = Number(addOn?.minPax ?? addOn?.minimumPax ?? addOn?.minGuests)
   return {
     id: item?.id || addOn?.id,
     addOnId: item?.addOnId || addOn?.id || item?.id,
@@ -35,7 +36,14 @@ const mapAddOn = (item) => {
     description: addOn?.description || '',
     price: Number.isNaN(priceValue) ? 0 : priceValue,
     unit: formatPriceUnit(addOn?.priceUnit),
-    image: addOn?.imageUrl || '',
+    image:
+      addOn?.imageUrl ||
+      addOn?.coverImageUrl ||
+      addOn?.thumbnailUrl ||
+      (Array.isArray(addOn?.images) ? addOn.images[0]?.url || addOn.images[0] : '') ||
+      '',
+    minPax:
+      Number.isFinite(minPaxValue) && minPaxValue > 0 ? Math.floor(minPaxValue) : 1,
     isActive: addOn?.isActive !== false,
   }
 }
@@ -63,6 +71,10 @@ const CustomizeStayPage = () => {
   const stayParams = buildStayParams(stay)
   const { data: hotelData, isLoading, isFetching, isError } = useHotel(hotelId, stayParams)
   const maxRooms = Number(stay?.rooms) || 1
+  const totalGuests = Math.max(
+    1,
+    (Number(stay?.adults) || 0) + (Number(stay?.children) || 0),
+  )
 
   const hotel = hotelData || state?.hotel || null
   const hotelTitle = hotel?.name || state?.title || ''
@@ -120,6 +132,16 @@ const CustomizeStayPage = () => {
     .map((item) => ({ addOnId: item.addOnId, quantity: 1 }))
 
   const toggleExtra = (id) => {
+    const target = extras.find((item) => item.id === id)
+    if (!target) return
+
+    if (totalGuests < target.minPax) {
+      toast.info(
+        `${target.title} requires minimum ${target.minPax} pax. Your current selection has ${totalGuests} guest${totalGuests > 1 ? 's' : ''}.`,
+      )
+      return
+    }
+
     setSelectedExtras((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
     )
@@ -191,6 +213,11 @@ const CustomizeStayPage = () => {
                           <h3 className="text-xs font-bold uppercase leading-tight tracking-wide text-slate-900 line-clamp-2">
                             {extra.title}
                           </h3>
+                          {extra.minPax > 1 ? (
+                            <p className="mt-1 text-[11px] font-semibold text-[#3ea5dc]">
+                              Minimum {extra.minPax} pax
+                            </p>
+                          ) : null}
                           {extra.description ? (
                             <p className="mt-1 text-[11px] text-gray-400 line-clamp-2">
                               {extra.description}
@@ -234,44 +261,33 @@ const CustomizeStayPage = () => {
               </div>
             )}
 
-            <div className="mt-12 space-y-3.5 text-sm md:text-base leading-relaxed text-gray-400">
-              <p>These prices are the &quot;starting from&quot; prices.</p>
-              <p>
-                They correspond to the lowest total price available on the dates requested, based on
-                one accommodation (room, bed, etc.) or other services.
+            <div className="mt-12 rounded-2xl border border-sky-100 bg-[#f8fbfe] p-5 md:p-6">
+              <h3 className="text-lg font-bold text-slate-900">Bintan Tour Packages - Good to Know</h3>
+              <p className="mt-2 text-sm md:text-base leading-relaxed text-slate-600">
+                Make your Bintan getaway even more memorable by adding tours, dining and local
+                experiences to your booking.
               </p>
-              <p>
-                These prices may apply to types of rooms, apartments, or different characteristics.
-                Depending on the country of the hotel, these prices may be either: pre-tax,
-                including VAT only, or inclusive of all taxes (VAT and tourist tax included). When
-                it is not stipulated that all taxes are included on a price, taxes (VAT and/or
-                tourist tax) shall be indicated in the following steps of the booking process.
-              </p>
-              <p>
-                All bookings, wherever they are made, are payable in the hotel&apos;s currency. Only
-                the amount confirmed during the booking in the currency of the hotel is guaranteed.
-                Conversion to the customer&apos;s currency is given for reference only and is not
-                part of the contract. Costs linked to conversions between the hotel&apos;s currency and
-                that of the customer (exchange rates, bank fees) shall be paid by the customer.
-              </p>
-              <p>
-                The amount is converted according to the exchange rate of the day provided by our
-                partner DEVISEA, with the Euro as reference currency.
-              </p>
-              <p>
-                The promotion displayed applies to the standard rate of the day offered by the
-                hotel. The standard rate may vary depending on the reservation period and the dates
-                of stay.
-              </p>
-
-              <div className="pt-4 space-y-2">
-                <a href="#conditions" className="block text-[#3ea5dc] hover:underline font-medium">
-                  General Conditions of Sale
-                </a>
-                <a href="#terms" className="block text-[#3ea5dc] hover:underline font-medium">
-                  ALL - Accor Live Limitless terms and conditions
-                </a>
-              </div>
+              <ul className="mt-4 space-y-2 text-sm md:text-base leading-relaxed text-slate-600 list-disc pl-5">
+                <li>Add-on prices are based on your selected travel date and number of guests.</li>
+                <li>All tours and activities are subject to availability.</li>
+                <li>Selected add-ons will be included in your final booking summary and total price.</li>
+                <li>
+                  Confirmed tour timings will be shared with you by email once the booking is
+                  completed.
+                </li>
+                <li>
+                  Inclusions vary by activity. Please check each add-on for details such as meals,
+                  entrance tickets and transportation.
+                </li>
+                <li>
+                  If your selected activity is unavailable, our team will contact you with an
+                  alternative option.
+                </li>
+                <li>
+                  Cancellations or changes close to the travel date may not be accepted once
+                  arrangements have been confirmed.
+                </li>
+              </ul>
             </div>
           </div>
 

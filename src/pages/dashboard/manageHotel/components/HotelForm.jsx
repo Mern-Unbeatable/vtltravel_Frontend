@@ -83,7 +83,7 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
       isFeatured: false,
       bestFor: [],
       accommodationStyle: "",
-      addOns: [{ name: "", price: "" }],
+      addOns: [{ name: "", price: "", minPax: "1", imageUrl: "" }],
     },
   });
 
@@ -100,6 +100,7 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
   const videoVal = watch("video");
   const galleryVal = watch("gallery") || [];
   const facilitiesVal = watch("facilities") || [];
+  const addOnsVal = watch("addOns") || [];
   const roomsVal = watch("rooms") || [];
   const availableVal = watch("available");
   const isFeaturedVal = watch("isFeatured");
@@ -169,8 +170,10 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
                 id: a.id || a.addOn?.id || "",
                 name: a.addOn?.name || a.name || "",
                 price: String(a.addOn?.price || a.price || ""),
+                minPax: String(a.addOn?.minPax || a.minPax || 1),
+                imageUrl: a.addOn?.imageUrl || a.imageUrl || "",
               }))
-            : [{ name: "", price: "" }],
+            : [{ name: "", price: "", minPax: "1", imageUrl: "" }],
       });
     }
   }, [hotel, reset]);
@@ -595,7 +598,7 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
             />
 
             <AddOnOptions
-              register={register}
+              addOnItems={addOnsVal}
               addOnFields={addOnFields}
               appendAddOn={appendAddOn}
               removeAddOn={removeAddOn}

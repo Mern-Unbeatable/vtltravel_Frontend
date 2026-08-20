@@ -82,6 +82,8 @@ export const hotelSchema = z.object({
       id: z.string().optional(),
       name: z.string().default(''),
       price: z.string().default(''),
+      minPax: z.string().default('1'),
+      imageUrl: z.string().default(''),
     })
   ).default([]),
 });
@@ -247,6 +249,8 @@ export const mapHotelFormToFormData = (data, base64ToFileFn) => {
     .map((a) => ({
       name: a.name,
       price: parseFloat(a.price) || 0,
+      minPax: Math.max(1, Number(a.minPax) || 1),
+      imageUrl: a.imageUrl || "",
     }));
   formData.append("addOns", JSON.stringify(filteredAddOns));
 

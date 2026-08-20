@@ -478,19 +478,9 @@ const HotelSummarySidebar = ({
             ? isSubmitting
               ? 'Confirming...'
               : 'Confirm booking'
-            : 'Continue to ferry booking'}
+            : 'Continue Booking'}
         </button>
-        <button
-          type="button"
-          onClick={() => goToNext(true)}
-          disabled={isSubmitting || isRoomBooked}
-          className="w-full rounded-full border border-[#3ea5dc] py-3 text-xs font-bold text-[#3ea5dc] transition hover:bg-sky-50 active:scale-95 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"        >
-          {isFerryPage
-            ? isSubmitting
-              ? 'Confirming...'
-              : 'Confirm without ferry'
-            : 'Skip ferry booking'}
-        </button>
+        
       </div>
     </aside>
   )
