@@ -19,9 +19,14 @@ import { toast } from 'react-toastify'
 
 const mapRoomType = (room) => {
   const images = (room.images || []).map((img) => img.url).filter(Boolean)
-  const amenityNames = (room.amenities || [])
+  const featureNames = (room.features || [])
+    .map((item) => (typeof item === 'string' ? item : item?.name))
+    .filter(Boolean)
+  const amenityFromApi = (room.amenities || [])
     .map((item) => item?.amenity?.name || item?.name)
     .filter(Boolean)
+  const amenityNames =
+    featureNames.length > 0 ? featureNames : amenityFromApi
   const tags = (room.tags || []).length > 0 ? room.tags : amenityNames
   const priceValue = room.discountPrice || room.basePrice
   const publicRate = room.basePrice

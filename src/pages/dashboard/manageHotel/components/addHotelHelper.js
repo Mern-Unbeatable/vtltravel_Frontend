@@ -148,6 +148,7 @@ export const mapRoomToFormData = (savedRoom) => {
   formData.append("amenityIds", JSON.stringify([]));
 
   // API expects comma-separated text; backend turns them into arrays in facilityGroups
+  const features = Array.isArray(savedRoom.features) ? savedRoom.features : [];
   const foodBeverage = savedRoom.foodBeverage || [];
   const bathroomFacilities =
     savedRoom.bathroomFacilities || savedRoom.bathroom || [];
@@ -155,23 +156,30 @@ export const mapRoomToFormData = (savedRoom) => {
     savedRoom.mediaTechnology || savedRoom.mediaTech || [];
   const serviceEquipment = savedRoom.serviceEquipment || [];
 
+  formData.append("features", JSON.stringify(features));
   formData.append("foodBeverage", foodBeverage.join(", "));
   formData.append("bathroomFacilities", bathroomFacilities.join(", "));
   formData.append("mediaTechnology", mediaTechnology.join(", "));
   formData.append("serviceEquipment", serviceEquipment.join(", "));
 
+  // Features first so room-card chips show Private Deck / Bathtub / etc.
   const amenities = [
+    ...features,
     ...foodBeverage,
     ...bathroomFacilities,
     ...mediaTechnology,
     ...serviceEquipment,
   ];
-  const amenitySlugs = amenities.map((a) =>
-    a
-      .toLowerCase()
-      .replace(/\s+/g, "-")
-      .replace(/[^a-z0-9-]/g, ""),
-  );
+  const amenitySlugs = [
+    ...new Set(
+      amenities.map((a) =>
+        String(a)
+          .toLowerCase()
+          .replace(/\s+/g, "-")
+          .replace(/[^a-z0-9-]/g, ""),
+      ),
+    ),
+  ].filter(Boolean);
   formData.append("amenitySlugs", JSON.stringify(amenitySlugs));
 
   formData.append("breakfastIncluded", "true");

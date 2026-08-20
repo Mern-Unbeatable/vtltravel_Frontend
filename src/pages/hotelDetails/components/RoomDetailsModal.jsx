@@ -48,9 +48,14 @@ const mergeRoom = (base, extra) => {
   const images = toImageUrls(extra.images || extra.gallery)
   const fallbackImages = toImageUrls(base.gallery || base.images)
   const mergedImages = images.length > 0 ? images : fallbackImages
-  const amenityNames = (extra.amenities || [])
-    .map((item) => item?.amenity?.name || item?.name)
+  const featureNames = (extra.features || [])
+    .map((item) => (typeof item === 'string' ? item : item?.name))
     .filter(Boolean)
+  const amenityNames = featureNames.length
+    ? featureNames
+    : (extra.amenities || [])
+        .map((item) => item?.amenity?.name || item?.name)
+        .filter(Boolean)
 
   return {
     ...base,
@@ -60,6 +65,10 @@ const mergeRoom = (base, extra) => {
     images: mergedImages,
     gallery: mergedImages,
     amenities: extra.amenities?.length ? extra.amenities : base.amenities,
+    features: featureNames.length ? featureNames : base.features,
+    amenityNames: amenityNames.length
+      ? amenityNames
+      : base.amenityNames,
     tags: (extra.tags || []).length > 0 ? extra.tags : base.tags?.length ? base.tags : amenityNames,
     bedInfo:
       extra.bedInfo ||

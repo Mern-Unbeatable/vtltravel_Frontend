@@ -6,6 +6,20 @@ import { toast } from 'react-toastify';
 import { FormInput, FormFileInput, FormTextarea } from '../../../../components/FormFields';
 import { fileToBase64 } from '../../../../utils/fileHelpers';
 
+const FEATURE_PRESETS = [
+  'Private Deck',
+  'Bathtub',
+  'Rain Shower',
+  'Free Wi-Fi',
+  'Air conditioning',
+  'Mini bar',
+  'Balcony',
+  'Garden View',
+  'Sea View',
+  'Safe deposit box',
+  'Blackout curtain',
+];
+
 const roomSchema = z.object({
   name: z.string().min(1, 'Room name is required'),
   price: z.string().min(1, 'Price is required'),
@@ -15,6 +29,7 @@ const roomSchema = z.object({
   bedInfo: z.string().min(1, 'Bed count is required'),
   baths: z.string().default('1'),
   description: z.string().default(''),
+  features: z.string().default(''),
   foodBeverage: z.string().default(''),
   bathroomFacilities: z.string().default(''),
   mediaTechnology: z.string().default(''),
@@ -110,6 +125,7 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
     handleSubmit,
     reset,
     setValue,
+    watch,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(roomSchema),
@@ -122,6 +138,7 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
       bedInfo: '1',
       baths: '1',
       description: '',
+      features: '',
       foodBeverage: '',
       bathroomFacilities: '',
       mediaTechnology: '',
@@ -132,6 +149,8 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
     },
   });
 
+  const featuresValue = watch('features') || '';
+
   // Stable image items: { id, url, file? } — avoids preview/file index mismatch
   const [imageItems, setImageItems] = useState([]);
   const [initialImageUrls, setInitialImageUrls] = useState([]);
@@ -140,6 +159,36 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
     if (!value) return '';
     if (Array.isArray(value)) return value.join(', ');
     return String(value);
+  };
+
+  const collectFeatureNames = (roomData) => {
+    if (!roomData) return [];
+    if (Array.isArray(roomData.features) && roomData.features.length > 0) {
+      return roomData.features
+        .map((item) => (typeof item === 'string' ? item : item?.name))
+        .filter(Boolean);
+    }
+    if (Array.isArray(roomData.amenityNames) && roomData.amenityNames.length > 0) {
+      return roomData.amenityNames.filter(Boolean);
+    }
+    if (Array.isArray(roomData.amenities) && roomData.amenities.length > 0) {
+      return roomData.amenities
+        .map((item) => item?.amenity?.name || item?.name)
+        .filter(Boolean);
+    }
+    return [];
+  };
+
+  const selectedFeatures = featuresValue
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  const toggleFeature = (feature) => {
+    const current = new Set(selectedFeatures);
+    if (current.has(feature)) current.delete(feature);
+    else current.add(feature);
+    setValue('features', Array.from(current).join(', '));
   };
 
   useEffect(() => {
@@ -162,6 +211,7 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
         '2',
       );
       const facilityGroups = room.facilityGroups || {};
+      const featureText = collectFeatureNames(room).join(', ');
 
       reset({
         name: room.name || '',
@@ -173,6 +223,7 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
         bedInfo: bedInfoVal,
         baths: bathsVal,
         description: room.description || '',
+        features: featureText,
         foodBeverage: toCommaText(
           room.foodBeverage || facilityGroups.foodBeverage,
         ),
@@ -211,6 +262,7 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
         bedInfo: '1',
         baths: '1',
         description: '',
+        features: '',
         foodBeverage: '',
         bathroomFacilities: '',
         mediaTechnology: '',
@@ -279,6 +331,7 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
       .filter(Boolean);
 
   const onSubmit = async (data) => {
+    const features = splitToArray(data.features);
     const foodBeverage = splitToArray(data.foodBeverage);
     const bathroomFacilities = splitToArray(data.bathroomFacilities);
     const mediaTechnology = splitToArray(data.mediaTechnology);
@@ -332,6 +385,7 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
       bedInfo: data.bedInfo,
       baths: data.baths,
       description: data.description,
+      features,
       foodBeverage,
       bathroomFacilities,
       mediaTechnology,
@@ -459,6 +513,38 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
                 error={errors.tags}
                 placeholder="e.g. Ipsum, doloremque, dig"
               />
+            </div>
+
+            <div>
+              <label className="mb-3 block text-xs font-bold uppercase text-slate-700">
+                Room Features
+              </label>
+              <div className="grid grid-cols-2 gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4 sm:grid-cols-3 md:grid-cols-4">
+                {[
+                  ...FEATURE_PRESETS,
+                  ...selectedFeatures.filter(
+                    (f) => !FEATURE_PRESETS.includes(f),
+                  ),
+                ].map((feature) => (
+                  <label
+                    key={feature}
+                    className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-slate-700"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedFeatures.includes(feature)}
+                      onChange={() => toggleFeature(feature)}
+                      className="rounded text-primary accent-primary focus:ring-primary"
+                    />
+                    {feature}
+                  </label>
+                ))}
+              </div>
+              {errors.features && (
+                <p className="mt-1 text-xs text-red-500">
+                  {errors.features.message}
+                </p>
+              )}
             </div>
 
             <div className="border-t border-gray-100 pt-4">
