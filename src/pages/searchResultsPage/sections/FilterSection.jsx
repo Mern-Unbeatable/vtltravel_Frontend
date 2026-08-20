@@ -5,7 +5,7 @@ import { useHotelFilterFacets } from "../../../hooks/useHotels";
 import { compactParams } from "../../../utils/hotelSearchParams";
 import { FilterFacetSkeleton } from "../../../components/skeletons/Skeleton";
 
-const starsList = ["5 ★", "4 ★", "3 ★", "1 ★", "Unclassified ★"];
+const starsList = ["5 ★", "4 ★", "3 ★"];
 const MIN_PRICE = 0;
 const MAX_PRICE = 1000;
 
