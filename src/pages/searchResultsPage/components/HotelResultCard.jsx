@@ -97,7 +97,7 @@ const HotelResultCard = ({ hotel }) => {
   return (
     <>
       <article className="flex w-full flex-col rounded-3xl border border-gray-200 bg-white p-3 shadow-sm md:flex-row md:items-stretch md:gap-4 md:p-3">
-        <div className="relative h-52 w-full shrink-0 overflow-hidden rounded-2xl bg-[#f3f4f6] sm:h-56 md:h-auto md:w-[240px] lg:w-[260px]">
+        <div className="relative h-52 w-full shrink-0 overflow-hidden rounded-2xl bg-[#f3f4f6] sm:h-56 md:h-auto md:w-0 lg:w-65">
           <FallbackImage
             src={imageUrl}
             alt={title || 'Hotel'}
@@ -207,7 +207,7 @@ const HotelResultCard = ({ hotel }) => {
             </a>
           </div>
 
-          <div className="mt-auto flex shrink-0 flex-col items-start justify-end border-t border-gray-100 pt-4 md:w-[168px] md:items-end md:border-t-0 md:pt-0 md:text-right">
+          <div className="mt-auto flex shrink-0 flex-col items-start justify-end border-t border-gray-100 pt-4 md:w-42 md:items-end md:border-t-0 md:pt-0 md:text-right">
             {hasPrice ? (
               <div className="flex items-baseline gap-1.5">
                 <span className="text-sm text-gray-400">From</span>
