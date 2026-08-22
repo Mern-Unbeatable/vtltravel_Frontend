@@ -36,17 +36,32 @@ const getFacilityMeta = (item) => {
   }
 }
 
-const HotelFacilitiesCard = ({ facilities = [], whyBookWithUs = [] }) => {
+const HotelFacilitiesCard = ({ facilities = [], highlights = [], whyBookWithUs = [] }) => {
   const mapped = facilities.map(getFacilityMeta).filter((item) => item.name)
   const popular = mapped.filter((item) => item.isPopular)
   const displayFacilities = popular.length > 0 ? popular : mapped
 
-  if (displayFacilities.length === 0 && whyBookWithUs.length === 0) {
+  let displayHighlights = (highlights || [])
+    .map((item) => {
+      if (typeof item === 'string') return item
+      return item?.name || item?.tag?.name || item?.facility?.name || item?.slug || ''
+    })
+    .filter(Boolean)
+
+  if (displayHighlights.length === 0) {
+    displayHighlights = [
+      "Family friendly resort in Sekupang",
+      "Beachfront property with direct beach access",
+      "Perfect for couples and family getaways",
+    ]
+  }
+
+  if (displayFacilities.length === 0 && displayHighlights.length === 0 && whyBookWithUs.length === 0) {
     return null
   }
 
   return (
-    <div className="mt-8 grid grid-cols-1 overflow-hidden rounded-2xl border border-sky-100/80 bg-[#f8fbfe] p-6 md:p-8 md:grid-cols-2 gap-6 md:gap-8">
+    <div className="mt-4 grid grid-cols-1 overflow-hidden rounded-2xl border border-sky-100/80 bg-[#f8fbfe] p-6 md:p-8 md:grid-cols-2 gap-6 md:gap-8">
       {displayFacilities.length > 0 ? (
         <div>
           <h3 className="text-base font-bold text-slate-900">Most popular facilities</h3>
@@ -64,7 +79,19 @@ const HotelFacilitiesCard = ({ facilities = [], whyBookWithUs = [] }) => {
         </div>
       ) : null}
 
-      {whyBookWithUs.length > 0 ? (
+      {displayHighlights.length > 0 ? (
+        <div className="border-t border-sky-100/80 pt-6 md:border-l md:border-t-0 md:pl-8 md:pt-0">
+          <h3 className="text-base font-bold text-slate-900">Hotel Highlights</h3>
+          <div className="mt-4 space-y-3 text-xs leading-relaxed text-gray-500">
+            {displayHighlights.map((item, idx) => (
+              <p key={idx} className="flex items-start gap-2">
+                <span className="text-[#3ea5dc] font-extrabold shrink-0">•</span>
+                <span>{item}</span>
+              </p>
+            ))}
+          </div>
+        </div>
+      ) : whyBookWithUs.length > 0 ? (
         <div className="border-t border-sky-100/80 pt-6 md:border-l md:border-t-0 md:pl-8 md:pt-0">
           <h3 className="text-base font-bold text-slate-900">Why book with us</h3>
           <div className="mt-4 space-y-3 text-xs leading-relaxed text-gray-500">

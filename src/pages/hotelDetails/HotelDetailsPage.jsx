@@ -198,13 +198,14 @@ const HotelDetailsPage = () => {
     <div className="">
       <HotelHeaderGallery images={galleryImages} title={title} hotelId={hotel.id} />
 
-      <div className="mx-auto container px-4 pt-8 md:px-6">
+      <div className="mx-auto container px-4 pt-4 md:px-6">
         <HotelOverviewSection hotel={hotel} />
 
-        <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_340px]">
+        <div className="mt-4 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_340px]">
           <div className="space-y-10">
             <HotelFacilitiesCard
               facilities={hotel.facilities}
+              highlights={hotel.highlights}
               whyBookWithUs={hotel.whyBookWithUs}
             />
             <HotelRoomsSection
