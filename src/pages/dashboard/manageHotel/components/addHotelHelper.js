@@ -93,6 +93,9 @@ export const hotelSchema = z.object({
       }),
     )
     .default([]),
+  reviewScore: z.string().optional().default(""),
+  reviewCount: z.string().optional().default(""),
+  ratingLabel: z.string().optional().default(""),
 });
 
 export const mapRoomToFormData = (savedRoom) => {
@@ -226,6 +229,9 @@ export const mapHotelFormToFormData = (data, base64ToFileFn) => {
   formData.append("name", data.title);
   formData.append("starRating", String(data.starNum));
   formData.append("startingPrice", String(data.priceNum));
+  formData.append("reviewScore", String(data.reviewScore || ""));
+  formData.append("reviewCount", String(data.reviewCount || ""));
+  formData.append("ratingLabel", String(data.ratingLabel || ""));
   formData.append(
     "availabilityStatus",
     data.available ? "AVAILABLE" : "UNAVAILABLE",

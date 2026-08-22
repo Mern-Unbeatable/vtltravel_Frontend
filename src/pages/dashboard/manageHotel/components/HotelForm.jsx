@@ -135,6 +135,9 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
       bestFor: [],
       accommodationStyle: "",
       addOns: [{ name: "", price: "", minPax: "1", imageUrl: "" }],
+      reviewScore: "",
+      reviewCount: "",
+      ratingLabel: "",
     },
   });
 
@@ -226,6 +229,15 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
                 imageUrl: a.addOn?.imageUrl || a.imageUrl || "",
               }))
             : [{ name: "", price: "", minPax: "1", imageUrl: "" }],
+        reviewScore:
+          hotel.reviewScore !== undefined && hotel.reviewScore !== null
+            ? String(hotel.reviewScore)
+            : "",
+        reviewCount:
+          hotel.reviewCount !== undefined && hotel.reviewCount !== null
+            ? String(hotel.reviewCount)
+            : "",
+        ratingLabel: hotel.ratingLabel || "",
       });
     }
   }, [hotel, reset]);
@@ -504,6 +516,33 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
                 register={register}
                 error={errors.location}
                 placeholder="e.g. DHAKA"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <FormInput
+                label="Review Score (out of 5 or 10)"
+                name="reviewScore"
+                type="number"
+                step="0.1"
+                register={register}
+                error={errors.reviewScore}
+                placeholder="e.g. 4.1 or 8.2"
+              />
+              <FormInput
+                label="Review Count"
+                name="reviewCount"
+                type="number"
+                register={register}
+                error={errors.reviewCount}
+                placeholder="e.g. 1250"
+              />
+              <FormInput
+                label="Rating Label"
+                name="ratingLabel"
+                register={register}
+                error={errors.ratingLabel}
+                placeholder="e.g. Excellent"
               />
             </div>
 
