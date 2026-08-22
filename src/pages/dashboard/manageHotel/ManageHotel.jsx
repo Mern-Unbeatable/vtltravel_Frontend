@@ -89,10 +89,16 @@ const ManageHotel = () => {
   const handleSaveHotel = async (formData) => {
     setIsSaving(true);
 
+    console.log("--- Posting Hotel Form Data ---");
+    for (const [key, value] of formData.entries()) {
+      console.log(`${key}:`, value);
+    }
+
     try {
       let response;
       if (cmsMode === "edit" && hotelId) {
         response = await hotelService.updateHotel(hotelId, formData);
+        console.log("--- Update Hotel Response ---", response);
         if (response && response.success) {
           if (response.message) toast.success(response.message);
           setSearchParams({});
@@ -101,6 +107,7 @@ const ManageHotel = () => {
         }
       } else {
         response = await hotelService.addHotel(formData);
+        console.log("--- Add Hotel Response ---", response);
         if (response && response.success) {
           if (response.message) toast.success(response.message);
           const newId = response.data?.id || response.data?._id;
@@ -114,6 +121,7 @@ const ManageHotel = () => {
         }
       }
     } catch (err) {
+      console.error("--- Save Hotel Error ---", err);
       if (err?.message) toast.error(err.message);
     } finally {
       setIsSaving(false);

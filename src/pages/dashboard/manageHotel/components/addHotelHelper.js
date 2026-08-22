@@ -80,8 +80,7 @@ export const hotelSchema = z.object({
   available: z.boolean().default(true),
   isFeatured: z.boolean().default(false),
   featuredPackages: z.array(z.string()).default([]),
-  bestFor: z.array(z.string()).default([]),
-  accommodationStyle: z.string().default(""),
+  bestFor: z.string().optional().default(""),
   addOns: z
     .array(
       z.object({
@@ -240,8 +239,25 @@ export const mapHotelFormToFormData = (data, base64ToFileFn) => {
   formData.append("location", data.location || "");
   formData.append("city", data.city || "");
   formData.append("country", data.country || "");
-  formData.append("accommodationStyle", data.accommodationStyle || "");
-  formData.append("bestFor", JSON.stringify(data.bestFor || []));
+  const bestForArr =
+    typeof data.bestFor === "string"
+      ? data.bestFor
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : Array.isArray(data.bestFor)
+        ? data.bestFor
+        : [];
+  const bestForSlugs = bestForArr
+    .map((name) =>
+      String(name)
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9-]/g, ""),
+    )
+    .join(",");
+  formData.append("bestFor", bestForSlugs);
+  formData.append("bestForSlugs", bestForSlugs);
 
   const featuredPackageOptions = {
     featured: "Packages of the Month",
@@ -262,7 +278,7 @@ export const mapHotelFormToFormData = (data, base64ToFileFn) => {
       category: "featured_package",
     }));
 
-  const bestForTags = (data.bestFor || []).map((name) => ({
+  const bestForTags = bestForArr.map((name) => ({
     name,
     slug: String(name).toLowerCase().replace(/\s+/g, "-"),
     category: "best_for",
@@ -298,10 +314,22 @@ export const mapHotelFormToFormData = (data, base64ToFileFn) => {
     Restaurant: "restaurant",
     "Free Parking": "free-parking",
   };
-  const slugs = data.facilities
-    .map((fac) => slugMap[fac] || fac.toLowerCase().replace(/\s+/g, "-"))
-    .join(",");
-  formData.append("facilitySlugs", slugs);
+  const bestForArr = typeof data.bestFor === "string"
+    ? data.bestFor.split(",").map((s) => s.trim()).filter(Boolean)
+    : Array.isArray(data.bestFor)
+      ? data.bestFor
+      : [];
+  const bestForSlugsArr = bestForArr.map((name) =>
+    String(name)
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9-]/g, "")
+  );
+
+  const facilitySlugsArr = data.facilities.map((fac) => slugMap[fac] || fac.toLowerCase().replace(/\s+/g, "-"));
+  const combinedSlugs = [...new Set([...facilitySlugsArr, ...bestForSlugsArr])].filter(Boolean).join(",");
+
+  formData.append("facilitySlugs", combinedSlugs);
 
   const filteredAddOns = data.addOns
     .filter((a) => a.name && a.name.trim() !== "" && !a.id)

@@ -127,8 +127,7 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
       available: true,
       isFeatured: false,
       featuredPackages: [],
-      bestFor: [],
-      accommodationStyle: "",
+      bestFor: "",
       addOns: [{ name: "", price: "", minPax: "1", imageUrl: "" }],
       reviewScore: "",
       reviewCount: "",
@@ -212,8 +211,8 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
           .map((item) => item?.tag || item)
           .filter((tag) => tag?.category === "best_for")
           .map((tag) => tag?.name)
-          .filter(Boolean),
-        accommodationStyle: hotel.accommodationStyle || "",
+          .filter(Boolean)
+          .join(", "),
         addOns:
           hotel.addOns && hotel.addOns.length > 0
             ? hotel.addOns.map((a) => ({
@@ -514,7 +513,7 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <FormInput
                 label="Review Score (out of 5 or 10)"
                 name="reviewScore"
@@ -539,7 +538,7 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
                 error={errors.ratingLabel}
                 placeholder="e.g. Excellent"
               />
-            </div>
+            </div> */}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Main Cover Image */}
@@ -562,31 +561,13 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-2">
-                  Availability Status
-                </label>
-                <div className="flex items-center gap-4 mt-2">
-                  <label className="flex items-center gap-2 text-sm text-slate-700 font-semibold cursor-pointer">
-                    <input
-                      type="radio"
-                      checked={availableVal === true}
-                      onChange={() => setValue("available", true)}
-                      className="accent-primary"
-                    />
-                    Available (Active)
-                  </label>
-                  <label className="flex items-center gap-2 text-sm text-slate-700 font-semibold cursor-pointer">
-                    <input
-                      type="radio"
-                      checked={availableVal === false}
-                      onChange={() => setValue("available", false)}
-                      className="accent-primary"
-                    />
-                    Fully Booked / Unavailable
-                  </label>
-                </div>
-              </div>
+              <FormInput
+                label="Best For"
+                name="bestFor"
+                register={register}
+                error={errors.bestFor}
+                placeholder="e.g. Couples, Families, Relaxing getaway"
+              />
 
               <div>
                 <label className="mb-2 block text-xs font-bold uppercase text-slate-700">
@@ -650,6 +631,34 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
                     Beachfront Resort, or Family Resort.
                   </p>
                 )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-2">
+                  Availability Status
+                </label>
+                <div className="flex items-center gap-4 mt-2">
+                  <label className="flex items-center gap-2 text-sm text-slate-700 font-semibold cursor-pointer">
+                    <input
+                      type="radio"
+                      checked={availableVal === true}
+                      onChange={() => setValue("available", true)}
+                      className="accent-primary"
+                    />
+                    Available (Active)
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-slate-700 font-semibold cursor-pointer">
+                    <input
+                      type="radio"
+                      checked={availableVal === false}
+                      onChange={() => setValue("available", false)}
+                      className="accent-primary"
+                    />
+                    Fully Booked / Unavailable
+                  </label>
+                </div>
               </div>
             </div>
             <FormTextarea
