@@ -177,7 +177,7 @@ const RoomCard = ({
               ) : null}
 
               {room?.description ? (
-                <p className="mt-3 text-sm leading-relaxed text-gray-500">
+                <p className="mt-3 text-sm leading-relaxed text-gray-500 line-clamp-1">
                   {room.description}
                 </p>
               ) : null}
@@ -216,17 +216,17 @@ const RoomCard = ({
                 {hasPrice ? (
                   <div className="mb-5 text-center">
                     <div className="flex flex-wrap items-baseline justify-center gap-x-1">
-                      {hasDiscount && hasBase ? (
+                      {/* {hasDiscount && hasBase ? (
                         <span className="text-sm text-gray-400 line-through">
                           ${basePriceNum}
                         </span>
-                      ) : null}
+                      ) : null} */}
                       <span className="text-[32px] font-extrabold leading-none text-[#3ea5dc]">
                         ${displayPrice}
                       </span>
                       <span className="text-sm text-gray-500">/night</span>
                     </div>
-                    <p className="mt-1.5 text-xs text-gray-400">Per room / night</p>
+                   
                   </div>
                 ) : null}
 
