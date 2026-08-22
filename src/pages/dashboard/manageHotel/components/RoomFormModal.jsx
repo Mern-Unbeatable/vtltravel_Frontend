@@ -134,9 +134,9 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
       price: '',
       discountPrice: '',
       size: '',
-      capacity: '3',
-      bedInfo: '1',
-      baths: '1',
+      capacity: '',
+      bedInfo: '',
+      baths: '',
       description: '',
       features: '',
       foodBeverage: '',
@@ -145,7 +145,7 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
       serviceEquipment: '',
       tags: '',
       image: [],
-      roomsLeft: '2',
+      roomsLeft: '',
     },
   });
 
