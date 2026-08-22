@@ -74,8 +74,8 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
 
   const getDaysInMonth = (y, m) => new Date(y, m + 1, 0).getDate();
   const getFirstDayOfMonth = (y, m) => new Date(y, m, 1).getDay();
-  // Weekend = Sunday (0) only; Mon–Sat are weekdays
-  const isWeekendDay = (dayOfWeek) => dayOfWeek === 0;
+  // Weekend = Friday (5) & Saturday (6); Sun–Thu (0–4) are weekdays
+  const isWeekendDay = (dayOfWeek) => dayOfWeek === 5 || dayOfWeek === 6;
 
   const daysInMonth = getDaysInMonth(year, month);
   const firstDay = getFirstDayOfMonth(year, month);
@@ -306,9 +306,9 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
               <span className="h-3.5 w-3.5 rounded border border-slate-200 bg-white"></span>
               Default Price
             </div>
-            <div className="flex items-center gap-1.5 text-[10px] font-bold text-amber-800">
+             <div className="flex items-center gap-1.5 text-[10px] font-bold text-amber-800">
               <span className="h-3.5 w-3.5 rounded border border-amber-300 bg-amber-100"></span>
-              Weekend (Sun)
+              Weekend (Fri–Sat)
             </div>
             <div className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-700">
               <span className="h-3.5 w-3.5 rounded border border-emerald-250 bg-emerald-50"></span>
@@ -461,19 +461,19 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
           </div>
 
           <div className="flex flex-wrap gap-2 pt-1">
-            <button
+             <button
               type="button"
               onClick={handleSelectAllWeekends}
               className="px-3.5 py-2 border border-slate-300 hover:bg-slate-50 text-slate-800 text-xs font-bold rounded-xl transition cursor-pointer"
             >
-              Select Weekends (Sun)
+              Select Weekends (Fri–Sat)
               </button>
               <button
                 type="button"
                 onClick={handleSelectAllWeekdays}
                 className="px-3.5 py-2 border border-slate-300 hover:bg-slate-50 text-slate-800 text-xs font-bold rounded-xl transition cursor-pointer"
               >
-                Select Weekdays (Mon–Sat)
+                Select Weekdays (Sun–Thu)
               </button>
             <button
               type="button"
