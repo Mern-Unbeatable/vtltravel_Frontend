@@ -33,6 +33,56 @@ const ACCOMMODATION_STYLE_OPTIONS = [
   { value: "LUXURY_HOTEL", label: "Luxury Hotel" },
   { value: "RESORT", label: "Resort" },
 ];
+const FEATURED_PACKAGE_OPTIONS = [
+  { value: "featured", label: "Packages of the Month" },
+  { value: "best-hotel-of-the-month", label: "Best Hotel of the Month" },
+  { value: "beachfront-resort", label: "Beachfront Resort" },
+  { value: "family-resort", label: "Family Resort" },
+];
+
+const collectFeaturedPackages = (hotelData) => {
+  if (!hotelData) return [];
+  const selected = new Set();
+
+  if (hotelData.isFeatured) selected.add("featured");
+
+  const addByLabelOrSlug = (raw) => {
+    if (!raw) return;
+    const text = String(
+      typeof raw === "string"
+        ? raw
+        : raw?.slug || raw?.name || raw?.tag?.slug || raw?.tag?.name || "",
+    )
+      .trim()
+      .toLowerCase();
+    if (!text) return;
+
+    FEATURED_PACKAGE_OPTIONS.forEach((option) => {
+      if (
+        text === option.value ||
+        text === option.label.toLowerCase() ||
+        text.includes(option.label.toLowerCase())
+      ) {
+        selected.add(option.value);
+      }
+    });
+  };
+
+  (hotelData.featuredPackages || []).forEach(addByLabelOrSlug);
+  (hotelData.badges || []).forEach(addByLabelOrSlug);
+  (hotelData.highlights || []).forEach(addByLabelOrSlug);
+  (hotelData.tags || []).forEach((item) => {
+    const tag = item?.tag || item;
+    if (
+      tag?.category === "featured_package" ||
+      FEATURED_PACKAGE_OPTIONS.some((o) => o.value === tag?.slug)
+    ) {
+      addByLabelOrSlug(tag);
+    }
+  });
+
+  return Array.from(selected);
+};
 
 const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
   // Room modal sub-states
@@ -81,6 +131,7 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
       rooms: [],
       available: true,
       isFeatured: false,
+      featuredPackages: [],
       bestFor: [],
       accommodationStyle: "",
       addOns: [{ name: "", price: "", minPax: "1", imageUrl: "" }],
@@ -103,7 +154,7 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
   const addOnsVal = watch("addOns") || [];
   const roomsVal = watch("rooms") || [];
   const availableVal = watch("available");
-  const isFeaturedVal = watch("isFeatured");
+  const featuredPackagesVal = watch("featuredPackages") || [];
   const bestForVal = watch("bestFor") || [];
 
   const activeHotelId = hotel?.id || hotel?._id;
@@ -158,6 +209,7 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
               ? hotel.available
               : true,
         isFeatured: hotel.isFeatured !== undefined ? hotel.isFeatured : false,
+        featuredPackages: collectFeaturedPackages(hotel),
         bestFor: (hotel.tags || [])
           .map((item) => item?.tag || item)
           .filter((tag) => tag?.category === "best_for")
@@ -329,7 +381,6 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
         return r;
       }),
     );
-   
   };
 
   const onSubmit = (data) => {
@@ -433,14 +484,14 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <FormInput
+              <FormInput
                 label="Country"
                 name="country"
                 register={register}
                 error={errors.country}
                 placeholder="e.g. Indonesia"
               />
-                 <FormInput
+              <FormInput
                 label="City"
                 name="city"
                 register={register}
@@ -454,8 +505,6 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
                 error={errors.location}
                 placeholder="e.g. DHAKA"
               />
-           
-           
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -506,83 +555,69 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-2">
-                 Packages of the Month
+                <label className="mb-2 block text-xs font-bold uppercase text-slate-700">
+                  Featured Packages
                 </label>
-                <div className="flex items-center gap-4 mt-2">
-                  <label className="flex items-center gap-2 text-sm text-slate-700 font-semibold cursor-pointer">
-                    <input
-                      type="radio"
-                      checked={isFeaturedVal === true}
-                      onChange={() => setValue("isFeatured", true)}
-                      className="accent-primary"
-                    />
-                    Yes
-                  </label>
-                  <label className="flex items-center gap-2 text-sm text-slate-700 font-semibold cursor-pointer">
-                    <input
-                      type="radio"
-                      checked={isFeaturedVal === false}
-                      onChange={() => setValue("isFeatured", false)}
-                      className="accent-primary"
-                    />
-                    No
-                  </label>
-                </div>
+                <select
+                  value=""
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (!value) return;
+                    if (featuredPackagesVal.includes(value)) return;
+                    const next = [...featuredPackagesVal, value];
+                    setValue("featuredPackages", next);
+                    setValue("isFeatured", next.includes("featured"));
+                  }}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm focus:border-primary focus:outline-none"
+                >
+                  <option value="">Select package to add...</option>
+                  {FEATURED_PACKAGE_OPTIONS.filter(
+                    (option) => !featuredPackagesVal.includes(option.value),
+                  ).map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+
+                {featuredPackagesVal.length > 0 ? (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {featuredPackagesVal.map((slug) => {
+                      const option = FEATURED_PACKAGE_OPTIONS.find(
+                        (item) => item.value === slug,
+                      );
+                      return (
+                        <span
+                          key={slug}
+                          className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700"
+                        >
+                          {option?.label || slug}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const next = featuredPackagesVal.filter(
+                                (item) => item !== slug,
+                              );
+                              setValue("featuredPackages", next);
+                              setValue("isFeatured", next.includes("featured"));
+                            }}
+                            className="cursor-pointer text-slate-400 hover:text-slate-700"
+                            aria-label={`Remove ${option?.label || slug}`}
+                          >
+                            &times;
+                          </button>
+                        </span>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="mt-1.5 text-[11px] text-slate-400">
+                    Add Packages of the Month, Best Hotel of the Month,
+                    Beachfront Resort, or Family Resort.
+                  </p>
+                )}
               </div>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-2">
-                  Best For
-                </label>
-                <div className="space-y-2 rounded-xl border border-gray-200 bg-slate-50 p-3">
-                  {BEST_FOR_OPTIONS.map((item) => (
-                    <label
-                      key={item}
-                      className="flex items-center justify-between text-sm text-slate-700 cursor-pointer"
-                    >
-                      <span className="font-medium">{item}</span>
-                      <input
-                        type="checkbox"
-                        checked={bestForVal.includes(item)}
-                        onChange={(e) => {
-                          const current = new Set(bestForVal);
-                          if (e.target.checked) current.add(item);
-                          else current.delete(item);
-                          setValue("bestFor", Array.from(current));
-                        }}
-                        className="h-4 w-4 accent-primary"
-                      />
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-2">
-                  Accommodation Style
-                </label>
-                <div className="space-y-2 rounded-xl border border-gray-200 bg-slate-50 p-3">
-                  {ACCOMMODATION_STYLE_OPTIONS.map((option) => (
-                    <label
-                      key={option.value}
-                      className="flex items-center justify-between text-sm text-slate-700 cursor-pointer"
-                    >
-                      <span className="font-medium">{option.label}</span>
-                      <input
-                        type="radio"
-                        checked={watch("accommodationStyle") === option.value}
-                        onChange={() => setValue("accommodationStyle", option.value)}
-                        className="h-4 w-4 accent-primary"
-                      />
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </div>
-
             <FormTextarea
               label="Description"
               name="description"

@@ -8,6 +8,11 @@ import { FilterFacetSkeleton } from "../../../components/skeletons/Skeleton";
 const starsList = ["5 ★", "4 ★", "3 ★"];
 const MIN_PRICE = 0;
 const MAX_PRICE = 1000;
+const FEATURED_TAG_SLUGS = [
+  "best-hotel-of-the-month",
+  "beachfront-resort",
+  "family-resort",
+];
 
 const FilterCheckboxRow = ({ label, count, checked, onChange }) => {
   const safeCount = Number(count);
@@ -66,9 +71,18 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
   const [minBudget, setMinBudget] = useState(MIN_PRICE);
   const [maxBudget, setMaxBudget] = useState(MAX_PRICE);
   const [selectedStars, setSelectedStars] = useState([]);
-  const [isFeatured, setIsFeatured] = useState(
-    searchParams.get("isFeatured") === "true",
-  );
+  const [selectedFeatured, setSelectedFeatured] = useState(() => {
+    const initial = [];
+    if (searchParams.get('isFeatured') === 'true') initial.push('featured');
+    const tagSlugs = (searchParams.get('tags') || '')
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean);
+    FEATURED_TAG_SLUGS.forEach((slug) => {
+      if (tagSlugs.includes(slug)) initial.push(slug);
+    });
+    return initial;
+  });
   const [selectedTags, setSelectedTags] = useState([]);
   const [selectedFacilities, setSelectedFacilities] = useState([]);
   const [selectedStyles, setSelectedStyles] = useState([]);
@@ -108,7 +122,7 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
         minBudget,
         maxBudget,
         selectedStars,
-        isFeatured,
+        selectedFeatured,
         selectedTags,
         selectedFacilities,
         selectedStyles,
@@ -122,7 +136,7 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
     minBudget !== MIN_PRICE ||
     maxBudget !== MAX_PRICE ||
     selectedStars.length > 0 ||
-    isFeatured ||
+    selectedFeatured.length > 0 ||
     selectedTags.length > 0 ||
     selectedFacilities.length > 0 ||
     selectedStyles.length > 0 ||
@@ -132,7 +146,7 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
     setMinBudget(MIN_PRICE);
     setMaxBudget(MAX_PRICE);
     setSelectedStars([]);
-    setIsFeatured(false);
+    setSelectedFeatured([]);
     setSelectedTags([]);
     setSelectedFacilities([]);
     setSelectedStyles([]);
@@ -314,17 +328,21 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
 
           <FilterGroup title="Featured Packages">
             {isFacetsLoading ? (
-              <FilterFacetSkeleton rows={1} />
-            ) : (
+              <FilterFacetSkeleton rows={4} />
+            ) : featuredPackages.length > 0 ? (
               featuredPackages.map((item) => (
                 <FilterCheckboxRow
                   key={item.slug}
                   label={item.name}
                   count={item.count}
-                  checked={isFeatured}
-                  onChange={(_, checked) => setIsFeatured(checked)}
+                  checked={selectedFeatured.includes(item.slug)}
+                  onChange={(_, isChecked) =>
+                    toggleSlug(setSelectedFeatured)(item.slug, isChecked)
+                  }
                 />
               ))
+            ) : (
+              <p className="text-xs text-gray-400">No options available yet.</p>
             )}
           </FilterGroup>
 

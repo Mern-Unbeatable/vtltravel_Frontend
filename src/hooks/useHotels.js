@@ -1,6 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { hotelService } from '../api/services/hotelService';
-import { buildFilterFacets, mergeFilterFacets } from '../utils/hotelSearchParams';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { hotelService } from "../api/services/hotelService";
+import {
+  buildFilterFacets,
+  mergeFilterFacets,
+} from "../utils/hotelSearchParams";
 
 const emptyHotelsResult = {
   items: [],
@@ -9,7 +12,7 @@ const emptyHotelsResult = {
 
 export const useHotels = (params = {}) => {
   return useQuery({
-    queryKey: ['hotels', params],
+    queryKey: ["hotels", params],
     queryFn: async () => {
       const response = await hotelService.getHotels(params);
       if (response && response.success && response.data) {
@@ -29,7 +32,7 @@ export const useHotels = (params = {}) => {
 
 export const useHotelSuggestions = (enabled = true) => {
   return useQuery({
-    queryKey: ['hotel-suggestions', 'catalog'],
+    queryKey: ["hotel-suggestions", "catalog"],
     queryFn: async () => {
       const response = await hotelService.getHotels({ limit: 100 });
       return Array.isArray(response?.data?.items) ? response.data.items : [];
@@ -42,7 +45,7 @@ export const useHotelSuggestions = (enabled = true) => {
 
 export const useHotelFilterFacets = (params = {}) => {
   return useQuery({
-    queryKey: ['hotel-filter-facets', params],
+    queryKey: ["hotel-filter-facets", params],
     queryFn: async () => {
       const [catalogResponse, scopedResponse, featuredResponse] =
         await Promise.all([
@@ -58,10 +61,11 @@ export const useHotelFilterFacets = (params = {}) => {
           }),
         ]);
 
+      const scopedHotels = scopedResponse?.data?.items || [];
       const catalogFacets = buildFilterFacets(
         catalogResponse?.data?.items || [],
       );
-      const scopedFacets = buildFilterFacets(scopedResponse?.data?.items || []);
+      const scopedFacets = buildFilterFacets(scopedHotels);
       const merged = mergeFilterFacets(catalogFacets, scopedFacets);
 
       const featuredTotal = Number(
@@ -71,14 +75,69 @@ export const useHotelFilterFacets = (params = {}) => {
           0,
       );
 
+      const hotelLabelTexts = (hotel) => {
+        const fromList = (list) =>
+          (list || [])
+            .map((item) => {
+              if (typeof item === "string") return item;
+              return (
+                item?.name ||
+                item?.tag?.name ||
+                item?.facility?.name ||
+                item?.slug ||
+                ""
+              );
+            })
+            .filter(Boolean);
+
+        return [
+          ...fromList(hotel.badges),
+          ...fromList(hotel.highlights),
+          ...fromList(hotel.tags),
+          hotel.accommodationStyle,
+          hotel.name,
+        ]
+          .filter(Boolean)
+          .map((text) => String(text).toLowerCase());
+      };
+
+      const countHotelsMatching = (needles) =>
+        scopedHotels.filter((hotel) => {
+          const texts = hotelLabelTexts(hotel);
+          return needles.some((needle) =>
+            texts.some((text) => text.includes(needle.toLowerCase())),
+          );
+        }).length;
+
       return {
         ...merged,
         featuredPackages: [
           {
-            name: 'Packages of the Month',
-            slug: 'featured',
-            // Real API total only — never invent a dummy count
+            name: "Packages of the Month",
+            slug: "featured",
             count: Number.isFinite(featuredTotal) ? featuredTotal : 0,
+          },
+          {
+            name: "Best Hotel of the Month",
+            slug: "best-hotel-of-the-month",
+            count: countHotelsMatching([
+              "best hotel of the month",
+              "hotel of the month",
+            ]),
+          },
+          {
+            name: "Beachfront Resort",
+            slug: "beachfront-resort",
+            count: countHotelsMatching(["beachfront"]),
+          },
+          {
+            name: "Family Resort",
+            slug: "family-resort",
+            count: countHotelsMatching([
+              "family resort",
+              "family favourite",
+              "family favorite",
+            ]),
           },
         ],
       };
@@ -89,10 +148,15 @@ export const useHotelFilterFacets = (params = {}) => {
 
 export const useAdminHotels = () => {
   return useQuery({
-    queryKey: ['admin_hotels'],
+    queryKey: ["admin_hotels"],
     queryFn: async () => {
       const response = await hotelService.getAdminHotels();
-      if (response && response.success && response.data && Array.isArray(response.data.items)) {
+      if (
+        response &&
+        response.success &&
+        response.data &&
+        Array.isArray(response.data.items)
+      ) {
         return response.data.items;
       }
       return Array.isArray(response) ? response : [];
@@ -100,10 +164,9 @@ export const useAdminHotels = () => {
   });
 };
 
-
 export const useHotelImages = (hotelId, enabled = false) => {
   return useQuery({
-    queryKey: ['hotel-images', hotelId],
+    queryKey: ["hotel-images", hotelId],
     queryFn: async () => {
       const response = await hotelService.getHotelImages(hotelId);
       const items = response?.data || response;
@@ -116,7 +179,7 @@ export const useHotelImages = (hotelId, enabled = false) => {
 
 export const useHotel = (id, params = {}) => {
   return useQuery({
-    queryKey: ['hotel', id, params],
+    queryKey: ["hotel", id, params],
     queryFn: async () => {
       const response = await hotelService.getHotelById(id, params);
       if (response && response.success && response.data) {
@@ -131,11 +194,16 @@ export const useHotel = (id, params = {}) => {
 
 export const useHotelRooms = (hotelId, params = {}, enabled = true) => {
   return useQuery({
-    queryKey: ['hotel-rooms', hotelId, params],
+    queryKey: ["hotel-rooms", hotelId, params],
     queryFn: async () => {
       const response = await hotelService.getRoomsForHotel(hotelId, params);
       const data = response?.data || response;
-      console.log("--- ROOMS API DATA RECEIVED FOR HOTEL ---", hotelId, params, data);
+      console.log(
+        "--- ROOMS API DATA RECEIVED FOR HOTEL ---",
+        hotelId,
+        params,
+        data,
+      );
       return data;
     },
     enabled: Boolean(hotelId) && enabled,
@@ -145,7 +213,7 @@ export const useHotelRooms = (hotelId, params = {}, enabled = true) => {
 
 export const useRoom = (roomId, enabled = true) => {
   return useQuery({
-    queryKey: ['room', roomId],
+    queryKey: ["room", roomId],
     queryFn: async () => {
       const response = await hotelService.getRoomById(roomId);
       if (response && response.success && response.data) {
@@ -164,8 +232,8 @@ export const useAddHotel = () => {
   return useMutation({
     mutationFn: (newHotel) => hotelService.addHotel(newHotel),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['hotels'] });
-      queryClient.invalidateQueries({ queryKey: ['admin_hotels'] });
+      queryClient.invalidateQueries({ queryKey: ["hotels"] });
+      queryClient.invalidateQueries({ queryKey: ["admin_hotels"] });
     },
   });
 };
@@ -176,9 +244,9 @@ export const useUpdateHotel = () => {
   return useMutation({
     mutationFn: ({ id, hotelData }) => hotelService.updateHotel(id, hotelData),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['hotels'] });
-      queryClient.invalidateQueries({ queryKey: ['admin_hotels'] });
-      queryClient.invalidateQueries({ queryKey: ['hotel', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ["hotels"] });
+      queryClient.invalidateQueries({ queryKey: ["admin_hotels"] });
+      queryClient.invalidateQueries({ queryKey: ["hotel", variables.id] });
     },
   });
 };
@@ -189,8 +257,8 @@ export const useDeleteHotel = () => {
   return useMutation({
     mutationFn: (id) => hotelService.deleteHotel(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['hotels'] });
-      queryClient.invalidateQueries({ queryKey: ['admin_hotels'] });
+      queryClient.invalidateQueries({ queryKey: ["hotels"] });
+      queryClient.invalidateQueries({ queryKey: ["admin_hotels"] });
     },
   });
 };

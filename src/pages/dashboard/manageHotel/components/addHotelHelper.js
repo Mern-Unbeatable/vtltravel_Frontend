@@ -1,91 +1,98 @@
-import * as z from 'zod';
+import * as z from "zod";
 
 export const availableFacilitiesList = [
-  'Free Wi-Fi',
-  'Swimming Pool',
-  'Private Pool',
-  'Fitness Center',
-  'Spa',
-  'Restaurant',
-  'Bar',
-  'Room Service',
-  'Beach Access',
-  'Kids Club',
-  'Free Parking'
+  "Free Wi-Fi",
+  "Swimming Pool",
+  "Private Pool",
+  "Fitness Center",
+  "Spa",
+  "Restaurant",
+  "Bar",
+  "Room Service",
+  "Beach Access",
+  "Kids Club",
+  "Free Parking",
 ];
 
 export const GALLERY_CATEGORIES = [
-  'Videos',
-  'Hotel',
-  'Rooms',
-  'Suite',
-  'Restaurant',
-  'Bar',
-  'Breakfast',
-  'Family',
-  'Weddings',
-  'Meetings and events',
-  'Services',
-  'Hotel advantages',
-  'Spa',
+  "Videos",
+  "Hotel",
+  "Rooms",
+  "Suite",
+  "Restaurant",
+  "Bar",
+  "Breakfast",
+  "Family",
+  "Weddings",
+  "Meetings and events",
+  "Services",
+  "Hotel advantages",
+  "Spa",
 ];
 
 export const categoryMap = {
-  'Videos': 'VIDEOS',
-  'Hotel': 'HOTEL',
-  'Rooms': 'ROOMS',
-  'Suite': 'SUITE',
-  'Restaurant': 'RESTAURANT',
-  'Bar': 'BAR',
-  'Breakfast': 'BREAKFAST',
-  'Family': 'FAMILY',
-  'Weddings': 'WEDDINGS',
-  'Meetings and events': 'MEETINGS_AND_EVENTS',
-  'Services': 'SERVICES',
-  'Hotel advantages': 'HOTEL_ADVANTAGES',
-  'Spa': 'SPA'
+  Videos: "VIDEOS",
+  Hotel: "HOTEL",
+  Rooms: "ROOMS",
+  Suite: "SUITE",
+  Restaurant: "RESTAURANT",
+  Bar: "BAR",
+  Breakfast: "BREAKFAST",
+  Family: "FAMILY",
+  Weddings: "WEDDINGS",
+  "Meetings and events": "MEETINGS_AND_EVENTS",
+  Services: "SERVICES",
+  "Hotel advantages": "HOTEL_ADVANTAGES",
+  Spa: "SPA",
 };
 
 export const getBackendCategoryKey = (uiTab) => {
-  return (categoryMap[uiTab] || 'HOTEL').toUpperCase();
+  return (categoryMap[uiTab] || "HOTEL").toUpperCase();
 };
 
 export const isCategoryMatch = (imgCat, uiTab) => {
-  if (!imgCat) return uiTab.toLowerCase() === 'hotel';
+  if (!imgCat) return uiTab.toLowerCase() === "hotel";
   const imgCatUpper = imgCat.toUpperCase();
   const targetCatUpper = getBackendCategoryKey(uiTab);
   return imgCatUpper === targetCatUpper || imgCatUpper === uiTab.toUpperCase();
 };
 
 export const hotelSchema = z.object({
-  title: z.string().min(1, 'Hotel title is required'),
+  title: z.string().min(1, "Hotel title is required"),
   starNum: z.number().min(1).max(5),
-  priceNum: z.string().min(1, 'Starting price is required'),
-  location: z.string().min(1, 'Location is required'),
-  city: z.string().min(1, 'City is required'),
-  country: z.string().min(1, 'Country is required'),
-  image: z.string().min(1, 'Cover image is required'),
-  video: z.string().optional().default(''),
-  description: z.string().min(1, 'Description is required'),
+  priceNum: z.string().min(1, "Starting price is required"),
+  location: z.string().min(1, "Location is required"),
+  city: z.string().min(1, "City is required"),
+  country: z.string().min(1, "Country is required"),
+  image: z.string().min(1, "Cover image is required"),
+  video: z.string().optional().default(""),
+  description: z.string().min(1, "Description is required"),
   facilities: z.array(z.string()).default([]),
-  gallery: z.array(z.object({
-    url: z.string(),
-    category: z.string()
-  })).default([]),
+  gallery: z
+    .array(
+      z.object({
+        url: z.string(),
+        category: z.string(),
+      }),
+    )
+    .default([]),
   rooms: z.array(z.any()).default([]),
   available: z.boolean().default(true),
   isFeatured: z.boolean().default(false),
+  featuredPackages: z.array(z.string()).default([]),
   bestFor: z.array(z.string()).default([]),
-  accommodationStyle: z.string().default(''),
-  addOns: z.array(
-    z.object({
-      id: z.string().optional(),
-      name: z.string().default(''),
-      price: z.string().default(''),
-      minPax: z.string().default('1'),
-      imageUrl: z.string().default(''),
-    })
-  ).default([]),
+  accommodationStyle: z.string().default(""),
+  addOns: z
+    .array(
+      z.object({
+        id: z.string().optional(),
+        name: z.string().default(""),
+        price: z.string().default(""),
+        minPax: z.string().default("1"),
+        imageUrl: z.string().default(""),
+      }),
+    )
+    .default([]),
 });
 
 export const mapRoomToFormData = (savedRoom) => {
@@ -227,16 +234,54 @@ export const mapHotelFormToFormData = (data, base64ToFileFn) => {
   formData.append("location", data.location || "");
   formData.append("city", data.city || "");
   formData.append("country", data.country || "");
-  formData.append("isFeatured", String(data.isFeatured));
   formData.append("accommodationStyle", data.accommodationStyle || "");
   formData.append("bestFor", JSON.stringify(data.bestFor || []));
+
+  const featuredPackageOptions = {
+    featured: "Packages of the Month",
+    "best-hotel-of-the-month": "Best Hotel of the Month",
+    "beachfront-resort": "Beachfront Resort",
+    "family-resort": "Family Resort",
+  };
+  const featuredPackageSlugs = (data.featuredPackages || []).filter(Boolean);
+  const isFeatured =
+    featuredPackageSlugs.includes("featured") || Boolean(data.isFeatured);
+  formData.append("isFeatured", String(isFeatured));
+
+  const featuredPackageTags = featuredPackageSlugs
+    .filter((slug) => slug !== "featured")
+    .map((slug) => ({
+      name: featuredPackageOptions[slug] || slug,
+      slug,
+      category: "featured_package",
+    }));
 
   const bestForTags = (data.bestFor || []).map((name) => ({
     name,
     slug: String(name).toLowerCase().replace(/\s+/g, "-"),
     category: "best_for",
   }));
-  formData.append("tags", JSON.stringify(bestForTags));
+  formData.append(
+    "tags",
+    JSON.stringify([...bestForTags, ...featuredPackageTags]),
+  );
+  formData.append(
+    "featuredPackages",
+    JSON.stringify(
+      featuredPackageSlugs.map((slug) => ({
+        name: featuredPackageOptions[slug] || slug,
+        slug,
+      })),
+    ),
+  );
+  formData.append(
+    "badges",
+    JSON.stringify(
+      featuredPackageSlugs
+        .filter((slug) => slug !== "featured")
+        .map((slug) => featuredPackageOptions[slug] || slug),
+    ),
+  );
 
   const slugMap = {
     "Free Wi-Fi": "free-wifi",
