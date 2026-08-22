@@ -328,45 +328,51 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
             )}
           </FilterGroup>
 
-          <FilterGroup title="Best For">
-            {isFacetsLoading ? (
-              <FilterFacetSkeleton rows={4} />
-            ) : bestFor.length > 0 ? (
-              bestFor.map((item) => (
-                <FilterCheckboxRow
-                  key={item.slug}
-                  label={item.name}
-                  count={item.count}
-                  checked={selectedTags.includes(item.slug)}
-                  onChange={(_, isChecked) =>
-                    toggleSlug(setSelectedTags)(item.slug, isChecked)
-                  }
-                />
-              ))
-            ) : (
-              <p className="text-xs text-gray-400">No options available yet.</p>
-            )}
-          </FilterGroup>
+          {/* Best For - hidden */}
+          {false && (
+            <FilterGroup title="Best For">
+              {isFacetsLoading ? (
+                <FilterFacetSkeleton rows={4} />
+              ) : bestFor.length > 0 ? (
+                bestFor.map((item) => (
+                  <FilterCheckboxRow
+                    key={item.slug}
+                    label={item.name}
+                    count={item.count}
+                    checked={selectedTags.includes(item.slug)}
+                    onChange={(_, isChecked) =>
+                      toggleSlug(setSelectedTags)(item.slug, isChecked)
+                    }
+                  />
+                ))
+              ) : (
+                <p className="text-xs text-gray-400">No options available yet.</p>
+              )}
+            </FilterGroup>
+          )}
 
-          <FilterGroup title="Accommodation Style">
-            {isFacetsLoading ? (
-              <FilterFacetSkeleton rows={4} />
-            ) : accommodationStyles.length > 0 ? (
-              accommodationStyles.map((item) => (
-                <FilterCheckboxRow
-                  key={item.slug}
-                  label={item.name}
-                  count={item.count}
-                  checked={selectedStyles.includes(item.slug)}
-                  onChange={(_, isChecked) =>
-                    toggleSlug(setSelectedStyles)(item.slug, isChecked)
-                  }
-                />
-              ))
-            ) : (
-              <p className="text-xs text-gray-400">No options available yet.</p>
-            )}
-          </FilterGroup>
+          {/* Accommodation Style - hidden */}
+          {false && (
+            <FilterGroup title="Accommodation Style">
+              {isFacetsLoading ? (
+                <FilterFacetSkeleton rows={4} />
+              ) : accommodationStyles.length > 0 ? (
+                accommodationStyles.map((item) => (
+                  <FilterCheckboxRow
+                    key={item.slug}
+                    label={item.name}
+                    count={item.count}
+                    checked={selectedStyles.includes(item.slug)}
+                    onChange={(_, isChecked) =>
+                      toggleSlug(setSelectedStyles)(item.slug, isChecked)
+                    }
+                  />
+                ))
+              ) : (
+                <p className="text-xs text-gray-400">No options available yet.</p>
+              )}
+            </FilterGroup>
+          )}
 
           <FilterGroup title="Resort Features">
             {isFacetsLoading ? (
