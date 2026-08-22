@@ -513,7 +513,7 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
               />
             </div>
 
-            {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <FormInput
                 label="Review Score (out of 5 or 10)"
                 name="reviewScore"
@@ -538,7 +538,7 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
                 error={errors.ratingLabel}
                 placeholder="e.g. Excellent"
               />
-            </div> */}
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Main Cover Image */}
