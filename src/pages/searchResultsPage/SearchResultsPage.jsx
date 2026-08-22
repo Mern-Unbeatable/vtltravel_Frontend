@@ -119,6 +119,7 @@ const SearchResultsPage = () => {
             initialChildren={children}
             onSearch={handleSearch}
             compact
+            autoSubmit
             wrapperClassName="max-w-none md:mt-1 md:rounded-2xl"
           />
         </div>

@@ -62,6 +62,7 @@ const SearchCard = ({
   wrapperClassName = '',
   compact = false,
   hideDestination = false,
+  autoSubmit = false,
 }) => {
   // Helper to parse dates securely
   const parseDateProp = (dateVal) => {
@@ -186,6 +187,9 @@ const SearchCard = ({
     if (!checkInDate || selected > checkInDate) {
       setCheckOutDate(selected)
       setShowDatePicker(false)
+      if (autoSubmit) {
+        triggerSearchWith({ checkOut: selected })
+      }
       return
     }
 
@@ -213,14 +217,16 @@ const SearchCard = ({
     return d < startOfToday
   }
 
-  const handleSelectSuggestion = (suggestion) => {
-    setDestValue(suggestion.value)
-    setSearchBy(suggestion.type === 'hotel' ? 'hotel' : 'location')
-    setShowSuggestions(false)
-  }
+  const triggerSearchWith = (overrides = {}) => {
+    const finalDest = 'destination' in overrides ? overrides.destination : destValue
+    const finalSearchBy = 'searchBy' in overrides ? overrides.searchBy : searchBy
+    const finalCheckIn = 'checkIn' in overrides ? overrides.checkIn : checkInDate
+    const finalCheckOut = 'checkOut' in overrides ? overrides.checkOut : checkOutDate
+    const finalRooms = 'rooms' in overrides ? overrides.rooms : rooms
+    const finalAdults = 'adults' in overrides ? overrides.adults : adults
+    const finalChildren = 'children' in overrides ? overrides.children : childrenCount
 
-  const handleSearchSubmit = () => {
-    if (!hideDestination && !destValue.trim()) {
+    if (!hideDestination && !finalDest.trim()) {
       setShowDestinationModal(true)
       setShowSuggestions(false)
       setShowDatePicker(false)
@@ -230,15 +236,29 @@ const SearchCard = ({
 
     if (onSearch) {
       onSearch({
-        destination: destValue.trim(),
-        searchBy,
-        checkIn: formatDateInput(checkInDate),
-        checkOut: formatDateInput(checkOutDate),
-        rooms,
-        adults,
-        children: childrenCount,
+        destination: finalDest.trim(),
+        searchBy: finalSearchBy,
+        checkIn: formatDateInput(finalCheckIn),
+        checkOut: formatDateInput(finalCheckOut),
+        rooms: finalRooms,
+        adults: finalAdults,
+        children: finalChildren,
       })
     }
+  }
+
+  const handleSelectSuggestion = (suggestion) => {
+    setDestValue(suggestion.value)
+    const newSearchBy = suggestion.type === 'hotel' ? 'hotel' : 'location'
+    setSearchBy(newSearchBy)
+    setShowSuggestions(false)
+    if (autoSubmit) {
+      triggerSearchWith({ destination: suggestion.value, searchBy: newSearchBy })
+    }
+  }
+
+  const handleSearchSubmit = () => {
+    triggerSearchWith()
   }
 
   const closeDestinationModal = () => {
@@ -487,6 +507,9 @@ const SearchCard = ({
                       setCheckInDate(t1)
                       setCheckOutDate(t2)
                       setShowDatePicker(false)
+                      if (autoSubmit) {
+                        triggerSearchWith({ checkIn: t1, checkOut: t2 })
+                      }
                     }}
                     className="rounded-full bg-gray-100 px-3 py-1 text-[11px] font-medium text-gray-600 hover:bg-gray-200"
                   >
@@ -503,6 +526,9 @@ const SearchCard = ({
                       setCheckInDate(t1)
                       setCheckOutDate(t2)
                       setShowDatePicker(false)
+                      if (autoSubmit) {
+                        triggerSearchWith({ checkIn: t1, checkOut: t2 })
+                      }
                     }}
                     className="rounded-full bg-gray-100 px-3 py-1 text-[11px] font-medium text-gray-600 hover:bg-gray-200"
                   >
@@ -511,7 +537,12 @@ const SearchCard = ({
 
                   <button
                     type="button"
-                    onClick={() => setShowDatePicker(false)}
+                    onClick={() => {
+                      setShowDatePicker(false)
+                      if (autoSubmit) {
+                        triggerSearchWith()
+                      }
+                    }}
                     className="rounded-full bg-primary px-4 py-1 text-[11px] font-semibold text-white hover:bg-primary/90"
                   >
                     Done
@@ -627,7 +658,12 @@ const SearchCard = ({
                 <div className="mt-5 border-t border-gray-100 pt-3 text-right">
                   <button
                     type="button"
-                    onClick={() => setShowGuestsPicker(false)}
+                    onClick={() => {
+                      setShowGuestsPicker(false)
+                      if (autoSubmit) {
+                        triggerSearchWith()
+                      }
+                    }}
                     className="w-full rounded-xl bg-primary py-2 text-xs font-semibold text-white transition hover:bg-primary/90"
                   >
                     Done
