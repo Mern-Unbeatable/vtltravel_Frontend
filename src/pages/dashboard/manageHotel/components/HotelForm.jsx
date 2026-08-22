@@ -28,11 +28,6 @@ import {
   mapHotelFormToFormData,
 } from "./addHotelHelper";
 
-const BEST_FOR_OPTIONS = ["Business", "Couples", "Luxury"];
-const ACCOMMODATION_STYLE_OPTIONS = [
-  { value: "LUXURY_HOTEL", label: "Luxury Hotel" },
-  { value: "RESORT", label: "Resort" },
-];
 const FEATURED_PACKAGE_OPTIONS = [
   { value: "featured", label: "Packages of the Month" },
   { value: "best-hotel-of-the-month", label: "Best Hotel of the Month" },
