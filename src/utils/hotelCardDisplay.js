@@ -142,8 +142,8 @@ export const getHotelCardDisplay = (hotel) => {
   const fromPrice = hotel?.fromPrice ?? hotel?.startingPrice ?? hotel?.price
   const publicRate =
     hotel?.publicRate ??
-    hotel?.roomTypes?.[0]?.basePrice ??
-    (hasValue(fromPrice) ? fromPrice : HOTEL_CARD_DUMMY.publicRate)
+    hotel?.publicPrice ??
+    null;
 
   return {
     locationLabel,
