@@ -153,7 +153,8 @@ export const mapRoomToFormData = (savedRoom) => {
     : "Only 2 rooms left";
   formData.append("roomsLeftAlert", alertLabel);
 
-  formData.append("tags", JSON.stringify(savedRoom.tags || []));
+  const tagsArr = Array.isArray(savedRoom.tags) ? savedRoom.tags : [];
+  formData.append("tags", tagsArr.join(","));
   formData.append("amenityIds", JSON.stringify([]));
 
   // API expects comma-separated text; backend turns them into arrays in facilityGroups
@@ -189,7 +190,7 @@ export const mapRoomToFormData = (savedRoom) => {
       ),
     ),
   ].filter(Boolean);
-  formData.append("amenitySlugs", JSON.stringify(amenitySlugs));
+  formData.append("amenitySlugs", amenitySlugs.join(","));
 
   formData.append("breakfastIncluded", "true");
   formData.append("freeCancellation", "true");
