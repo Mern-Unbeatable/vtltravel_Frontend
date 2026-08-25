@@ -67,6 +67,7 @@ export const hotelSchema = z.object({
   image: z.string().min(1, "Cover image is required"),
   video: z.string().optional().default(""),
   description: z.string().min(1, "Description is required"),
+  highlights: z.string().default(""),
   facilities: z.array(z.string()).default([]),
   gallery: z
     .array(
@@ -246,6 +247,18 @@ export const mapHotelFormToFormData = (data, base64ToFileFn) => {
   formData.append("location", data.location || "");
   formData.append("city", data.city || "");
   formData.append("country", data.country || "");
+
+  const highlightsArr =
+    typeof data.highlights === "string"
+      ? data.highlights
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : Array.isArray(data.highlights)
+        ? data.highlights.map((item) => String(item).trim()).filter(Boolean)
+        : [];
+  // Backend expects comma-separated text (same pattern as facilitySlugs)
+  formData.append("highlights", highlightsArr.join(","));
 
   if (data.tagIds) {
     const ids = Array.isArray(data.tagIds) ? data.tagIds.join(",") : data.tagIds;

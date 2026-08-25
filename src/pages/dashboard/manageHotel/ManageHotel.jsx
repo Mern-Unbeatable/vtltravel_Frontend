@@ -93,6 +93,7 @@ const ManageHotel = () => {
       let response;
       if (cmsMode === "edit" && hotelId) {
         response = await hotelService.updateHotel(hotelId, formData);
+        console.log("--- updateHotel backend response ---", response);
         if (response && response.success) {
           if (response.message) toast.success(response.message);
           setSearchParams({});
@@ -101,6 +102,7 @@ const ManageHotel = () => {
         }
       } else {
         response = await hotelService.addHotel(formData);
+        console.log("--- addHotel backend response ---", response);
         if (response && response.success) {
           if (response.message) toast.success(response.message);
           const newId = response.data?.id || response.data?._id;
@@ -113,9 +115,11 @@ const ManageHotel = () => {
           toast.error(response.message);
         }
       }
+      return response;
     } catch (err) {
       console.error("--- Save Hotel Error ---", err);
       if (err?.message) toast.error(err.message);
+      throw err;
     } finally {
       setIsSaving(false);
     }

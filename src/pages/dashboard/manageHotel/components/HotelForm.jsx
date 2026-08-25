@@ -140,6 +140,7 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
       image: "",
       video: "",
       description: "",
+      highlights: "",
       facilities: [],
       gallery: [],
       rooms: [],
@@ -227,6 +228,21 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
         image: hotel.coverImageUrl || hotel.image || "",
         video: hotel.videoUrl || hotel.video || "",
         description: hotel.description || "",
+        highlights: (() => {
+          const raw = hotel.highlights;
+          if (Array.isArray(raw)) {
+            return raw
+              .map((item) =>
+                typeof item === "string"
+                  ? item
+                  : item?.name || item?.text || item?.title || "",
+              )
+              .filter(Boolean)
+              .join(", ");
+          }
+          if (typeof raw === "string") return raw;
+          return "";
+        })(),
         facilities: mappedFacilities,
         gallery: mappedGallery,
         rooms: hotel.rooms || hotel.roomTypes || [],
@@ -407,7 +423,7 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
     );
   };
 
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
     // Gather all selected bestFor tag IDs
     const selectedBestForIds = Array.isArray(data.bestFor) ? data.bestFor : [];
 
@@ -729,6 +745,16 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
               error={errors.description}
               placeholder="Write details about the hotel features, location advantages, services, etc..."
             />
+
+            <FormTextarea
+              label="Hotel Highlights"
+              name="highlights"
+              register={register}
+              error={errors.highlights}
+              rows={3}
+              placeholder="e.g. Family friendly resort, Beachfront property, Perfect for couples"
+            />
+         
 
             {/* Popular Facilities */}
             <FacilitiesSelector
