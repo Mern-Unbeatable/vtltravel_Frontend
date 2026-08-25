@@ -37,7 +37,7 @@ const HotelCardsSection = ({ filters, searchQuery = "" }) => {
 
   const { data, isLoading, isError, isFetching } = useHotels(apiFilters);
 
-  const pageSize = Number(filters?.limit) || 12;
+  const pageSize = Number(filters?.limit) || 9;
   const requestedPage = Number(filters?.page) || 1;
 
   const rankedHotels = useMemo(() => {

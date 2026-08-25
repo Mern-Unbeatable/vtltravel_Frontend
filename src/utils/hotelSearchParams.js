@@ -201,7 +201,7 @@ export const buildHotelApiParams = (values = {}) => {
     isFeatured: values.isFeatured,
     sort: values.sort,
     page: values.page || 1,
-    limit: values.limit || 12,
+    limit: values.limit || 9,
   });
 };
 
@@ -217,7 +217,7 @@ export const buildSearchUrlFromCard = (searchData = {}) => {
     adults: searchData.adults,
     rooms: searchData.rooms,
     page: 1,
-    limit: 12,
+    limit: 9,
   });
 
   if (searchData.children !== undefined && searchData.children !== null) {

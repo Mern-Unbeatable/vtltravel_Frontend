@@ -23,7 +23,7 @@ const SearchResultsPage = () => {
   const adults = searchParams.get("adults") || "1";
   const children = searchParams.get("children") || "0";
   const page = searchParams.get("page") || "1";
-  const limit = searchParams.get("limit") || "12";
+  const limit = searchParams.get("limit") || "9";
   const sort = searchParams.get("sort") || "recommended";
   const minPrice = searchParams.get("minPrice") || "";
   const maxPrice = searchParams.get("maxPrice") || "";
@@ -46,6 +46,16 @@ const SearchResultsPage = () => {
       });
     }
   }, [checkIn, checkOut, adults, rooms, children, destination]);
+
+  useEffect(() => {
+    if (searchParams.get("limit") !== "9") {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.set("limit", "9");
+        return next;
+      }, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const handleSearch = (searchData) => {
     saveHotelSearch(searchData);
