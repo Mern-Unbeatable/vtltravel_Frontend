@@ -195,14 +195,14 @@ const HotelDetailsPage = () => {
     .map(mapRoomType)
 
   return (
-    <div className="">
+    <div className="w-full overflow-x-hidden">
       <HotelHeaderGallery images={galleryImages} title={title} hotelId={hotel.id} />
 
-      <div className="mx-auto container px-4 pt-4 md:px-6">
+      <div className="mx-auto w-full max-w-7xl px-4 pt-4 sm:px-5 lg:px-6 xl:px-8">
         <HotelOverviewSection hotel={hotel} />
 
-        <div className="mt-4 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_340px]">
-          <div className="space-y-10">
+        <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(260px,300px)] lg:gap-5 xl:grid-cols-[minmax(0,1fr)_320px] xl:gap-8">
+          <div className="min-w-0 space-y-8 xl:space-y-10">
             <HotelFacilitiesCard
               facilities={hotel.facilities}
               highlights={hotel.highlights}
@@ -224,7 +224,7 @@ const HotelDetailsPage = () => {
             />
           </div>
 
-          <div>
+          <div className="min-w-0">
             <HotelSummarySidebar
               hotel={hotel}
               stay={stay}

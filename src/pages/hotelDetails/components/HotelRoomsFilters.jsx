@@ -55,7 +55,7 @@ const HotelRoomsFilters = ({
         </div>
 
         {showDatePicker && (
-          <div className="absolute left-0 top-full z-100 mt-2 w-80 rounded-2xl border border-gray-100 bg-white p-4 shadow-2xl md:w-88">
+          <div className="absolute left-0 top-full z-100 mt-2 w-[min(100vw-2rem,22rem)] max-w-[calc(100vw-2rem)] rounded-2xl border border-gray-100 bg-white p-4 shadow-2xl sm:w-80 md:w-88">
             <div className="mb-3 flex items-center justify-between rounded-xl bg-gray-100 p-1">
               <button
                 type="button"

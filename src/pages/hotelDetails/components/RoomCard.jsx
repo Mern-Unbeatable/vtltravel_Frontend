@@ -144,14 +144,14 @@ const RoomCard = ({
   return (
     <>
       <article className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-        <div className="flex flex-col lg:flex-row lg:items-stretch">
+        <div className="flex flex-col xl:flex-row xl:items-stretch">
           {/* Left — flush image */}
-          <div className="relative h-52 w-full shrink-0 overflow-hidden bg-[#f3f4f6] lg:h-auto lg:min-h-60 lg:w-72">
+          <div className="relative h-52 w-full shrink-0 overflow-hidden bg-[#f3f4f6] xl:h-auto xl:min-h-60 xl:w-64 2xl:w-72">
             <FallbackImage
               src={roomImage}
               alt={room?.name || "Room"}
-              className="h-full w-full object-cover lg:absolute lg:inset-0"
-              dummyClassName="h-full w-full object-contain p-10 lg:absolute lg:inset-0"
+              className="h-full w-full object-cover xl:absolute xl:inset-0"
+              dummyClassName="h-full w-full object-contain p-10 xl:absolute xl:inset-0"
             />
             <button
               type="button"
@@ -164,11 +164,11 @@ const RoomCard = ({
           </div>
 
           {/* Middle + right */}
-          <div className="flex min-w-0 flex-1 flex-col p-4 lg:flex-row lg:p-0">
+          <div className="flex min-w-0 flex-1 flex-col p-4 xl:flex-row xl:p-0">
             {/* Middle */}
-            <div className="flex min-w-0 flex-1 flex-col lg:min-h-60 lg:py-4 lg:pl-5 lg:pr-8">
+            <div className="flex min-w-0 flex-1 flex-col xl:min-h-60 xl:py-4 xl:pl-5 xl:pr-6">
               {room?.name ? (
-                <h3 className="text-xl font-bold leading-snug text-slate-900">
+                <h3 className="break-words text-lg font-bold leading-snug text-slate-900 xl:text-xl">
                   {room.name}
                 </h3>
               ) : null}
@@ -231,7 +231,7 @@ const RoomCard = ({
 
               <div className="mt-4">
                 {roomsLeftLabel ? (
-                  <div className="mt-7 inline-flex w-fit items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-700 lg:mt-auto">
+                  <div className="mt-7 inline-flex w-fit items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-700 xl:mt-auto">
                     <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500" />
                     {roomsLeftLabel}
                   </div>
@@ -240,16 +240,11 @@ const RoomCard = ({
             </div>
 
             {/* Right — price + button */}
-            <div className="flex shrink-0 flex-col justify-end border-t border-gray-100 pt-4 lg:min-h-60 lg:w-56 lg:border-l lg:border-t-0 lg:pl-8 lg:pr-5 lg:py-4">
+            <div className="flex shrink-0 flex-col justify-end border-t border-gray-100 pt-4 xl:min-h-60 xl:w-48 xl:border-l xl:border-t-0 xl:py-4 xl:pl-6 xl:pr-5 2xl:w-56">
               <div className="mt-auto w-full">
                 {hasPrice ? (
                   <div className="mb-5 text-center">
                     <div className="flex flex-wrap items-baseline justify-center gap-x-1">
-                      {/* {hasDiscount && hasBase ? (
-                        <span className="text-sm text-gray-400 line-through">
-                          ${basePriceNum}
-                        </span>
-                      ) : null} */}
                       <span className="text-[32px] font-extrabold leading-none text-[#3ea5dc]">
                         ${displayPrice}
                       </span>

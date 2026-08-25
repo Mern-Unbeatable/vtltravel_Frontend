@@ -61,17 +61,17 @@ const HotelFacilitiesCard = ({ facilities = [], highlights = [], whyBookWithUs =
   }
 
   return (
-    <div className="mt-4 grid grid-cols-1 overflow-hidden rounded-2xl border border-sky-100/80 bg-[#f8fbfe] p-6 md:p-8 md:grid-cols-2 gap-6 md:gap-8">
+    <div className="mt-4 grid grid-cols-1 gap-6 overflow-hidden rounded-2xl border border-sky-100/80 bg-[#f8fbfe] p-5 sm:p-6 lg:p-6 xl:grid-cols-2 xl:gap-8 xl:p-8">
       {displayFacilities.length > 0 ? (
-        <div>
+        <div className="min-w-0">
           <h3 className="text-base font-bold text-slate-900">Most popular facilities</h3>
-          <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 gap-y-3.5 gap-x-2 text-xs text-gray-600">
+          <div className="mt-5 grid grid-cols-2 gap-x-2 gap-y-3.5 text-xs text-gray-600 sm:grid-cols-3">
             {displayFacilities.map((fac) => {
               const Icon = facilityIcons[fac.slug] || IoCheckmarkCircleOutline
               return (
-                <div key={fac.slug || fac.name} className="flex items-center gap-2">
-                  <Icon className="text-base text-[#3ea5dc] shrink-0" />
-                  <span>{fac.name}</span>
+                <div key={fac.slug || fac.name} className="flex min-w-0 items-center gap-2">
+                  <Icon className="shrink-0 text-base text-[#3ea5dc]" />
+                  <span className="truncate">{fac.name}</span>
                 </div>
               )
             })}
@@ -80,23 +80,23 @@ const HotelFacilitiesCard = ({ facilities = [], highlights = [], whyBookWithUs =
       ) : null}
 
       {displayHighlights.length > 0 ? (
-        <div className="border-t border-sky-100/80 pt-6 md:border-l md:border-t-0 md:pl-8 md:pt-0">
+        <div className="min-w-0 border-t border-sky-100/80 pt-6 xl:border-l xl:border-t-0 xl:pl-8 xl:pt-0">
           <h3 className="text-base font-bold text-slate-900">Hotel Highlights</h3>
           <div className="mt-4 space-y-3 text-xs leading-relaxed text-gray-500">
             {displayHighlights.map((item, idx) => (
               <p key={idx} className="flex items-start gap-2">
-                <span className="text-[#3ea5dc] font-extrabold shrink-0">•</span>
-                <span>{item}</span>
+                <span className="shrink-0 font-extrabold text-[#3ea5dc]">•</span>
+                <span className="min-w-0 break-words">{item}</span>
               </p>
             ))}
           </div>
         </div>
       ) : whyBookWithUs.length > 0 ? (
-        <div className="border-t border-sky-100/80 pt-6 md:border-l md:border-t-0 md:pl-8 md:pt-0">
+        <div className="min-w-0 border-t border-sky-100/80 pt-6 xl:border-l xl:border-t-0 xl:pl-8 xl:pt-0">
           <h3 className="text-base font-bold text-slate-900">Why book with us</h3>
           <div className="mt-4 space-y-3 text-xs leading-relaxed text-gray-500">
             {whyBookWithUs.map((item) => (
-              <p key={item}>{item}</p>
+              <p key={item} className="break-words">{item}</p>
             ))}
           </div>
         </div>

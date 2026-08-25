@@ -12,11 +12,13 @@ const HotelOverviewSection = ({ hotel }) => {
   const reviewCount = hotel?.reviewCount
 
   return (
-    <div>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
+    <div className="min-w-0">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+        <div className="min-w-0 flex-1">
           {title ? (
-            <h1 className="text-3xl font-extrabold text-slate-900 md:text-4xl">{title}</h1>
+            <h1 className="break-words text-2xl font-extrabold text-slate-900 sm:text-3xl lg:text-4xl">
+              {title}
+            </h1>
           ) : null}
           <p className="mt-2 text-xs text-gray-500">
             {starRating ? `${starRating} Star Hotel` : 'Hotel'}
@@ -42,7 +44,7 @@ const HotelOverviewSection = ({ hotel }) => {
               })
             }
           }}
-          className="inline-flex shrink-0 items-center justify-center rounded-full bg-[#3ea5dc] px-7 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-[#3296cc] active:scale-95 cursor-pointer"
+          className="inline-flex w-full shrink-0 cursor-pointer items-center justify-center rounded-full bg-[#3ea5dc] px-7 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-[#3296cc] active:scale-95 sm:w-auto"
         >
           See the rooms
         </button>
@@ -50,7 +52,7 @@ const HotelOverviewSection = ({ hotel }) => {
 
       {description ? (
         <>
-          <p className="mt-4 text-xs md:text-sm leading-relaxed text-gray-500 max-w-2xl">
+          <p className="mt-4 max-w-2xl text-xs leading-relaxed break-words text-gray-500 md:text-sm">
             {visibleDescription}
           </p>
           {isLong ? (

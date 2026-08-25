@@ -235,17 +235,17 @@ const HotelSummarySidebar = ({
     return d < startOfToday
   }
 
-  const goToNext = (ferrySkipped) => {
+  const goToNext = (ferrySkipped = true) => {
     if (isRoomBooked) {
       toast.error(ROOM_BOOKED_MESSAGE)
       return
     }
     if (isFerryPage) {
       if (onConfirmBooking) {
-        onConfirmBooking({ ferrySkipped })
+        onConfirmBooking({ ferrySkipped: true })
         return
       }
-      toast.info('Please fill out the passenger details and complete the booking below.')
+      toast.info('Please fill out the booking details below.')
       return
     }
     if (location.pathname.includes('/customize')) {
@@ -258,7 +258,7 @@ const HotelSummarySidebar = ({
           stay,
           hotel,
           selectedAddOns,
-          ferrySkipped,
+          ferrySkipped: true,
         },
       })
       return
@@ -305,7 +305,7 @@ const HotelSummarySidebar = ({
   )
   if (selectedRooms.length === 0) {
     return (
-      <aside className="sticky top-24 rounded-2xl border border-gray-200 bg-white p-5 text-xs shadow-2xs">
+    <aside className="sticky top-24 w-full max-w-full rounded-2xl border border-gray-200 bg-white p-4 text-xs shadow-2xs sm:p-5">
         <h3 className="text-sm font-bold text-slate-900">{title}</h3>
         {(checkInTime || checkOutTime) ? (
           <p className="mt-2.5 flex items-center gap-2 text-gray-500">
@@ -330,7 +330,7 @@ const HotelSummarySidebar = ({
   } = pricing
 
   return (
-    <aside className="sticky top-24 rounded-2xl border border-gray-200 bg-white p-5 text-xs shadow-sm">
+    <aside className="sticky top-24 w-full max-w-full rounded-2xl border border-gray-200 bg-white p-4 text-xs shadow-sm sm:p-5">
       <h3 className="text-sm font-bold text-slate-900">{title}</h3>
       {(checkInTime || checkOutTime) ? (
         <p className="mt-2 flex items-center gap-1.5 text-gray-500">
@@ -471,9 +471,10 @@ const HotelSummarySidebar = ({
       <div className="mt-5 space-y-2.5">
         <button
           type="button"
-          onClick={() => goToNext(false)}
+          onClick={() => goToNext(true)}
           disabled={isSubmitting || isRoomBooked}
-          className="w-full rounded-full bg-[#3ea5dc] py-3 text-xs font-bold text-white shadow-md transition hover:bg-[#3296cc] active:scale-95 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"        >
+          className="w-full rounded-full bg-[#3ea5dc] py-3 text-xs font-bold text-white shadow-md transition hover:bg-[#3296cc] active:scale-95 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+        >
           {isFerryPage
             ? isSubmitting
               ? 'Confirming...'

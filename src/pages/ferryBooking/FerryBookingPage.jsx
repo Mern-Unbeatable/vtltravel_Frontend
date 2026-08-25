@@ -5,7 +5,7 @@ import HotelSummarySidebar from '../hotelDetails/components/HotelSummarySidebar'
 import { useHotel } from '../../hooks/useHotels'
 import { useCreateBooking } from '../../hooks/useBookings'
 import { getStoredHotelSearch, saveHotelSearch } from '../../utils/hotelSearchStorage'
-import { formatDateISO, getNightsBetween } from '../../utils/hotelSearchParams'
+import { formatDateISO } from '../../utils/hotelSearchParams'
 import { ROOM_BOOKED_MESSAGE } from '../../utils/roomAvailability'
 import {
   normalizeSelectedRooms,
@@ -46,6 +46,13 @@ const isAlreadyBookedError = (message = '') => {
 }
 
 const getErrorMessage = (error) => {
+  if (Array.isArray(error?.errors) && error.errors.length > 0) {
+    return error.errors
+      .map((item) => (typeof item === 'string' ? item : item?.message || item?.msg))
+      .filter(Boolean)
+      .join('\n')
+  }
+
   const message =
     typeof error === 'string'
       ? error
@@ -141,21 +148,17 @@ const FerryBookingPage = () => {
     setForm((prev) => ({ ...prev, [field]: value }))
   }
 
-  const buildPayload = (ferrySkipped) => {
+  const buildPayload = () => {
     const hotelId = hotel?.id
     const roomsPayload = buildRoomsPayload(selectedRooms)
     const checkIn = formatDateISO(stay?.checkIn) || stay?.checkIn || ''
     const checkOut = formatDateISO(stay?.checkOut) || stay?.checkOut || ''
     const numRooms = getSelectedRoomsQuantity(selectedRooms) || Number(stay?.rooms) || 1
-    const previewNights = selectedRooms
-      .map((room) => Number(room?.pricePreview?.nights) || 0)
-      .find((nights) => nights > 0)
-    const numNights = previewNights || getNightsBetween(checkIn, checkOut)
 
     const guestName = form.fullName.trim()
     const guestEmail = form.email.trim()
     const guestPhone = form.phone.trim()
-    const nationality = form.nationality.trim()
+    const guestNationality = form.nationality.trim()
     const notes = form.note.trim()
 
     if (!hotelId) return { error: 'Hotel information is missing. Please go back and try again.' }
@@ -163,7 +166,11 @@ const FerryBookingPage = () => {
       return { error: 'Please select a room before completing your booking.' }
     }
     if (!checkIn || !checkOut) return { error: 'Check-in and check-out dates are required.' }
-    if (numNights < 1) return { error: 'Please choose a valid check-in and check-out date.' }
+    if (!guestName) return { error: 'Full name is required.' }
+    if (!guestEmail) return { error: 'Email address is required.' }
+    if (!guestPhone) return { error: 'Phone number is required.' }
+    if (!guestNationality) return { error: 'Nationality is required.' }
+
     const payload = {
       hotelId,
       checkIn,
@@ -171,39 +178,31 @@ const FerryBookingPage = () => {
       numAdults,
       numChildren,
       numRooms,
-      numNights,
       guestName,
       guestEmail,
       guestPhoneCode: extractPhoneCode(form.countryCode),
       guestPhone,
-      nationality,
+      guestNationality,
       rooms: roomsPayload,
-      addOns: selectedAddOns
-        .filter((item) => item?.addOnId)
-        .map((item) => ({
-          addOnId: item.addOnId,
-          quantity: Number(item.quantity) || 1,
-        })),
-      ferrySkipped: Boolean(ferrySkipped),
-      confirm: true,
-      passengers: ferrySkipped
-        ? []
-        : [
-            {
-              type: 'adult',
-              fullName: guestName,
-              nationality,
-            },
-          ],
+      ferrySkipped: true,
       notes: notes || 'Checkout from Complete Your Ferry Booking form',
+    }
+
+    const addOns = selectedAddOns
+      .filter((item) => item?.addOnId)
+      .map((item) => ({
+        addOnId: item.addOnId,
+        quantity: Number(item.quantity) || 1,
+      }))
+    if (addOns.length > 0) {
+      payload.addOns = addOns
     }
 
     return { payload }
   }
 
-  const handleConfirmBooking = async ({ ferrySkipped } = {}) => {
-    const skipped = ferrySkipped ?? state?.ferrySkipped ?? true
-    const { payload, error } = buildPayload(skipped)
+  const handleConfirmBooking = async () => {
+    const { payload, error } = buildPayload()
 
     if (error) {
       toast.error(error)
@@ -276,7 +275,7 @@ const FerryBookingPage = () => {
             className="space-y-6"
             onSubmit={(e) => {
               e.preventDefault()
-              handleConfirmBooking({ ferrySkipped: state?.ferrySkipped ?? true })
+              handleConfirmBooking()
             }}
           >
             <div className="space-y-4 rounded-2xl border border-gray-100 bg-white p-6 shadow-2xs">

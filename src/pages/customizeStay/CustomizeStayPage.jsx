@@ -160,17 +160,17 @@ const CustomizeStayPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white pb-20 pt-6">
-      <div className="mx-auto container px-4 md:px-6">
-        <nav className="flex items-center gap-2 text-xs font-medium text-gray-400">
-          <Link to="/" className="hover:text-slate-900 transition">
+    <div className="min-h-screen w-full overflow-x-hidden bg-white pb-20 pt-6">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-5 lg:px-6 xl:px-8">
+        <nav className="flex flex-wrap items-center gap-2 text-xs font-medium text-gray-400">
+          <Link to="/" className="transition hover:text-slate-900">
             Home
           </Link>
           <span>/</span>
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="hover:text-slate-900 transition"
+            className="transition hover:text-slate-900"
           >
             Rates
           </button>
@@ -178,39 +178,39 @@ const CustomizeStayPage = () => {
           <span className="font-semibold text-[#3ea5dc]">Add-on</span>
         </nav>
 
-        <h1 className="mt-6 text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">
+        <h1 className="mt-6 break-words text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
           Customise Your Stay
         </h1>
 
-        <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_340px]">
-          <div>
-            <h2 className="text-xl md:text-2xl font-bold text-slate-900">Extras</h2>
+        <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(260px,300px)] lg:gap-5 xl:grid-cols-[minmax(0,1fr)_320px] xl:gap-8">
+          <div className="min-w-0">
+            <h2 className="text-xl font-bold text-slate-900 md:text-2xl">Extras</h2>
 
             {extras.length === 0 ? (
               <div className="mt-6 rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center text-sm text-gray-500">
                 No add-ons available for this hotel.
               </div>
             ) : (
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="mt-6 grid grid-cols-1 gap-4 xl:grid-cols-2">
                 {extras.map((extra) => {
                   const isAdded = selectedExtras.includes(extra.id)
                   return (
                     <div
                       key={extra.id}
-                      className="flex overflow-hidden rounded-2xl border border-gray-100 bg-white p-3.5 shadow-2xs transition hover:shadow-md"
+                      className="flex w-full min-w-0 items-stretch overflow-hidden rounded-2xl border border-gray-100 bg-white p-3.5 shadow-2xs transition hover:shadow-md"
                     >
-                      <div className="h-28 w-32 shrink-0 overflow-hidden rounded-xl bg-[#f3f4f6]">
+                      <div className="h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-[#f3f4f6] sm:h-28 sm:w-32">
                         <FallbackImage
                           src={extra.image}
                           alt={extra.title}
-                          className="h-28 w-32 object-cover"
-                          dummyClassName="h-28 w-32 object-contain p-4"
+                          className="h-full w-full object-cover"
+                          dummyClassName="h-full w-full object-contain p-4"
                         />
                       </div>
 
-                      <div className="ml-4 flex flex-1 flex-col justify-between py-1 min-w-0">
-                        <div>
-                          <h3 className="text-xs font-bold uppercase leading-tight tracking-wide text-slate-900 line-clamp-2">
+                      <div className="ml-3 flex min-w-0 flex-1 flex-col justify-between py-0.5 sm:ml-4 sm:py-1">
+                        <div className="min-w-0">
+                          <h3 className="line-clamp-2 text-xs font-bold uppercase leading-tight tracking-wide break-words text-slate-900">
                             {extra.title}
                           </h3>
                           {extra.minPax > 1 ? (
@@ -219,19 +219,19 @@ const CustomizeStayPage = () => {
                             </p>
                           ) : null}
                           {extra.description ? (
-                            <p className="mt-1 text-[11px] text-gray-400 line-clamp-2">
+                            <p className="mt-1 line-clamp-2 text-[11px] text-gray-400">
                               {extra.description}
                             </p>
                           ) : null}
                         </div>
 
-                        <div className="flex items-end justify-between gap-2">
-                          <div>
-                            <span className="text-xl font-bold text-slate-900">
+                        <div className="mt-3 flex items-end justify-between gap-2">
+                          <div className="min-w-0">
+                            <span className="text-lg font-bold text-slate-900 sm:text-xl">
                               ${extra.price}
                             </span>
                             {extra.unit ? (
-                              <span className="ml-1 text-[11px] text-gray-400 font-normal">
+                              <span className="ml-1 text-[11px] font-normal text-gray-400">
                                 {extra.unit}
                               </span>
                             ) : null}
@@ -240,7 +240,7 @@ const CustomizeStayPage = () => {
                           <button
                             type="button"
                             onClick={() => toggleExtra(extra.id)}
-                            className={`flex h-8 w-8 items-center justify-center rounded-full text-white transition cursor-pointer active:scale-95 ${
+                            className={`flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full text-white transition active:scale-95 ${
                               isAdded
                                 ? 'bg-emerald-500 hover:bg-emerald-600'
                                 : 'bg-[#3ea5dc] hover:bg-[#3296cc]'
@@ -262,15 +262,19 @@ const CustomizeStayPage = () => {
             )}
 
             <div className="mt-12 rounded-2xl border border-sky-100 bg-[#f8fbfe] p-5 md:p-6">
-              <h3 className="text-lg font-bold text-slate-900">Bintan Tour Packages - Good to Know</h3>
-              <p className="mt-2 text-sm md:text-base leading-relaxed text-slate-600">
+              <h3 className="text-lg font-bold text-slate-900">
+                Bintan Tour Packages - Good to Know
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-slate-600 md:text-base">
                 Make your Bintan getaway even more memorable by adding tours, dining and local
                 experiences to your booking.
               </p>
-              <ul className="mt-4 space-y-2 text-sm md:text-base leading-relaxed text-slate-600 list-disc pl-5">
+              <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-relaxed text-slate-600 md:text-base">
                 <li>Add-on prices are based on your selected travel date and number of guests.</li>
                 <li>All tours and activities are subject to availability.</li>
-                <li>Selected add-ons will be included in your final booking summary and total price.</li>
+                <li>
+                  Selected add-ons will be included in your final booking summary and total price.
+                </li>
                 <li>
                   Confirmed tour timings will be shared with you by email once the booking is
                   completed.
@@ -291,7 +295,7 @@ const CustomizeStayPage = () => {
             </div>
           </div>
 
-          <div>
+          <div className="min-w-0">
             <HotelSummarySidebar
               hotel={hotel}
               title={hotelTitle}
