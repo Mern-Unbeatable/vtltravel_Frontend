@@ -117,7 +117,7 @@ const AddOnOptions = ({
               </div>
               <div className="min-w-0">
                 <p className="truncate text-sm font-bold text-slate-900">{item.name || "-"}</p>
-                <p className="text-xs text-gray-500">Min pax: {item.minPax || 1}</p>
+                {/* <p className="text-xs text-gray-500">Min pax: {item.minPax || 1}</p> */}
               </div>
               <p className="text-sm font-semibold text-slate-700 self-center">${item.price || 0}</p>
               <button
@@ -150,7 +150,7 @@ const AddOnOptions = ({
                 className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:outline-none"
               />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3">
                 <div>
                   <label className="mb-1.5 block text-xs font-bold uppercase text-slate-700">
                     Price
@@ -164,6 +164,7 @@ const AddOnOptions = ({
                   className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:outline-none"
                 />
                 </div>
+                {/* 
                 <div>
                   <label className="mb-1.5 block text-xs font-bold uppercase text-slate-700">
                     Min Pax
@@ -178,6 +179,7 @@ const AddOnOptions = ({
                   className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:outline-none"
                 />
                 </div>
+                */}
               </div>
 
               <div className="rounded-xl border border-gray-200 bg-slate-50 p-3">
