@@ -313,18 +313,6 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
 
     const formData = mapRoomToFormData(savedRoom);
 
-    console.log("[HotelForm] room save", {
-      method: isEditingReal ? "PUT" : "POST",
-      endpoint: isEditingReal
-        ? `/api/v1/rooms/${editingRoomId}`
-        : `/api/v1/rooms/hotel/${activeHotelId}`,
-      roomId: isEditingReal ? editingRoomId : null,
-      hotelId: activeHotelId,
-      imagesChanged: Boolean(savedRoom.imagesChanged),
-      existingImages: savedRoom.existingImages?.length || 0,
-      newImageFiles: savedRoom.imageFiles?.length || 0,
-    });
-
     try {
       let response;
       if (isEditingReal) {

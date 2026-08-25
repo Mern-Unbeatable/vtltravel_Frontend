@@ -358,22 +358,6 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
       .map((t) => t.trim())
       .filter(Boolean);
 
-    console.log('[RoomFormModal] save payload', {
-      mode: isEdit
-        ? 'PUT /api/v1/rooms/:roomId'
-        : 'POST /api/v1/rooms/hotel/:hotelId',
-      roomId: isEdit ? roomId : null,
-      tags: { display: data.tags, tagsArray, formDataTags: JSON.stringify(tagsArray) },
-      images: {
-        imagesChanged,
-        hasNewImages,
-        imagesRemoved: isEdit ? imagesRemoved : false,
-        existingKept: existingImages.length,
-        newUploads: imageFiles.length,
-        omitImageUrlOnPut: isEdit && !imagesChanged,
-      },
-    });
-
     const formattedRoom = {
       id: isEdit ? roomId : undefined,
       isEdit,
