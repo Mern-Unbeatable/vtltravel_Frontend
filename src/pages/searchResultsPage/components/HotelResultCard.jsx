@@ -108,8 +108,8 @@ const HotelResultCard = ({ hotel }) => {
 
   return (
     <>
-      <article className="flex w-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm md:flex-row md:items-stretch">
-        <div className="relative h-52 w-full shrink-0 overflow-hidden bg-[#f3f4f6] sm:h-56 md:h-auto md:w-72 lg:w-80">
+      <article className="flex w-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm lg:flex-row lg:items-stretch">
+        <div className="relative h-52 w-full shrink-0 overflow-hidden bg-[#f3f4f6] sm:h-56 lg:h-auto lg:w-72 xl:w-80">
           <FallbackImage
             src={imageUrl}
             alt={title || "Hotel"}
@@ -136,11 +136,11 @@ const HotelResultCard = ({ hotel }) => {
           </button>
         </div>
 
-        <div className="flex min-w-0 flex-1 flex-col gap-4 p-5 md:flex-row md:items-stretch md:justify-between md:gap-6 md:p-6">
+        <div className="flex min-w-0 flex-1 flex-col gap-4 p-5 lg:flex-row lg:items-stretch lg:justify-between lg:gap-6 lg:p-6">
           <div className="min-w-0 flex-1">
             <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between lg:gap-4">
               {title ? (
-                <h3 className="text-xl font-bold tracking-tight text-slate-900 md:text-2xl">
+                <h3 className="text-xl font-bold tracking-tight text-slate-900 lg:text-2xl">
                   {title}
                 </h3>
               ) : null}
@@ -192,7 +192,7 @@ const HotelResultCard = ({ hotel }) => {
             ) : null}
           </div>
 
-          <div className="mt-auto flex shrink-0 flex-col items-start justify-end border-t border-gray-100 pt-4 md:w-48 md:items-end md:border-l md:border-t-0 md:pl-8 md:pt-0 md:text-right">
+          <div className="mt-auto flex shrink-0 flex-col items-start justify-end border-t border-gray-100 pt-4 lg:w-48 lg:items-end lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0 lg:text-right">
             {hasPrice ? (
               <div className="flex items-baseline gap-1.5">
                 <span className="text-sm text-gray-400">From</span>
@@ -215,7 +215,7 @@ const HotelResultCard = ({ hotel }) => {
               type="button"
               onClick={handleHotelClick}
               disabled={!hotelId}
-              className="mt-5 w-full rounded-full bg-[#3ea5dc] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#3296cc] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 md:w-auto"
+              className="mt-5 w-full rounded-full bg-[#3ea5dc] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#3296cc] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 lg:w-auto"
             >
               See the hotel
             </button>

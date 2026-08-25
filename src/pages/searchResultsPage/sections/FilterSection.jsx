@@ -167,8 +167,8 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
   const maxPercent = ((maxBudget - MIN_PRICE) / (MAX_PRICE - MIN_PRICE)) * 100;
 
   return (
-    <div className="lg:sticky lg:top-24 lg:flex lg:h-[calc(100vh-240px)] lg:flex-col lg:self-start lg:overflow-hidden">
-      <div className="lg:hidden">
+    <div className="xl:sticky xl:top-24 xl:flex xl:h-[calc(100vh-240px)] xl:flex-col xl:self-start xl:overflow-hidden">
+      <div className="xl:hidden">
         <button
           type="button"
           onClick={() => setIsOpen(true)}
@@ -181,7 +181,7 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
 
       {isOpen && (
         <div
-          className="fixed inset-0 z-100 bg-black/40 lg:hidden"
+          className="fixed inset-0 z-100 bg-black/40 xl:hidden"
           onClick={() => setIsOpen(false)}
         />
       )}
@@ -189,11 +189,11 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
       <aside
         className={`
           fixed bottom-0 top-0 left-0 z-101 flex w-75 flex-col overflow-hidden bg-white p-6 shadow-2xl transition-transform duration-300
-          lg:static lg:z-auto lg:h-full lg:w-full lg:translate-x-0 lg:bg-transparent lg:p-0 lg:shadow-none
+          xl:static xl:z-auto xl:h-full xl:w-full xl:translate-x-0 xl:bg-transparent xl:p-0 xl:shadow-none
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
         `}
       >
-        <div className="mb-4 flex shrink-0 items-center justify-between border-b border-[#05588E29] pb-3 lg:hidden">
+        <div className="mb-4 flex shrink-0 items-center justify-between border-b border-[#05588E29] pb-3 xl:hidden">
           <h3 className="text-xl font-bold text-slate-900">Filters</h3>
           <button
             type="button"
@@ -204,7 +204,7 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
           </button>
         </div>
 
-        <div className="mb-4 hidden shrink-0 items-center justify-between border-b border-[#05588E29] pb-3 lg:flex">
+        <div className="mb-4 hidden shrink-0 items-center justify-between border-b border-[#05588E29] pb-3 xl:flex">
           <h3 className="text-xl font-semibold text-slate-900">Filter</h3>
           {hasCreatedFilter && (
             <button
@@ -218,7 +218,7 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
         </div>
 
         {hasCreatedFilter && (
-          <div className="mb-3 flex shrink-0 items-center justify-between lg:hidden">
+          <div className="mb-3 flex shrink-0 items-center justify-between xl:hidden">
             <button
               type="button"
               onClick={handleClearFilters}

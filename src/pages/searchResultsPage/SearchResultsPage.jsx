@@ -137,7 +137,7 @@ const SearchResultsPage = () => {
           />
         </div>
 
-        <div className="mt-4 lg:mt-6 grid grid-cols-1 gap-10 lg:grid-cols-[320px_minmax(0,1fr)]">
+        <div className="mt-4 lg:mt-6 grid grid-cols-1 gap-10 xl:grid-cols-[320px_minmax(0,1fr)]">
           <FilterSection
             onResetAll={handleResetAll}
             onFilterChange={(newFilters) => {
