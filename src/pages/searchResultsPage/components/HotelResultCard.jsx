@@ -146,15 +146,21 @@ const HotelResultCard = ({ hotel }) => {
               ) : null}
             </div>
 
-            <div className="mt-2.5 flex flex-wrap items-center gap-2 text-sm">
-              <StarRow rating={display.guestRating} />
-              <span className="font-bold text-[#3ea5dc]">
-                {display.guestRating} {display.ratingLabel}
-              </span>
-              <span className="text-gray-400">
-                ({display.reviewCount} reviews)
-              </span>
-            </div>
+            {display.guestRating ? (
+              <div className="mt-2.5 flex flex-wrap items-center gap-2 text-sm">
+                <StarRow rating={display.guestRating} />
+                <span className="font-bold text-[#3ea5dc]">
+                  {display.guestRating} {display.ratingLabel}
+                </span>
+                <span className="text-gray-400">
+                  ({display.reviewCount} reviews)
+                </span>
+              </div>
+            ) : (
+              <div className="mt-2.5 flex flex-wrap items-center gap-2 text-sm">
+                <span className="text-gray-400 font-medium">No reviews yet</span>
+              </div>
+            )}
 
             {shortDescription ? (
               <p className="mt-3 text-base leading-relaxed text-slate-500">

@@ -95,7 +95,7 @@ const SearchResultsPage = () => {
         rooms,
         sort,
         page,
-        limit,
+        limit: "9",
         minPrice,
         maxPrice,
         starRating,

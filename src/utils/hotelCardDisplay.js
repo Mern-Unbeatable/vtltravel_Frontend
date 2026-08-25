@@ -68,7 +68,7 @@ export const getHotelCardDisplay = (hotel) => {
     toNumber(hotel?.rating) ??
     toNumber(hotel?.reviewScore)
   const guestRating = (() => {
-    if (rawGuestRating == null) return HOTEL_CARD_DUMMY.guestRating
+    if (rawGuestRating == null) return null;
     // Existing hotel details uses reviewScore /10; card UI is /5
     if (rawGuestRating > 5) return Number((rawGuestRating / 2).toFixed(1))
     return rawGuestRating
@@ -77,9 +77,19 @@ export const getHotelCardDisplay = (hotel) => {
   const reviewCount =
     toNumber(hotel?.reviewCount) ??
     toNumber(hotel?.reviewsCount) ??
-    HOTEL_CARD_DUMMY.reviewCount
+    0;
 
-  const ratingLabel = hotel?.ratingLabel || HOTEL_CARD_DUMMY.ratingLabel
+  const ratingLabel = (() => {
+    if (hotel?.ratingLabel && hotel.ratingLabel.trim() !== "") {
+      return hotel.ratingLabel;
+    }
+    if (guestRating === null) return "";
+    if (guestRating >= 4.5) return "Excellent";
+    if (guestRating >= 4.0) return "Very Good";
+    if (guestRating >= 3.5) return "Good";
+    if (guestRating >= 3.0) return "Fair";
+    return "Okay";
+  })();
 
   const amenityNames = toNameList(
     hotel?.cardAmenities || hotel?.popularFacilities || hotel?.facilities,
@@ -92,9 +102,22 @@ export const getHotelCardDisplay = (hotel) => {
         }))
       : HOTEL_CARD_DUMMY.amenities
 
-  const bestForNames = toNameList(hotel?.bestFor || hotel?.tags)
-  const bestFor =
-    bestForNames.length > 0 ? bestForNames.slice(0, 3) : HOTEL_CARD_DUMMY.bestFor
+  const bestFor = (() => {
+    if (Array.isArray(hotel?.tags)) {
+      const filtered = hotel.tags
+        .map((item) => item?.tag || item)
+        .filter((tag) => tag?.category === "best_for")
+        .map((tag) => tag?.name)
+        .filter(Boolean);
+      if (filtered.length > 0) return filtered;
+    }
+
+    if (Array.isArray(hotel?.bestFor)) {
+      return hotel.bestFor;
+    }
+
+    return [];
+  })();
 
   const backendBadges = toNameList(hotel?.badges || hotel?.highlights)
   const badges =

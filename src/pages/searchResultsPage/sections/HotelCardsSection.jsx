@@ -37,6 +37,11 @@ const HotelCardsSection = ({ filters, searchQuery = "" }) => {
 
   const { data, isLoading, isError, isFetching } = useHotels(apiFilters);
 
+  console.log("--- SEARCH RESULTS BACKEND DATA ---", {
+    apiFilters,
+    data,
+  });
+
   const pageSize = Number(filters?.limit) || 9;
   const requestedPage = Number(filters?.page) || 1;
 
