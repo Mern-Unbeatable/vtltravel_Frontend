@@ -81,6 +81,10 @@ export const hotelService = {
   deleteRoomCalendar: async (roomId, payload) => {
     return api.delete(`/v1/rooms/${roomId}/calendar`, { data: payload });
   },
+
+  getCatalogTags: async () => {
+    return api.get('/v1/catalog/tags');
+  },
 };
 
 export default hotelService;

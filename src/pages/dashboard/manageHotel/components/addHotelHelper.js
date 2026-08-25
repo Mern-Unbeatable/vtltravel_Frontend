@@ -80,7 +80,7 @@ export const hotelSchema = z.object({
   available: z.boolean().default(true),
   isFeatured: z.boolean().default(false),
   featuredPackages: z.array(z.string()).default([]),
-  bestFor: z.string().optional().default(""),
+  bestFor: z.union([z.string(), z.array(z.string())]).default([]),
   addOns: z
     .array(
       z.object({
@@ -228,9 +228,15 @@ export const mapHotelFormToFormData = (data, base64ToFileFn) => {
   formData.append("name", data.title);
   formData.append("starRating", String(data.starNum));
   formData.append("startingPrice", String(data.priceNum));
-  formData.append("reviewScore", String(data.reviewScore || ""));
-  formData.append("reviewCount", String(data.reviewCount || ""));
-  formData.append("ratingLabel", String(data.ratingLabel || ""));
+  if (data.reviewScore !== undefined && data.reviewScore !== null && String(data.reviewScore).trim() !== "") {
+    formData.append("reviewScore", String(data.reviewScore));
+  }
+  if (data.reviewCount !== undefined && data.reviewCount !== null && String(data.reviewCount).trim() !== "") {
+    formData.append("reviewCount", String(data.reviewCount));
+  }
+  if (data.ratingLabel !== undefined && data.ratingLabel !== null && String(data.ratingLabel).trim() !== "") {
+    formData.append("ratingLabel", String(data.ratingLabel));
+  }
   formData.append(
     "availabilityStatus",
     data.available ? "AVAILABLE" : "UNAVAILABLE",
@@ -239,6 +245,11 @@ export const mapHotelFormToFormData = (data, base64ToFileFn) => {
   formData.append("location", data.location || "");
   formData.append("city", data.city || "");
   formData.append("country", data.country || "");
+
+  if (data.tagIds) {
+    const ids = Array.isArray(data.tagIds) ? data.tagIds.join(",") : data.tagIds;
+    formData.append("tagIds", ids);
+  }
   const bestForArr =
     typeof data.bestFor === "string"
       ? data.bestFor

@@ -97,9 +97,28 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
   const [activeFormTab, setActiveFormTab] = useState(tabParam);
   const [selectedRoomId, setSelectedRoomId] = useState(null);
 
+  // Catalog best_for tags options
+  const [bestForOptions, setBestForOptions] = useState([]);
+  const [allCatalogTags, setAllCatalogTags] = useState([]);
+
   useEffect(() => {
     setActiveFormTab(tabParam);
   }, [tabParam]);
+
+  useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        const response = await hotelService.getCatalogTags();
+        const tags = response?.data || response || [];
+        setAllCatalogTags(tags);
+        const filteredTags = tags.filter((t) => t.category === "best_for");
+        setBestForOptions(filteredTags);
+      } catch (err) {
+        console.error("Failed to fetch catalog tags:", err);
+      }
+    };
+    fetchTags();
+  }, []);
 
   const {
     register,
@@ -127,13 +146,26 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
       available: true,
       isFeatured: false,
       featuredPackages: [],
-      bestFor: "",
+      bestFor: [],
       addOns: [{ name: "", price: "", minPax: "1", imageUrl: "" }],
       reviewScore: "",
       reviewCount: "",
       ratingLabel: "",
     },
   });
+
+  const bestForVal = watch("bestFor") || [];
+
+  const handleBestForChange = (tagId) => {
+    const currentValues = Array.isArray(bestForVal)
+      ? bestForVal
+      : String(bestForVal).split(",").map(s => s.trim()).filter(Boolean);
+    const isChecked = currentValues.includes(tagId);
+    const updated = isChecked
+      ? currentValues.filter((v) => v !== tagId)
+      : [...currentValues, tagId];
+    setValue("bestFor", updated, { shouldValidate: true });
+  };
 
   const {
     fields: addOnFields,
@@ -152,7 +184,6 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
   const roomsVal = watch("rooms") || [];
   const availableVal = watch("available");
   const featuredPackagesVal = watch("featuredPackages") || [];
-  const bestForVal = watch("bestFor") || [];
 
   const activeHotelId = hotel?.id || hotel?._id;
 
@@ -210,9 +241,8 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
         bestFor: (hotel.tags || [])
           .map((item) => item?.tag || item)
           .filter((tag) => tag?.category === "best_for")
-          .map((tag) => tag?.name)
-          .filter(Boolean)
-          .join(", "),
+          .map((tag) => tag?.id || tag?._id)
+          .filter(Boolean),
         addOns:
           hotel.addOns && hotel.addOns.length > 0
             ? hotel.addOns.map((a) => ({
@@ -390,7 +420,32 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
   };
 
   const onSubmit = (data) => {
-    const formData = mapHotelFormToFormData(data, base64ToFile);
+    // Gather all selected bestFor tag IDs
+    const selectedBestForIds = Array.isArray(data.bestFor) ? data.bestFor : [];
+
+    // Map featuredPackages slugs to tag IDs from allCatalogTags
+    const selectedFeaturedPackageIds = (data.featuredPackages || [])
+      .map((slug) => {
+        let tag = allCatalogTags.find((t) => t.slug === slug);
+        if (tag) return tag.id;
+
+        const option = FEATURED_PACKAGE_OPTIONS.find((o) => o.value === slug);
+        if (option) {
+          const matchedTag = allCatalogTags.find(
+            (t) =>
+              t.name.toLowerCase() === option.label.toLowerCase() ||
+              t.slug === option.label.toLowerCase().replace(/\s+/g, "-"),
+          );
+          if (matchedTag) return matchedTag.id;
+        }
+        return null;
+      })
+      .filter(Boolean);
+
+    // Combine into tagIds list
+    const tagIds = [...selectedBestForIds, ...selectedFeaturedPackageIds];
+
+    const formData = mapHotelFormToFormData({ ...data, tagIds }, base64ToFile);
     onSave(formData);
   };
 
@@ -513,15 +568,15 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormInput
-                label="Review Score (out of 5 or 10)"
+                label="Review Score"
                 name="reviewScore"
                 type="number"
                 step="0.1"
                 register={register}
                 error={errors.reviewScore}
-                placeholder="e.g. 4.1 or 8.2"
+                placeholder="e.g. 4.1"
               />
               <FormInput
                 label="Review Count"
@@ -530,13 +585,6 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
                 register={register}
                 error={errors.reviewCount}
                 placeholder="e.g. 1250"
-              />
-              <FormInput
-                label="Rating Label"
-                name="ratingLabel"
-                register={register}
-                error={errors.ratingLabel}
-                placeholder="e.g. Excellent"
               />
             </div>
 
@@ -560,15 +608,8 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
               />
             </div>
 
+            {/* Featured Packages */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormInput
-                label="Best For"
-                name="bestFor"
-                register={register}
-                error={errors.bestFor}
-                placeholder="e.g. Couples, Families, Relaxing getaway"
-              />
-
               <div>
                 <label className="mb-2 block text-xs font-bold uppercase text-slate-700">
                   Featured Packages
@@ -632,6 +673,38 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
                   </p>
                 )}
               </div>
+            </div>
+
+            {/* Best For (Tags selector) */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase mb-3">
+                Best For
+              </label>
+              {bestForOptions.length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                  {bestForOptions.map((tag) => {
+                    const isChecked = Array.isArray(bestForVal)
+                      ? bestForVal.includes(tag.id)
+                      : String(bestForVal).split(",").map(s => s.trim()).includes(tag.id);
+                    return (
+                      <label
+                        key={tag.id || tag.slug}
+                        className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => handleBestForChange(tag.id)}
+                          className="rounded text-primary accent-primary focus:ring-primary"
+                        />
+                        {tag.name}
+                      </label>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-xs text-gray-400 italic">Loading best for tags...</p>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
