@@ -8,7 +8,7 @@ import {
   buildSearchUrlFromCard,
   mapUiFiltersToApi,
 } from "../../utils/hotelSearchParams";
-import { saveHotelSearch, clearHotelSearch } from "../../utils/hotelSearchStorage";
+import { saveHotelSearch } from "../../utils/hotelSearchStorage";
 
 const SearchResultsPage = () => {
   const [filters, setFilters] = useState(null);
@@ -57,8 +57,21 @@ const SearchResultsPage = () => {
 
   const handleResetAll = () => {
     setFilters(null);
-    clearHotelSearch();
-    setSearchParams({ page: "1", limit: "12" });
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      [
+        "minPrice",
+        "maxPrice",
+        "starRating",
+        "tags",
+        "facilities",
+        "breakfastIncluded",
+        "freeCancellation",
+        "isFeatured",
+      ].forEach((key) => next.delete(key));
+      next.set("page", "1");
+      return next;
+    });
   };
 
   const hotelFilters = useMemo(

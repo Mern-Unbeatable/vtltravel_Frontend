@@ -206,24 +206,28 @@ const FilterSection = ({ onFilterChange, onResetAll }) => {
 
         <div className="mb-4 hidden shrink-0 items-center justify-between border-b border-[#05588E29] pb-3 lg:flex">
           <h3 className="text-xl font-semibold text-slate-900">Filter</h3>
-          <button
-            type="button"
-            onClick={handleClearFilters}
-            className="cursor-pointer text-sm font-semibold text-primary hover:underline"
-          >
-            Reset All
-          </button>
+          {hasCreatedFilter && (
+            <button
+              type="button"
+              onClick={handleClearFilters}
+              className="cursor-pointer text-sm font-semibold text-primary hover:underline"
+            >
+              Reset All
+            </button>
+          )}
         </div>
 
-        <div className="mb-3 flex shrink-0 items-center justify-between lg:hidden">
-          <button
-            type="button"
-            onClick={handleClearFilters}
-            className="cursor-pointer text-sm font-semibold text-primary hover:underline"
-          >
-            Reset All Filters
-          </button>
-        </div>
+        {hasCreatedFilter && (
+          <div className="mb-3 flex shrink-0 items-center justify-between lg:hidden">
+            <button
+              type="button"
+              onClick={handleClearFilters}
+              className="cursor-pointer text-sm font-semibold text-primary hover:underline"
+            >
+              Reset All Filters
+            </button>
+          </div>
+        )}
 
         <div className="flex-1 space-y-5 overflow-y-auto pb-6 pr-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div>
