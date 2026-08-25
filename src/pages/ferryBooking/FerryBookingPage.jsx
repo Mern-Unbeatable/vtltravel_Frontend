@@ -164,11 +164,6 @@ const FerryBookingPage = () => {
     }
     if (!checkIn || !checkOut) return { error: 'Check-in and check-out dates are required.' }
     if (numNights < 1) return { error: 'Please choose a valid check-in and check-out date.' }
-    if (!guestName) return { error: 'Please enter your full name as per passport.' }
-    if (!guestEmail) return { error: 'Please enter your email address.' }
-    if (!guestPhone) return { error: 'Please enter your phone number.' }
-    if (!nationality) return { error: 'Please select your nationality.' }
-
     const payload = {
       hotelId,
       checkIn,
@@ -191,13 +186,15 @@ const FerryBookingPage = () => {
         })),
       ferrySkipped: Boolean(ferrySkipped),
       confirm: true,
-      passengers: [
-        {
-          type: 'adult',
-          fullName: guestName,
-          nationality,
-        },
-      ],
+      passengers: ferrySkipped
+        ? []
+        : [
+            {
+              type: 'adult',
+              fullName: guestName,
+              nationality,
+            },
+          ],
       notes: notes || 'Checkout from Complete Your Ferry Booking form',
     }
 
