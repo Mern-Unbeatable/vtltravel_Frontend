@@ -147,7 +147,7 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
       isFeatured: false,
       featuredPackages: [],
       bestFor: [],
-      addOns: [{ name: "", price: "", minPax: "1", imageUrl: "" }],
+      addOns: [],
       reviewScore: "",
       reviewCount: "",
       ratingLabel: "",
