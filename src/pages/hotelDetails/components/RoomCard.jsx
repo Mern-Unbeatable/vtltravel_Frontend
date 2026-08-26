@@ -134,11 +134,9 @@ const RoomCard = ({
   const isSelected = selectedQuantity > 0;
 
   const basePriceNum = Number(room?.basePrice);
-  const discountPriceNum = Number(room?.discountPrice);
   const hasBase = Number.isFinite(basePriceNum) && basePriceNum > 0;
-  const hasDiscount = Number.isFinite(discountPriceNum) && discountPriceNum > 0;
-  const displayPrice = hasDiscount ? discountPriceNum : basePriceNum;
-  const hasPrice = hasBase || hasDiscount;
+  const displayPrice = basePriceNum;
+  const hasPrice = hasBase;
   const roomsLeftLabel = getRoomsLeftLabel(room);
 
   return (

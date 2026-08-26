@@ -220,7 +220,7 @@ const HotelRoomsSection = ({
   };
 
   return (
-    <div id="rooms" className="mt-10">
+    <div id="rooms" className="relative z-40 mt-10 pb-8">
       <h2 className="text-2xl font-bold text-slate-900 md:text-3xl">
         Rooms available
       </h2>
@@ -255,11 +255,14 @@ const HotelRoomsSection = ({
         canSearch={Boolean(checkInDate && checkOutDate)}
       />
 
-      <div className="mt-6 space-y-5">
+      <div className="relative z-0 mt-6 space-y-5">
         {roomsToShow.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center">
+          <div className="rounded-2xl border border-dashed border-gray-200 bg-white px-6 py-8 text-center">
             <p className="text-sm font-semibold text-gray-700">
               No rooms available
+            </p>
+            <p className="mt-2 max-w-sm mx-auto text-xs text-gray-400">
+              Try different dates or guest counts, then search again.
             </p>
           </div>
         ) : (

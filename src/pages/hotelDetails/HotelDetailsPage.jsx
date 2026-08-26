@@ -28,7 +28,7 @@ const mapRoomType = (room) => {
   const amenityNames =
     featureNames.length > 0 ? featureNames : amenityFromApi
   const tags = (room.tags || []).length > 0 ? room.tags : amenityNames
-  const priceValue = room.discountPrice || room.basePrice
+  const priceValue = room.basePrice
   const publicRate = room.basePrice
   const adults = room.maxAdults || room.maxCapacity || 0
   const size = room.sizeLabel || (room.sizeSqm ? `${room.sizeSqm}m²` : '')
@@ -195,7 +195,7 @@ const HotelDetailsPage = () => {
     .map(mapRoomType)
 
   return (
-    <div className="w-full overflow-x-hidden">
+    <div className="relative z-40 w-full">
       <HotelHeaderGallery images={galleryImages} title={title} hotelId={hotel.id} />
 
       <div className="mx-auto w-full max-w-7xl px-4 pt-4 sm:px-5 lg:px-6 xl:px-8">

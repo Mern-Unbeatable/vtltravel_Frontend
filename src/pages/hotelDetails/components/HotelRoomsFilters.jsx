@@ -37,7 +37,7 @@ const HotelRoomsFilters = ({
   canSearch,
 }) => {
   return (
-    <div className="mt-5 flex flex-wrap items-center gap-3 rounded-2xl border border-gray-100 bg-white p-3 text-xs font-medium text-gray-700 shadow-sm">
+    <div className="relative z-40 mt-5 flex flex-wrap items-center gap-3 rounded-2xl border border-gray-100 bg-white p-3 text-xs font-medium text-gray-700 shadow-sm">
       <div ref={datePickerRef} className="relative">
         <div
           onClick={() => {
@@ -55,7 +55,7 @@ const HotelRoomsFilters = ({
         </div>
 
         {showDatePicker && (
-          <div className="absolute left-0 top-full z-100 mt-2 w-[min(100vw-2rem,22rem)] max-w-[calc(100vw-2rem)] rounded-2xl border border-gray-100 bg-white p-4 shadow-2xl sm:w-80 md:w-88">
+          <div className="absolute left-0 top-full z-[200] mt-2 w-[min(100vw-2rem,22rem)] max-w-[calc(100vw-2rem)] rounded-2xl border border-gray-100 bg-white p-4 shadow-2xl sm:w-80 md:w-88">
             <div className="mb-3 flex items-center justify-between rounded-xl bg-gray-100 p-1">
               <button
                 type="button"
@@ -160,7 +160,7 @@ const HotelRoomsFilters = ({
         </div>
 
         {showGuestsPicker && (
-          <div className="absolute left-0 top-full z-100 mt-2 w-60 rounded-2xl border border-gray-100 bg-white p-4 shadow-2xl">
+          <div className="absolute left-0 top-full z-[200] mt-2 w-60 rounded-2xl border border-gray-100 bg-white p-4 shadow-2xl">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-bold text-gray-800">Rooms</p>

@@ -188,7 +188,8 @@ export const useHotel = (id, params = {}) => {
       return response;
     },
     enabled: !!id,
-    placeholderData: (previousData) => previousData,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 };
 
@@ -198,16 +199,25 @@ export const useHotelRooms = (hotelId, params = {}, enabled = true) => {
     queryFn: async () => {
       const response = await hotelService.getRoomsForHotel(hotelId, params);
       const data = response?.data || response;
+      // Normalize list shape: array | { items } | { roomTypes }
+      const list = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.items)
+          ? data.items
+          : Array.isArray(data?.roomTypes)
+            ? data.roomTypes
+            : [];
       console.log(
         "--- ROOMS API DATA RECEIVED FOR HOTEL ---",
         hotelId,
         params,
-        data,
+        list,
       );
-      return data;
+      return list;
     },
     enabled: Boolean(hotelId) && enabled,
-    placeholderData: (previousData) => previousData,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 };
 
