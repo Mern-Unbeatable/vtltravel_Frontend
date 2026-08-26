@@ -229,7 +229,7 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
         video: hotel.videoUrl || hotel.video || "",
         description: hotel.description || "",
         highlights: (() => {
-          const raw = hotel.highlights;
+          const raw = hotel.whyBookWithUs || hotel.highlights;
           if (Array.isArray(raw)) {
             return raw
               .map((item) =>
@@ -450,7 +450,25 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
     const tagIds = [...selectedBestForIds, ...selectedFeaturedPackageIds];
 
     const formData = mapHotelFormToFormData({ ...data, tagIds }, base64ToFile);
-    onSave(formData);
+
+    console.log("--- HotelForm whyBookWithUs ---", data.highlights);
+    console.log("--- HotelForm submit FormData ---");
+    for (const [key, value] of formData.entries()) {
+      if (key === "whyBookWithUs" || key === "highlights") {
+        console.log(key, value);
+      }
+    }
+
+    try {
+      const response = await onSave?.(formData);
+      console.log("--- HotelForm backend response ---", response);
+      console.log(
+        "--- HotelForm backend whyBookWithUs ---",
+        response?.data?.whyBookWithUs ?? response?.whyBookWithUs,
+      );
+    } catch (err) {
+      console.error("--- HotelForm backend error ---", err);
+    }
   };
 
   const onError = () => {};
@@ -752,11 +770,13 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
               register={register}
               error={errors.highlights}
               rows={3}
-              placeholder="e.g. Family friendly resort, Beachfront property, Perfect for couples"
+              placeholder="e.g. Family friendly resort in Sekupang, Beachfront property with direct beach access, Perfect for couples and family getaways"
             />
-         
-
-            {/* Popular Facilities */}
+            <p className="-mt-2 text-[11px] text-slate-400">
+              Comma-separated. Posted as{" "}
+              <code className="rounded bg-slate-100 px-1">whyBookWithUs</code>{" "}
+              (same as Postman form-data).
+            </p>
             <FacilitiesSelector
               value={facilitiesVal}
               onChange={(updated) => setValue("facilities", updated)}

@@ -257,8 +257,11 @@ export const mapHotelFormToFormData = (data, base64ToFileFn) => {
       : Array.isArray(data.highlights)
         ? data.highlights.map((item) => String(item).trim()).filter(Boolean)
         : [];
-  // Backend expects comma-separated text (same pattern as facilitySlugs)
-  formData.append("highlights", highlightsArr.join(","));
+  // Postman: form-data key "whyBookWithUs" = comma-separated text
+  // Backend returns whyBookWithUs as string[]
+  const whyBookWithUs = highlightsArr.join(",");
+  formData.append("whyBookWithUs", whyBookWithUs);
+  console.log("--- whyBookWithUs (POST form-data) ---", whyBookWithUs);
 
   if (data.tagIds) {
     const ids = Array.isArray(data.tagIds) ? data.tagIds.join(",") : data.tagIds;

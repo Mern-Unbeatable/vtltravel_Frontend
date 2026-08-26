@@ -205,7 +205,11 @@ const HotelDetailsPage = () => {
           <div className="min-w-0 space-y-8 xl:space-y-10">
             <HotelFacilitiesCard
               facilities={hotel.facilities}
-              highlights={hotel.highlights}
+              highlights={
+                Array.isArray(hotel.highlights) && hotel.highlights.length > 0
+                  ? hotel.highlights
+                  : hotel.whyBookWithUs
+              }
               whyBookWithUs={hotel.whyBookWithUs}
             />
             <HotelRoomsSection
