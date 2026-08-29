@@ -134,9 +134,19 @@ const RoomCard = ({
   const isSelected = selectedQuantity > 0;
 
   const basePriceNum = Number(room?.basePrice);
+  const discountRaw = room?.discountPrice;
+  const discountPriceNum = Number(discountRaw);
   const hasBase = Number.isFinite(basePriceNum) && basePriceNum > 0;
-  const displayPrice = basePriceNum;
-  const hasPrice = hasBase;
+  const hasDiscount =
+    discountRaw !== undefined &&
+    discountRaw !== null &&
+    String(discountRaw).trim() !== "" &&
+    Number.isFinite(discountPriceNum) &&
+    discountPriceNum > 0 &&
+    (!hasBase || discountPriceNum !== basePriceNum);
+  // Discount thakle duitai; na thakle sudhu base
+  const displayPrice = hasDiscount ? discountPriceNum : basePriceNum;
+  const hasPrice = hasBase || hasDiscount;
   const roomsLeftLabel = getRoomsLeftLabel(room);
 
   return (
@@ -242,7 +252,12 @@ const RoomCard = ({
               <div className="mt-auto w-full">
                 {hasPrice ? (
                   <div className="mb-5 text-center">
-                    <div className="flex flex-wrap items-baseline justify-center gap-x-1">
+                    <div className="flex flex-wrap items-baseline justify-center gap-x-1.5">
+                      {hasDiscount && hasBase ? (
+                        <span className="text-sm text-gray-400 line-through">
+                          ${basePriceNum}
+                        </span>
+                      ) : null}
                       <span className="text-[32px] font-extrabold leading-none text-[#3ea5dc]">
                         ${displayPrice}
                       </span>

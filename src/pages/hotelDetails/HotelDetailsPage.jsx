@@ -28,7 +28,13 @@ const mapRoomType = (room) => {
   const amenityNames =
     featureNames.length > 0 ? featureNames : amenityFromApi
   const tags = (room.tags || []).length > 0 ? room.tags : amenityNames
-  const priceValue = room.basePrice
+  const hasRealDiscount =
+    room.discountPrice !== undefined &&
+    room.discountPrice !== null &&
+    String(room.discountPrice).trim() !== "" &&
+    Number(room.discountPrice) > 0 &&
+    Number(room.discountPrice) !== Number(room.basePrice)
+  const priceValue = hasRealDiscount ? room.discountPrice : room.basePrice
   const publicRate = room.basePrice
   const adults = room.maxAdults || room.maxCapacity || 0
   const size = room.sizeLabel || (room.sizeSqm ? `${room.sizeSqm}m²` : '')
