@@ -64,13 +64,13 @@ const HotelFacilitiesCard = ({ facilities = [], highlights = [], whyBookWithUs =
     <div className="mt-4 grid grid-cols-1 gap-6 overflow-hidden rounded-2xl border border-sky-100/80 bg-[#f8fbfe] p-5 sm:p-6 lg:p-6 xl:grid-cols-2 xl:gap-8 xl:p-8">
       {displayFacilities.length > 0 ? (
         <div className="min-w-0">
-          <h3 className="text-base font-bold text-slate-900">Most popular facilities</h3>
-          <div className="mt-5 grid grid-cols-2 gap-x-2 gap-y-3.5 text-xs text-gray-600 sm:grid-cols-3">
+          <h3 className="text-lg font-bold text-slate-900">Most popular facilities</h3>
+          <div className="mt-5 grid grid-cols-2 gap-x-3 gap-y-4 text-sm text-gray-600 sm:grid-cols-3">
             {displayFacilities.map((fac) => {
               const Icon = facilityIcons[fac.slug] || IoCheckmarkCircleOutline
               return (
                 <div key={fac.slug || fac.name} className="flex min-w-0 items-center gap-2">
-                  <Icon className="shrink-0 text-base text-[#3ea5dc]" />
+                  <Icon className="shrink-0 text-lg text-[#3ea5dc]" />
                   <span className="truncate">{fac.name}</span>
                 </div>
               )
@@ -81,8 +81,8 @@ const HotelFacilitiesCard = ({ facilities = [], highlights = [], whyBookWithUs =
 
       {displayHighlights.length > 0 ? (
         <div className="min-w-0 border-t border-sky-100/80 pt-6 xl:border-l xl:border-t-0 xl:pl-8 xl:pt-0">
-          <h3 className="text-base font-bold text-slate-900">Hotel Highlights</h3>
-          <div className="mt-4 space-y-3 text-xs leading-relaxed text-gray-500">
+          <h3 className="text-lg font-bold text-slate-900">Hotel Highlights</h3>
+          <div className="mt-4 space-y-3 text-sm leading-relaxed text-gray-500">
             {displayHighlights.map((item, idx) => (
               <p key={idx} className="flex items-start gap-2">
                 <span className="shrink-0 font-extrabold text-[#3ea5dc]">•</span>
@@ -93,8 +93,8 @@ const HotelFacilitiesCard = ({ facilities = [], highlights = [], whyBookWithUs =
         </div>
       ) : whyBookWithUs.length > 0 ? (
         <div className="min-w-0 border-t border-sky-100/80 pt-6 xl:border-l xl:border-t-0 xl:pl-8 xl:pt-0">
-          <h3 className="text-base font-bold text-slate-900">Why book with us</h3>
-          <div className="mt-4 space-y-3 text-xs leading-relaxed text-gray-500">
+          <h3 className="text-lg font-bold text-slate-900">Why book with us</h3>
+          <div className="mt-4 space-y-3 text-sm leading-relaxed text-gray-500">
             {whyBookWithUs.map((item) => (
               <p key={item} className="break-words">{item}</p>
             ))}

@@ -277,8 +277,8 @@ const HotelSummarySidebar = ({
   // Sidebar stay summary is read-only — date/guest pickers live in Rooms available section.
   const stayDates = (
     <div className="mt-4 space-y-2">
-      <div className="flex w-full items-center gap-2 rounded-xl px-0 py-1 text-left text-xs font-medium text-[#3ea5dc]">
-        <IoCalendarOutline className="shrink-0 text-sm" />
+      <div className="flex w-full items-center gap-2 rounded-xl px-0 py-1 text-left text-sm font-medium text-[#3ea5dc]">
+        <IoCalendarOutline className="shrink-0 text-base" />
         <span>
           {checkInLabel || 'Select check-in'}
           {` → ${checkOutLabel || 'Select check-out'}`}
@@ -286,29 +286,29 @@ const HotelSummarySidebar = ({
       </div>
 
       {nights > 0 ? (
-        <p className="pl-6 text-[11px] text-gray-400">
+        <p className="pl-6 text-xs text-gray-400">
           {nights} night{nights !== 1 ? 's' : ''}
         </p>
       ) : null}
 
       {isRoomBooked ? (
-        <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-[11px] font-semibold leading-relaxed text-rose-600">
+        <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold leading-relaxed text-rose-600">
           {ROOM_BOOKED_MESSAGE}
         </p>
       ) : null}
 
-      <div className="mt-3 flex w-full items-center gap-2 rounded-xl px-0 py-1 text-left text-xs font-medium text-[#3ea5dc]">
-        <IoPersonOutline className="shrink-0 text-sm" />
+      <div className="mt-3 flex w-full items-center gap-2 rounded-xl px-0 py-1 text-left text-sm font-medium text-[#3ea5dc]">
+        <IoPersonOutline className="shrink-0 text-base" />
         <span>{guestSummaryLabel}</span>
       </div>
     </div>
   )
   if (selectedRooms.length === 0) {
     return (
-    <aside className="sticky top-24 w-full max-w-full rounded-2xl border border-gray-200 bg-white p-4 text-xs shadow-2xs sm:p-5">
-        <h3 className="text-sm font-bold text-slate-900">{title}</h3>
+    <aside className="sticky top-24 w-full max-w-full rounded-2xl border border-gray-200 bg-white p-4 text-sm shadow-2xs sm:p-5">
+        <h3 className="text-base font-bold text-slate-900">{title}</h3>
         {(checkInTime || checkOutTime) ? (
-          <p className="mt-2.5 flex items-center gap-2 text-gray-500">
+          <p className="mt-2.5 flex items-center gap-2 text-sm text-gray-500">
             <span className="text-gray-400">🔗</span>
             <span>
               {checkInTime ? `Check-in ${checkInTime}` : ''}
@@ -330,10 +330,10 @@ const HotelSummarySidebar = ({
   } = pricing
 
   return (
-    <aside className="sticky top-24 w-full max-w-full rounded-2xl border border-gray-200 bg-white p-4 text-xs shadow-sm sm:p-5">
-      <h3 className="text-sm font-bold text-slate-900">{title}</h3>
+    <aside className="sticky top-24 w-full max-w-full rounded-2xl border border-gray-200 bg-white p-4 text-sm shadow-sm sm:p-5">
+      <h3 className="text-base font-bold text-slate-900">{title}</h3>
       {(checkInTime || checkOutTime) ? (
-        <p className="mt-2 flex items-center gap-1.5 text-gray-500">
+        <p className="mt-2 flex items-center gap-1.5 text-sm text-gray-500">
           <span className="text-gray-400">🔗</span>
           <span>
             {checkInTime ? `Check-in ${checkInTime}` : ''}

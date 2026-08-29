@@ -204,7 +204,7 @@ const HotelDetailsPage = () => {
     <div className="relative z-40 w-full">
       <HotelHeaderGallery images={galleryImages} title={title} hotelId={hotel.id} />
 
-      <div className="mx-auto w-full max-w-7xl px-4 pt-4 sm:px-5 lg:px-6 xl:px-8">
+      <div className="mx-auto w-full container px-4 pt-4 sm:px-5 lg:px-6 xl:px-8">
         <HotelOverviewSection hotel={hotel} />
 
         <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(260px,300px)] lg:gap-5 xl:grid-cols-[minmax(0,1fr)_320px] xl:gap-8">

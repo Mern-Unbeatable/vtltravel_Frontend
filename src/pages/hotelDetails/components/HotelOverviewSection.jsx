@@ -20,7 +20,7 @@ const HotelOverviewSection = ({ hotel }) => {
               {title}
             </h1>
           ) : null}
-          <p className="mt-2 text-xs text-gray-500">
+          <p className="mt-2 text-sm text-gray-500">
             {starRating ? `${starRating} Star Hotel` : 'Hotel'}
             {reviewScore ? ` • ${reviewScore}/10` : ''}
             {reviewCount ? ` • ${reviewCount} reviews` : ''}
@@ -52,14 +52,14 @@ const HotelOverviewSection = ({ hotel }) => {
 
       {description ? (
         <>
-          <p className="mt-4 max-w-2xl text-xs leading-relaxed break-words text-gray-500 md:text-sm">
+          <p className="mt-4 max-w-2xl text-sm leading-relaxed break-words text-gray-500 md:text-base">
             {visibleDescription}
           </p>
           {isLong ? (
             <button
               type="button"
               onClick={() => setReadMore((v) => !v)}
-              className="mt-3 block text-xs font-medium text-[#3ea5dc] hover:underline"
+              className="mt-3 block text-sm font-medium text-[#3ea5dc] hover:underline"
             >
               {readMore ? 'Read Less' : 'Read More'}
             </button>
