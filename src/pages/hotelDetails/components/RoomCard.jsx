@@ -254,7 +254,7 @@ const RoomCard = ({
                   <div className="mb-5 text-center">
                     <div className="flex flex-wrap items-baseline justify-center gap-x-1.5">
                       {hasDiscount && hasBase ? (
-                        <span className="text-sm text-gray-400 line-through">
+                        <span className="text-xl font-medium text-gray-900 line-through">
                           ${basePriceNum}
                         </span>
                       ) : null}
