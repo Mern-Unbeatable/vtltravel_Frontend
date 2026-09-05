@@ -10,6 +10,7 @@ import {
   IoShieldCheckmarkOutline,
   IoTvOutline,
   IoSparklesOutline,
+  IoPersonOutline,
 } from 'react-icons/io5'
 import { HiOutlinePhotograph } from 'react-icons/hi'
 import FallbackImage from '../../../components/FallbackImage'
@@ -185,6 +186,12 @@ const RoomDetailsModal = ({ room, onClose }) => {
               ) : null}
 
               <div className="mt-3 flex flex-wrap items-center gap-4 text-xs font-medium text-gray-600">
+                {displayRoom.capacity ? (
+                  <div className="flex items-center gap-1.5">
+                    <IoPersonOutline className="text-base text-[#3ea5dc]" />
+                    <span>{displayRoom.capacity}</span>
+                  </div>
+                ) : null}
                 {displayRoom.bedInfo ? (
                   <div className="flex items-center gap-1.5">
                     <IoBedOutline className="text-base text-[#3ea5dc]" />

@@ -26,6 +26,8 @@ const roomSchema = z.object({
   discountPrice: z.string().default(''),
   size: z.string().min(1, 'Size is required'),
   capacity: z.string().min(1, 'Capacity is required'),
+  maxAdults: z.string().min(1, 'Max Adults is required'),
+  maxChildren: z.string().default('0'),
   bedInfo: z.string().min(1, 'Bed count is required'),
   baths: z.string().default('1'),
   description: z.string().default(''),
@@ -135,6 +137,8 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
       discountPrice: '',
       size: '',
       capacity: '',
+      maxAdults: '2',
+      maxChildren: '1',
       bedInfo: '',
       baths: '',
       description: '',
@@ -201,6 +205,8 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
         '',
       );
       const capacityVal = extractNumber(room.capacity ?? room.maxCapacity, '3');
+      const maxAdultsVal = extractNumber(room.maxAdults, '2');
+      const maxChildrenVal = extractNumber(room.maxChildren, '1');
       const bedInfoVal = extractNumber(
         room.bedCount ?? room.bedInfo ?? room.bedInformation,
         '1',
@@ -220,6 +226,8 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
           discountPriceVal !== '' ? String(discountPriceVal).replace('$', '') : '',
         size: sizeVal,
         capacity: capacityVal,
+        maxAdults: maxAdultsVal,
+        maxChildren: maxChildrenVal,
         bedInfo: bedInfoVal,
         baths: bathsVal,
         description: room.description || '',
@@ -259,6 +267,8 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
         discountPrice: '',
         size: '',
         capacity: '3',
+        maxAdults: '2',
+        maxChildren: '1',
         bedInfo: '1',
         baths: '1',
         description: '',
@@ -331,6 +341,8 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
       .filter(Boolean);
 
   const onSubmit = async (data) => {
+    // console.log('📝 Room Form Input (Form-e Ja Dichen):', data);
+
     const features = splitToArray(data.features);
     const foodBeverage = splitToArray(data.foodBeverage);
     const bathroomFacilities = splitToArray(data.bathroomFacilities);
@@ -366,6 +378,9 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
       discountPrice: data.discountPrice,
       size: data.size,
       capacity: data.capacity,
+      maxCapacity: data.capacity,
+      maxAdults: data.maxAdults,
+      maxChildren: data.maxChildren,
       bedInfo: data.bedInfo,
       baths: data.baths,
       description: data.description,
@@ -380,6 +395,8 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
       imageFiles: hasNewImages ? imageFiles : [],
       imagesChanged,
     };
+
+    console.log('🚀 Payload to Backend (Backend-e Ja Jaitece):', formattedRoom);
 
     try {
       await onSave(formattedRoom);
@@ -456,13 +473,32 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <FormInput
-                label="Max Capacity"
+                label="Max Capacity (Total)"
                 name="capacity"
                 type="number"
                 register={register}
                 error={errors.capacity}
                 placeholder="e.g. 3"
               />
+              <FormInput
+                label="Max Adults"
+                name="maxAdults"
+                type="number"
+                register={register}
+                error={errors.maxAdults}
+                placeholder="e.g. 2"
+              />
+              <FormInput
+                label="Max Children"
+                name="maxChildren"
+                type="number"
+                register={register}
+                error={errors.maxChildren}
+                placeholder="e.g. 1"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <FormInput
                 label="Bed Count"
                 name="bedInfo"
@@ -479,9 +515,6 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
                 error={errors.baths}
                 placeholder="e.g. 1"
               />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormInput
                 label="Rooms Left (number)"
                 name="roomsLeft"
@@ -490,14 +523,15 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
                 error={errors.roomsLeft}
                 placeholder="e.g. 2"
               />
-              <FormInput
-                label="Tags"
-                name="tags"
-                register={register}
-                error={errors.tags}
-                placeholder="e.g. Ipsum, doloremque, dig"
-              />
             </div>
+
+            <FormInput
+              label="Tags"
+              name="tags"
+              register={register}
+              error={errors.tags}
+              placeholder="e.g. Ocean View, Private Balcony, Bathtub"
+            />
 
             <div>
               <label className="mb-3 block text-xs font-bold uppercase text-slate-700">

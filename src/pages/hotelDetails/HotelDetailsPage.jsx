@@ -36,7 +36,32 @@ const mapRoomType = (room) => {
     Number(room.discountPrice) !== Number(room.basePrice)
   const priceValue = hasRealDiscount ? room.discountPrice : room.basePrice
   const publicRate = room.basePrice
-  const adults = room.maxAdults || room.maxCapacity || 0
+
+  const maxCap = Number(room.maxCapacity ?? room.capacity) || 0
+  const maxAdults = Number(room.maxAdults) || 0
+  const maxChildren = Number(room.maxChildren) || 0
+
+  let capacityText = ''
+  const details = []
+  if (maxAdults > 0) {
+    details.push(`${maxAdults} Adult${maxAdults !== 1 ? 's' : ''}`)
+  }
+  if (maxChildren > 0) {
+    details.push(`${maxChildren} Child${maxChildren !== 1 ? 'ren' : ''}`)
+  }
+
+  if (maxCap > 0) {
+    if (details.length > 0) {
+      capacityText = `Max ${maxCap} Guest${maxCap !== 1 ? 's' : ''} (${details.join(', ')})`
+    } else {
+      capacityText = `Max ${maxCap} Guest${maxCap !== 1 ? 's' : ''}`
+    }
+  } else if (details.length > 0) {
+    capacityText = details.join(', ')
+  } else if (room.capacity) {
+    capacityText = String(room.capacity)
+  }
+
   const size = room.sizeLabel || (room.sizeSqm ? `${room.sizeSqm}m²` : '')
   const bedInfo =
     room.bedInfo ||
@@ -53,7 +78,7 @@ const mapRoomType = (room) => {
     price: priceValue ? `$${priceValue}` : '',
     priceNum: Number(priceValue) || 0,
     publicRate: publicRate ? `$${publicRate}` : '',
-    capacity: adults ? `${adults} Adult${adults !== 1 ? 's' : ''}` : '',
+    capacity: capacityText,
     size,
     bedInfo,
     taxes: room.taxPerNight ? `$${room.taxPerNight}` : '',
@@ -179,7 +204,6 @@ const HotelDetailsPage = () => {
     .map((img) => img.url)
     .filter(Boolean)
   const roomsSource = apiRooms || hotel.roomTypes || []
-  console.log("--- RENDERING HOTEL DETAILS ROOMS ---", { hotelId, stayParams, apiRooms, roomsSource })
   const roomsList = roomsSource
     .filter((room) => {
       if (room.isActive === false) return false

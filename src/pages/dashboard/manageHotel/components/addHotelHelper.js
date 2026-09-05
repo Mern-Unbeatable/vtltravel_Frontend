@@ -141,12 +141,22 @@ export const mapRoomToFormData = (savedRoom) => {
   formData.append("viewType", viewType);
 
   formData.append("bathrooms", String(savedRoom.baths || 1));
-  formData.append("maxCapacity", String(savedRoom.capacity || 3));
+  const maxCap = savedRoom.maxCapacity || savedRoom.capacity || 3;
+  formData.append("maxCapacity", String(maxCap));
 
   const adults =
-    Number(savedRoom.capacity) > 1 ? Number(savedRoom.capacity) - 1 : 1;
+    savedRoom.maxAdults !== undefined && savedRoom.maxAdults !== ""
+      ? savedRoom.maxAdults
+      : Number(maxCap) > 1
+      ? Number(maxCap) - 1
+      : 1;
+  const children =
+    savedRoom.maxChildren !== undefined && savedRoom.maxChildren !== ""
+      ? savedRoom.maxChildren
+      : 0;
+
   formData.append("maxAdults", String(adults));
-  formData.append("maxChildren", "1");
+  formData.append("maxChildren", String(children));
   formData.append("totalInventory", "5");
 
   const alertLabel = savedRoom.roomsLeft
