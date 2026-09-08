@@ -277,7 +277,7 @@ const HotelSummarySidebar = ({
   // Sidebar stay summary is read-only — date/guest pickers live in Rooms available section.
   const stayDates = (
     <div className="mt-4 space-y-2">
-      <div className="flex w-full items-center gap-2 rounded-xl px-0 py-1 text-left text-sm font-medium text-[#3ea5dc]">
+      <div className="flex w-full items-center gap-2 rounded-xl px-0 py-1 text-left text-[15px] font-medium text-[#3ea5dc]">
         <IoCalendarOutline className="shrink-0 text-base" />
         <span>
           {checkInLabel || 'Select check-in'}
@@ -292,7 +292,7 @@ const HotelSummarySidebar = ({
       ) : null}
 
       {isRoomBooked ? (
-        <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold leading-relaxed text-rose-600">
+        <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold leading-relaxed text-rose-600">
           {ROOM_BOOKED_MESSAGE}
         </p>
       ) : null}
@@ -308,7 +308,7 @@ const HotelSummarySidebar = ({
     <aside className="sticky top-24 w-full max-w-full rounded-2xl border border-gray-200 bg-white p-4 text-sm shadow-2xs sm:p-5">
         <h3 className="text-base font-bold text-slate-900">{title}</h3>
         {(checkInTime || checkOutTime) ? (
-          <p className="mt-2.5 flex items-center gap-2 text-sm text-gray-500">
+          <p className="mt-2.5 flex items-center gap-2 text-[15px] text-gray-500">
             <span className="text-gray-400">🔗</span>
             <span>
               {checkInTime ? `Check-in ${checkInTime}` : ''}
@@ -333,7 +333,7 @@ const HotelSummarySidebar = ({
     <aside className="sticky top-24 w-full max-w-full rounded-2xl border border-gray-200 bg-white p-4 text-sm shadow-sm sm:p-5">
       <h3 className="text-base font-bold text-slate-900">{title}</h3>
       {(checkInTime || checkOutTime) ? (
-        <p className="mt-2 flex items-center gap-1.5 text-sm text-gray-500">
+        <p className="mt-2 flex items-center gap-1.5 text-[15px] text-gray-500">
           <span className="text-gray-400">🔗</span>
           <span>
             {checkInTime ? `Check-in ${checkInTime}` : ''}
@@ -380,7 +380,7 @@ const HotelSummarySidebar = ({
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2">
-                  <h4 className="text-xs font-bold leading-snug text-slate-900 line-clamp-2">
+                  <h4 className="text-sm font-bold leading-snug text-slate-900 line-clamp-2">
                     {roomData.name}
                   </h4>
                   {lineSubtotal ? (
@@ -390,7 +390,7 @@ const HotelSummarySidebar = ({
                   ) : null}
                 </div>
                 {roomData.capacity ? (
-                  <p className="mt-1 text-[11px] text-gray-400">{roomData.capacity}</p>
+                  <p className="mt-1 text-xs text-gray-500">{roomData.capacity}</p>
                 ) : null}
               </div>
             </div>
@@ -402,7 +402,7 @@ const HotelSummarySidebar = ({
         <button
           type="button"
           onClick={() => setShowDetails((v) => !v)}
-          className="flex items-center gap-1 text-xs font-medium text-[#3ea5dc] hover:underline"
+          className="flex items-center gap-1 text-sm font-medium text-[#3ea5dc] hover:underline"
         >
           <span>{showDetails ? 'Hide details' : 'Show details'}</span>
           {showDetails ? <IoChevronUp className="text-sm" /> : <IoChevronDown className="text-sm" />}
@@ -410,7 +410,7 @@ const HotelSummarySidebar = ({
       </div>
 
       {showDetails ? (
-        <div className="mt-3 rounded-xl bg-[#f8fbfe] p-3.5 space-y-3">
+        <div className="mt-3 rounded-xl bg-[#f8fbfe] p-3.5 space-y-2.5">
           {selectedRooms.map((roomData) => {
             const preview = roomData.pricePreview || null
             const lineSubtotal =
@@ -420,11 +420,11 @@ const HotelSummarySidebar = ({
 
             return (
               <div key={`detail-${roomData.id}`} className="flex items-start justify-between gap-2">
-                <span className="text-xs font-bold text-slate-900 leading-snug">
+                <span className="text-sm font-semibold text-slate-900 leading-snug">
                   {roomData.name}
                   {roomData.quantity > 1 ? ` × ${roomData.quantity}` : ''}
                 </span>
-                <span className="text-xs font-bold text-slate-900 shrink-0">
+                <span className="text-sm font-semibold text-slate-900 shrink-0">
                   ${Number(lineSubtotal || 0).toFixed(2)}
                 </span>
               </div>
@@ -432,14 +432,14 @@ const HotelSummarySidebar = ({
           })}
 
           {extraPrice > 0 ? (
-            <div className="border-t border-gray-200/60 pt-2 flex items-center justify-between text-xs font-bold text-slate-900">
+            <div className="border-t border-gray-200/60 pt-2 flex items-center justify-between text-sm font-semibold text-slate-900">
               <span>Extras (Add-ons)</span>
               <span>${extraPrice.toFixed(2)}</span>
             </div>
           ) : null}
 
           <div className="border-t border-gray-200/60 pt-2 space-y-2">
-            <div className="flex items-center justify-between text-xs text-slate-700">
+            <div className="flex items-center justify-between text-sm text-slate-700">
               <span>Room subtotal</span>
               <span className="font-semibold">${Number(displayRoomSubtotal || 0).toFixed(2)}</span>
             </div>
@@ -448,7 +448,7 @@ const HotelSummarySidebar = ({
       ) : null}
 
       {hasPreview ? (
-        <div className="mt-4 flex items-center justify-between text-xs text-gray-600">
+        <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
           <span>Taxes</span>
           <span className="font-semibold text-gray-800">${Number(displayTaxAmount).toFixed(2)}</span>
         </div>
@@ -458,7 +458,7 @@ const HotelSummarySidebar = ({
         <div className="flex items-baseline justify-between">
           <div>
             <span className="text-sm font-bold text-slate-900">Total</span>
-            <p className="text-[10px] text-gray-400">Fees and taxes included</p>
+            
           </div>
           <div className="text-right">
             <span className="text-xl font-extrabold text-slate-900">
@@ -473,7 +473,7 @@ const HotelSummarySidebar = ({
           type="button"
           onClick={() => goToNext(true)}
           disabled={isSubmitting || isRoomBooked}
-          className="w-full rounded-full bg-[#3ea5dc] py-3 text-xs font-bold text-white shadow-md transition hover:bg-[#3296cc] active:scale-95 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full rounded-full bg-[#3ea5dc] py-3 text-sm font-bold text-white shadow-md transition hover:bg-[#3296cc] active:scale-95 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isFerryPage
             ? isSubmitting
