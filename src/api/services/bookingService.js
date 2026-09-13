@@ -9,6 +9,10 @@ export const bookingService = {
   confirmPayment: async (bookingRef) => {
     return api.post(API_ENDPOINTS.CONFIRM_PAYMENT(bookingRef));
   },
+
+  deleteBooking: async (bookingId) => {
+    return api.delete(API_ENDPOINTS.BOOKING_DETAILS(bookingId));
+  },
 };
 
 export default bookingService;
