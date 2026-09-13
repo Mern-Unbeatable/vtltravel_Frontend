@@ -20,6 +20,28 @@ const FEATURE_PRESETS = [
   'Blackout curtain',
 ];
 
+/** Backend only find-or-creates amenities from facility groups — map presets there. */
+const FEATURE_TO_GROUP = {
+  'Private Deck': 'serviceEquipment',
+  Bathtub: 'bathroomFacilities',
+  'Rain Shower': 'bathroomFacilities',
+  'Free Wi-Fi': 'mediaTechnology',
+  'Air conditioning': 'serviceEquipment',
+  'Mini bar': 'foodBeverage',
+  Balcony: 'serviceEquipment',
+  'Garden View': 'serviceEquipment',
+  'Sea View': 'serviceEquipment',
+  'Safe deposit box': 'serviceEquipment',
+  'Blackout curtain': 'serviceEquipment',
+};
+
+const FACILITY_GROUP_FIELDS = [
+  'foodBeverage',
+  'bathroomFacilities',
+  'mediaTechnology',
+  'serviceEquipment',
+];
+
 const roomSchema = z.object({
   name: z.string().min(1, 'Room name is required'),
   price: z.string().min(1, 'Price is required'),
@@ -165,35 +187,155 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
     return String(value);
   };
 
+  const normalizeFeatureName = (value) =>
+    String(value || '')
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, ' ');
+
+  const splitCommaList = (value) =>
+    String(value || '')
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+
   const collectFeatureNames = (roomData) => {
     if (!roomData) return [];
+    const names = [];
+
+    const pushName = (value) => {
+      const name =
+        typeof value === 'string' ? value.trim() : String(value?.name || '').trim();
+      if (!name) return;
+      if (names.some((item) => normalizeFeatureName(item) === normalizeFeatureName(name))) {
+        return;
+      }
+      names.push(name);
+    };
+
     if (Array.isArray(roomData.features) && roomData.features.length > 0) {
-      return roomData.features
-        .map((item) => (typeof item === 'string' ? item : item?.name))
-        .filter(Boolean);
+      roomData.features.forEach(pushName);
     }
     if (Array.isArray(roomData.amenityNames) && roomData.amenityNames.length > 0) {
-      return roomData.amenityNames.filter(Boolean);
+      roomData.amenityNames.forEach(pushName);
     }
     if (Array.isArray(roomData.amenities) && roomData.amenities.length > 0) {
-      return roomData.amenities
-        .map((item) => item?.amenity?.name || item?.name)
-        .filter(Boolean);
+      roomData.amenities.forEach((item) =>
+        pushName(item?.amenity?.name || item?.name),
+      );
     }
-    return [];
+
+    const facilityGroups = roomData.facilityGroups || {};
+    [
+      facilityGroups.foodBeverage,
+      facilityGroups.bathroomFacilities,
+      facilityGroups.mediaTechnology,
+      facilityGroups.serviceEquipment,
+      roomData.foodBeverage,
+      roomData.bathroomFacilities,
+      roomData.mediaTechnology,
+      roomData.serviceEquipment,
+    ].forEach((group) => {
+      if (Array.isArray(group)) group.forEach(pushName);
+      else if (typeof group === 'string') splitCommaList(group).forEach(pushName);
+    });
+
+    return names;
   };
 
-  const selectedFeatures = featuresValue
-    .split(',')
-    .map((item) => item.trim())
-    .filter(Boolean);
+  const selectedFeatures = splitCommaList(featuresValue);
+
+  const isFeatureSelected = (feature) =>
+    selectedFeatures.some(
+      (item) => normalizeFeatureName(item) === normalizeFeatureName(feature),
+    );
+
+  const removeFeatureFromCommaField = (fieldName, feature) => {
+    const current = splitCommaList(watch(fieldName));
+    const next = current.filter(
+      (item) => normalizeFeatureName(item) !== normalizeFeatureName(feature),
+    );
+    setValue(fieldName, next.join(', '), { shouldDirty: true });
+  };
+
+  const addFeatureToCommaField = (fieldName, feature) => {
+    const current = splitCommaList(watch(fieldName));
+    if (
+      current.some(
+        (item) => normalizeFeatureName(item) === normalizeFeatureName(feature),
+      )
+    ) {
+      return;
+    }
+    setValue(fieldName, [...current, feature].join(', '), { shouldDirty: true });
+  };
+
+  const resolveFeatureGroup = (feature) => {
+    const presetKey = FEATURE_PRESETS.find(
+      (preset) =>
+        normalizeFeatureName(preset) === normalizeFeatureName(feature),
+    );
+    return FEATURE_TO_GROUP[presetKey] || 'serviceEquipment';
+  };
+
+  /**
+   * Backend ignores `features` and only find-or-creates from facility groups.
+   * amenitySlugs only attach amenities that already exist in the catalog.
+   * Keep checked features inside a facility group so they persist after reload.
+   */
+  const distributeFeaturesIntoGroups = (featureList, groups) => {
+    const next = {
+      foodBeverage: [...groups.foodBeverage],
+      bathroomFacilities: [...groups.bathroomFacilities],
+      mediaTechnology: [...groups.mediaTechnology],
+      serviceEquipment: [...groups.serviceEquipment],
+    };
+
+    featureList.forEach((feature) => {
+      const alreadyInGroup = FACILITY_GROUP_FIELDS.some((fieldName) =>
+        next[fieldName].some(
+          (item) => normalizeFeatureName(item) === normalizeFeatureName(feature),
+        ),
+      );
+      if (alreadyInGroup) return;
+      next[resolveFeatureGroup(feature)].push(feature);
+    });
+
+    return next;
+  };
 
   const toggleFeature = (feature) => {
-    const current = new Set(selectedFeatures);
-    if (current.has(feature)) current.delete(feature);
-    else current.add(feature);
-    setValue('features', Array.from(current).join(', '));
+    const exists = isFeatureSelected(feature);
+    const next = exists
+      ? selectedFeatures.filter(
+          (item) => normalizeFeatureName(item) !== normalizeFeatureName(feature),
+        )
+      : [...selectedFeatures, feature];
+
+    setValue('features', next.join(', '), {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+
+    if (exists) {
+      FACILITY_GROUP_FIELDS.forEach((fieldName) =>
+        removeFeatureFromCommaField(fieldName, feature),
+      );
+    } else {
+      addFeatureToCommaField(resolveFeatureGroup(feature), feature);
+    }
   };
+
+  const featureCheckboxOptions = [
+    ...FEATURE_PRESETS,
+    ...selectedFeatures.filter(
+      (feature) =>
+        !FEATURE_PRESETS.some(
+          (preset) =>
+            normalizeFeatureName(preset) === normalizeFeatureName(feature),
+        ),
+    ),
+  ];
 
   useEffect(() => {
     if (room && isOpen) {
@@ -344,10 +486,16 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
     // console.log('📝 Room Form Input (Form-e Ja Dichen):', data);
 
     const features = splitToArray(data.features);
-    const foodBeverage = splitToArray(data.foodBeverage);
-    const bathroomFacilities = splitToArray(data.bathroomFacilities);
-    const mediaTechnology = splitToArray(data.mediaTechnology);
-    const serviceEquipment = splitToArray(data.serviceEquipment);
+    const syncedGroups = distributeFeaturesIntoGroups(features, {
+      foodBeverage: splitToArray(data.foodBeverage),
+      bathroomFacilities: splitToArray(data.bathroomFacilities),
+      mediaTechnology: splitToArray(data.mediaTechnology),
+      serviceEquipment: splitToArray(data.serviceEquipment),
+    });
+    const foodBeverage = syncedGroups.foodBeverage;
+    const bathroomFacilities = syncedGroups.bathroomFacilities;
+    const mediaTechnology = syncedGroups.mediaTechnology;
+    const serviceEquipment = syncedGroups.serviceEquipment;
 
     const existingImages = imageItems
       .filter((item) => !item.file && String(item.url).startsWith('http'))
@@ -538,19 +686,14 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
                 Room Features
               </label>
               <div className="grid grid-cols-2 gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4 sm:grid-cols-3 md:grid-cols-4">
-                {[
-                  ...FEATURE_PRESETS,
-                  ...selectedFeatures.filter(
-                    (f) => !FEATURE_PRESETS.includes(f),
-                  ),
-                ].map((feature) => (
+                {featureCheckboxOptions.map((feature) => (
                   <label
                     key={feature}
                     className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-slate-700"
                   >
                     <input
                       type="checkbox"
-                      checked={selectedFeatures.includes(feature)}
+                      checked={isFeatureSelected(feature)}
                       onChange={() => toggleFeature(feature)}
                       className="rounded text-primary accent-primary focus:ring-primary"
                     />

@@ -72,6 +72,13 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
     return `${y}-${mm}-${dd}`;
   };
 
+  const todayStr = formatDateString(
+    new Date().getFullYear(),
+    new Date().getMonth(),
+    new Date().getDate(),
+  );
+  const isPastDate = (dateStr) => dateStr < todayStr;
+
   const getDaysInMonth = (y, m) => new Date(y, m + 1, 0).getDate();
   const getFirstDayOfMonth = (y, m) => new Date(y, m, 1).getDay();
   // Weekend = Friday (5) & Saturday (6); Sun–Thu (0–4) are weekdays
@@ -84,6 +91,7 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
   const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
 
   const handleDateClick = (dateStr) => {
+    if (isPastDate(dateStr)) return;
     const nextSelected = new Set(selectedDates);
     if (nextSelected.has(dateStr)) {
       nextSelected.delete(dateStr);
@@ -96,8 +104,10 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
   const handleSelectAllWeekends = () => {
     const nextSelected = new Set(selectedDates);
     for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = formatDateString(year, month, d);
+      if (isPastDate(dateStr)) continue;
       if (isWeekendDay(new Date(year, month, d).getDay())) {
-        nextSelected.add(formatDateString(year, month, d));
+        nextSelected.add(dateStr);
       }
     }
     setSelectedDates(nextSelected);
@@ -106,8 +116,10 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
   const handleSelectAllWeekdays = () => {
     const nextSelected = new Set(selectedDates);
     for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = formatDateString(year, month, d);
+      if (isPastDate(dateStr)) continue;
       if (!isWeekendDay(new Date(year, month, d).getDay())) {
-        nextSelected.add(formatDateString(year, month, d));
+        nextSelected.add(dateStr);
       }
     }
     setSelectedDates(nextSelected);
@@ -115,17 +127,21 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
 
   const handleApplyRangeSelection = () => {
     if (!rangeStart || !rangeEnd) return;
-    const start = new Date(rangeStart);
-    const end = new Date(rangeEnd);
+    const start = rangeStart < todayStr ? todayStr : rangeStart;
+    const end = rangeEnd;
     if (start > end) return;
 
     const nextSelected = new Set(selectedDates);
-    let current = new Date(start);
-    while (current <= end) {
+    let current = new Date(`${start}T00:00:00`);
+    const endDate = new Date(`${end}T00:00:00`);
+    while (current <= endDate) {
       const y = current.getFullYear();
       const m = current.getMonth();
       const d = current.getDate();
-      nextSelected.add(formatDateString(y, m, d));
+      const dateStr = formatDateString(y, m, d);
+      if (!isPastDate(dateStr)) {
+        nextSelected.add(dateStr);
+      }
       current.setDate(current.getDate() + 1);
     }
     setSelectedDates(nextSelected);
@@ -381,6 +397,7 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
               {Array.from({ length: daysInMonth }).map((_, idx) => {
                 const d = idx + 1;
                 const dateStr = formatDateString(year, month, d);
+                const isPast = isPastDate(dateStr);
                 const isSelected = selectedDates.has(dateStr);
                 const rule = calendarSettings[dateStr];
                 const hasCustomRule = !!rule;
@@ -389,7 +406,9 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
                 let cellBg = isWeekend
                   ? "bg-amber-50 hover:bg-amber-100/70"
                   : "bg-white hover:bg-slate-50/70";
-                if (isSelected) {
+                if (isPast) {
+                  cellBg = "bg-slate-100/80 cursor-not-allowed opacity-50";
+                } else if (isSelected) {
                   cellBg =
                     "bg-primary/10 border-2 border-primary/40 z-10 scale-95";
                 } else if (rule?.isBlocked) {
@@ -407,7 +426,10 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
                   <div
                     key={dateStr}
                     onClick={() => handleDateClick(dateStr)}
-                    className={`group relative flex min-h-[68px] cursor-pointer select-none flex-col justify-between p-1.5 transition-all duration-200 xl:min-h-[85px] xl:p-2.5 ${cellBg}`}
+                    aria-disabled={isPast}
+                    className={`group relative flex min-h-[68px] select-none flex-col justify-between p-1.5 transition-all duration-200 xl:min-h-[85px] xl:p-2.5 ${
+                      isPast ? "cursor-not-allowed" : "cursor-pointer"
+                    } ${cellBg}`}
                   >
                     <div className="flex justify-between items-center">
                       <span
@@ -498,8 +520,15 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
                 </span>
                 <input
                   type="date"
+                  min={todayStr}
                   value={rangeStart}
-                  onChange={(e) => setRangeStart(e.target.value)}
+                  onChange={(e) => {
+                    const next = e.target.value;
+                    setRangeStart(next);
+                    if (rangeEnd && next && rangeEnd < next) {
+                      setRangeEnd(next);
+                    }
+                  }}
                   className="w-full text-xs p-2.5 border border-primary/60 rounded-xl bg-white shadow-xs focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
@@ -509,6 +538,7 @@ const RoomCalendarContainer = ({ room, onSaveSettings }) => {
                 </span>
                 <input
                   type="date"
+                  min={rangeStart && rangeStart > todayStr ? rangeStart : todayStr}
                   value={rangeEnd}
                   onChange={(e) => setRangeEnd(e.target.value)}
                   className="w-full text-xs p-2.5 border border-primary/60 rounded-xl bg-white shadow-xs focus:outline-none focus:ring-1 focus:ring-primary"

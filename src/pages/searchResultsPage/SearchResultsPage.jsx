@@ -33,6 +33,7 @@ const SearchResultsPage = () => {
   const breakfastIncluded = searchParams.get("breakfastIncluded") || "";
   const freeCancellation = searchParams.get("freeCancellation") || "";
   const isFeatured = searchParams.get("isFeatured") || "";
+  const availableOnly = searchParams.get("availableOnly") || "";
 
   useEffect(() => {
     if (checkIn || checkOut) {
@@ -78,6 +79,7 @@ const SearchResultsPage = () => {
         "breakfastIncluded",
         "freeCancellation",
         "isFeatured",
+        "availableOnly",
       ].forEach((key) => next.delete(key));
       next.set("page", "1");
       return next;
@@ -104,6 +106,7 @@ const SearchResultsPage = () => {
         breakfastIncluded,
         freeCancellation,
         isFeatured,
+        availableOnly,
         ...mapUiFiltersToApi(filters),
       }),
     [
@@ -124,6 +127,7 @@ const SearchResultsPage = () => {
       breakfastIncluded,
       freeCancellation,
       isFeatured,
+      availableOnly,
       filters,
     ],
   );
@@ -163,6 +167,7 @@ const SearchResultsPage = () => {
                   "breakfastIncluded",
                   "freeCancellation",
                   "isFeatured",
+                  "availableOnly",
                 ].forEach((key) => next.delete(key));
                 Object.entries(mapUiFiltersToApi(newFilters)).forEach(
                   ([key, value]) => {

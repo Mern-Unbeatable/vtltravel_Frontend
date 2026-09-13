@@ -13,6 +13,7 @@ export const HOTEL_SEARCH_KEYS = [
   "breakfastIncluded",
   "freeCancellation",
   "isFeatured",
+  "availableOnly",
   "sort",
   "page",
   "limit",
@@ -199,6 +200,7 @@ export const buildHotelApiParams = (values = {}) => {
     breakfastIncluded: values.breakfastIncluded,
     freeCancellation: values.freeCancellation,
     isFeatured: values.isFeatured,
+    availableOnly: values.availableOnly,
     sort: values.sort,
     page: values.page || 1,
     limit: values.limit || 9,
@@ -243,9 +245,17 @@ export const mapUiFiltersToApi = (filters) => {
     Boolean,
   );
 
+  const DEFAULT_MIN_BUDGET = 0;
+  const DEFAULT_MAX_BUDGET = 1000;
+  const minBudget = Number(filters.minBudget);
+  const maxBudget = Number(filters.maxBudget);
+  const budgetChanged =
+    (Number.isFinite(minBudget) && minBudget !== DEFAULT_MIN_BUDGET) ||
+    (Number.isFinite(maxBudget) && maxBudget !== DEFAULT_MAX_BUDGET);
+
   return compactParams({
-    minPrice: filters.minBudget,
-    maxPrice: filters.maxBudget,
+    minPrice: budgetChanged ? filters.minBudget : undefined,
+    maxPrice: budgetChanged ? filters.maxBudget : undefined,
     starRating: starRating.join(","),
     tags: tags.join(","),
     facilities: (filters.selectedFacilities || []).join(","),
@@ -254,6 +264,7 @@ export const mapUiFiltersToApi = (filters) => {
       : filters.isFeatured
         ? true
         : undefined,
+    availableOnly: filters.onlyAvailable ? true : undefined,
   });
 };
 
