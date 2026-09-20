@@ -97,8 +97,17 @@ const SearchCard = ({
   const [childrenCount, setChildrenCount] = useState(Number(initialChildren))
   const [showGuestsPicker, setShowGuestsPicker] = useState(false)
   const [showDestinationModal, setShowDestinationModal] = useState(false)
+  const [debouncedDestValue, setDebouncedDestValue] = useState(destValue)
 
-  const { data: hotelCatalog, isFetching } = useHotelSuggestions(showSuggestions)
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedDestValue(destValue), 300)
+    return () => clearTimeout(timer)
+  }, [destValue])
+
+  const { data: hotelCatalog, isFetching } = useHotelSuggestions(
+    showSuggestions || showDestinationModal,
+    debouncedDestValue,
+  )
   const suggestions = useMemo(
     () => buildDestinationSuggestions(hotelCatalog || [], destValue),
     [hotelCatalog, destValue],

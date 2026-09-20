@@ -62,6 +62,10 @@ export const hotelService = {
     return api.delete(`/v1/rooms/${roomId}`);
   },
 
+  deleteHotelImage: async (imageId) => {
+    return api.delete(API_ENDPOINTS.HOTEL_IMAGE(imageId));
+  },
+
   uploadGalleryImages: async (hotelId, formData) => {
     return api.post(`/v1/hotels/${hotelId}/images`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
@@ -84,6 +88,10 @@ export const hotelService = {
 
   getCatalogTags: async () => {
     return api.get('/v1/catalog/tags');
+  },
+
+  getCatalogFacilities: async () => {
+    return api.get('/v1/catalog/facilities');
   },
 };
 
