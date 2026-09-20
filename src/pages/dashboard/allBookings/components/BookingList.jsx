@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import TablePagination from '../../../../components/TablePagination';
 import Spinner from '../../../../components/Spinner';
+import ConfirmDeleteModal from '../../manageHotel/components/ConfirmDeleteModal';
 import { api } from '../../../../api/apiMethods';
 import { API_ENDPOINTS } from '../../../../api/endpoints';
+import { bookingService } from '../../../../api/services/bookingService';
 
 const PAGE_LIMIT = 20;
 
@@ -19,47 +21,92 @@ const BookingList = () => {
   });
   const [summary, setSummary] = useState(null);
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteResult, setDeleteResult] = useState(null);
+
+  const fetchBookings = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await api.get(API_ENDPOINTS.BOOKINGS, {
+        params: {
+          page: currentPage,
+          limit: PAGE_LIMIT,
+        },
+      });
+
+      if (response.success && response.data) {
+        const items = Array.isArray(response.data.items) ? response.data.items : [];
+        const p = response.data.pagination || {};
+        setBookings(items);
+        setPagination({
+          page: Number(p.page) || currentPage,
+          limit: Number(p.limit) || PAGE_LIMIT,
+          total: Number(p.total) || 0,
+          totalPages: Number(p.totalPages) || 0,
+        });
+        setSummary(response.data.summary || null);
+      } else {
+        setError('Failed to fetch bookings.');
+      }
+    } catch (err) {
+      console.error('Error fetching bookings:', err);
+      setError(err.message || 'Something went wrong.');
+    } finally {
+      setLoading(false);
+    }
+  }, [currentPage]);
 
   useEffect(() => {
-    const fetchBookings = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await api.get(API_ENDPOINTS.BOOKINGS, {
-          params: {
-            page: currentPage,
-            limit: PAGE_LIMIT,
-          },
-        });
-
-        if (response.success && response.data) {
-          const items = Array.isArray(response.data.items) ? response.data.items : [];
-          const p = response.data.pagination || {};
-          setBookings(items);
-          setPagination({
-            page: Number(p.page) || currentPage,
-            limit: Number(p.limit) || PAGE_LIMIT,
-            total: Number(p.total) || 0,
-            totalPages: Number(p.totalPages) || 0,
-          });
-          setSummary(response.data.summary || null);
-        } else {
-          setError('Failed to fetch bookings.');
-        }
-      } catch (err) {
-        console.error('Error fetching bookings:', err);
-        setError(err.message || 'Something went wrong.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchBookings();
-  }, [currentPage]);
+  }, [fetchBookings]);
+
+  const openDeleteModal = (booking) => {
+    setDeleteTarget(booking);
+    setDeleteResult(null);
+    setIsDeleting(false);
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteTarget(null);
+    setDeleteResult(null);
+    setIsDeleting(false);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget?.id) return;
+    setIsDeleting(true);
+    try {
+      const response = await bookingService.deleteBooking(deleteTarget.id);
+      if (response && response.success) {
+        setDeleteResult({
+          success: true,
+          message: response.message || 'Booking deleted successfully.',
+        });
+        if (selectedBooking?.id === deleteTarget.id) {
+          setSelectedBooking(null);
+        }
+        await fetchBookings();
+      } else {
+        setDeleteResult({
+          success: false,
+          message: response?.message || 'Failed to delete booking.',
+        });
+      }
+    } catch (err) {
+      setDeleteResult({
+        success: false,
+        message: err?.message || 'Failed to delete booking.',
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const totalEntries = Number(pagination.total) || 0;
   const totalPages = Number(pagination.totalPages) || 0;
-  const badgeTotal = Number(summary?.totalBookings) || totalEntries;
+  const badgeTotal = Number(summary?.totalBookings) || totalEntries || bookings.length;
   const startIndex = (Math.max(pagination.page, 1) - 1) * (pagination.limit || PAGE_LIMIT);
   const endIndex = startIndex + bookings.length;
 
@@ -167,16 +214,29 @@ const BookingList = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button
-                      onClick={() => setSelectedBooking(item)}
-                      title="View Booking Details"
-                      className="inline-flex p-1.5 text-slate-600 hover:text-primary hover:bg-slate-100 rounded-lg transition cursor-pointer"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                    </button>
+                    <div className="inline-flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedBooking(item)}
+                        title="View Booking Details"
+                        className="inline-flex p-1.5 text-slate-600 hover:text-primary hover:bg-slate-100 rounded-lg transition cursor-pointer"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => openDeleteModal(item)}
+                        title="Delete Booking"
+                        className="inline-flex p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
@@ -229,14 +289,25 @@ const BookingList = () => {
 
               <div className="flex gap-2 border-t border-gray-100 pt-3">
                 <button
+                  type="button"
                   onClick={() => setSelectedBooking(item)}
-                  className="w-full py-2 text-center text-xs font-bold bg-gray-50 text-slate-700 hover:bg-slate-100 rounded-lg border border-gray-200 transition cursor-pointer flex items-center justify-center gap-1"
+                  className="flex-1 py-2 text-center text-xs font-bold bg-gray-50 text-slate-700 hover:bg-slate-100 rounded-lg border border-gray-200 transition cursor-pointer flex items-center justify-center gap-1"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                   </svg>
                   View Details
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openDeleteModal(item)}
+                  className="py-2 px-3 text-center text-xs font-bold bg-gray-50 text-red-500 hover:bg-red-50 rounded-lg border border-gray-200 transition cursor-pointer flex items-center justify-center"
+                  title="Delete Booking"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
                 </button>
               </div>
             </div>
@@ -344,6 +415,16 @@ const BookingList = () => {
           </div>
         </div>
       )}
+
+      <ConfirmDeleteModal
+        isOpen={!!deleteTarget}
+        isDeleting={isDeleting}
+        deleteResult={deleteResult}
+        onConfirm={handleConfirmDelete}
+        onClose={closeDeleteModal}
+        title="Delete Booking?"
+        description={`Are you sure you want to permanently delete booking ${deleteTarget?.bookingRef || ''}? This cannot be undone and may allow the related hotel to be deleted afterward.`}
+      />
     </div>
   );
 };

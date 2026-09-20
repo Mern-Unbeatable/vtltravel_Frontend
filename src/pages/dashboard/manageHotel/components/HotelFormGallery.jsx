@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 import { fileToBase64 } from "../../../../utils/fileHelpers";
+import { hotelService } from "../../../../api/services/hotelService";
 import {
   GALLERY_CATEGORIES,
   isCategoryMatch,
@@ -9,6 +10,7 @@ import {
 
 const HotelFormGallery = ({ value = [], onChange }) => {
   const [activeGalleryTab, setActiveGalleryTab] = useState("Hotel");
+  const [removingUrl, setRemovingUrl] = useState(null);
 
   const handleGalleryUpload = async (e) => {
     const files = Array.from(e.target.files);
@@ -34,8 +36,25 @@ const HotelFormGallery = ({ value = [], onChange }) => {
     }
   };
 
-  const removeGalleryImage = (url) => {
-    onChange(value.filter((img) => img.url !== url));
+  const removeGalleryImage = async (img) => {
+    const imageId = img?.id || img?._id || img?.imageId;
+    const url = img?.url;
+
+    if (imageId) {
+      try {
+        setRemovingUrl(url);
+        await hotelService.deleteHotelImage(imageId);
+        toast.success("Media deleted.");
+      } catch (err) {
+        console.error("Gallery media delete error:", err);
+        toast.error(err?.message || "Failed to delete media.");
+        return;
+      } finally {
+        setRemovingUrl(null);
+      }
+    }
+
+    onChange(value.filter((item) => item.url !== url));
   };
 
   return (
@@ -106,35 +125,51 @@ const HotelFormGallery = ({ value = [], onChange }) => {
                 isCategoryMatch(img.category, activeGalleryTab),
               )
               .map((img, idx) => {
-                const hasVideoExtension =
+                const isVideoItem =
+                  activeGalleryTab.toLowerCase() === "videos" ||
                   img.url.endsWith(".mp4") ||
                   img.url.endsWith(".mov") ||
+                  img.url.endsWith(".webm") ||
                   img.url.startsWith("data:video/") ||
+                  img.url.startsWith("blob:") ||
                   (img.category &&
-                    img.category.toUpperCase() === "VIDEOS");
+                    String(img.category).toUpperCase() === "VIDEOS");
+                const isRemoving = removingUrl === img.url;
                 return (
                   <div
-                    key={idx}
-                    className="relative group aspect-square rounded-lg overflow-hidden border border-gray-200 bg-white"
+                    key={img.id || img.url || idx}
+                    className={`relative group overflow-hidden rounded-lg border border-gray-200 ${
+                      isVideoItem
+                        ? "col-span-2 aspect-video bg-black sm:col-span-2"
+                        : "aspect-square bg-white"
+                    }`}
                   >
-                    {hasVideoExtension ? (
+                    {isVideoItem ? (
                       <video
                         src={img.url}
-                        className="w-full h-full object-cover bg-black"
+                        className="h-full w-full object-contain"
+                        playsInline
+                        preload="metadata"
+                        controls
                       />
                     ) : (
                       <img
                         src={img.url}
                         alt={`Gallery ${activeGalleryTab} ${idx + 1}`}
-                        className="w-full h-full object-cover"
+                        className="h-full w-full object-cover"
                       />
                     )}
                     <button
                       type="button"
-                      onClick={() => removeGalleryImage(img.url)}
-                      className="absolute inset-0 bg-slate-900/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white text-xs font-bold cursor-pointer"
+                      disabled={isRemoving}
+                      onClick={() => removeGalleryImage(img)}
+                      className={`absolute right-1.5 top-1.5 z-10 rounded-md bg-slate-900/80 px-2 py-1 text-[10px] font-bold text-white hover:bg-red-600 disabled:cursor-wait ${
+                        isVideoItem
+                          ? "opacity-100"
+                          : "opacity-0 transition-opacity group-hover:opacity-100"
+                      }`}
                     >
-                      Remove
+                      {isRemoving ? "..." : "Remove"}
                     </button>
                   </div>
                 );

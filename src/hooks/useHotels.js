@@ -1,9 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { hotelService } from "../api/services/hotelService";
-import {
-  buildFilterFacets,
-  mergeFilterFacets,
-} from "../utils/hotelSearchParams";
+import { compactParams } from "../utils/hotelSearchParams";
 
 const emptyHotelsResult = {
   items: [],
@@ -30,15 +27,23 @@ export const useHotels = (params = {}) => {
   });
 };
 
-export const useHotelSuggestions = (enabled = true) => {
+export const useHotelSuggestions = (enabled = true, query = "") => {
+  const searchQuery = String(query || "").trim();
+
   return useQuery({
-    queryKey: ["hotel-suggestions", "catalog"],
+    queryKey: ["hotel-suggestions", searchQuery || "catalog"],
     queryFn: async () => {
-      const response = await hotelService.getHotels({ limit: 100 });
+      // When typing, ask the API by name/location so new hotels aren't missed
+      // just because they weren't in the first page of the catalog.
+      const response = await hotelService.getHotels(
+        searchQuery
+          ? { q: searchQuery, page: 1, limit: 50 }
+          : { page: 1, limit: 100 },
+      );
       return Array.isArray(response?.data?.items) ? response.data.items : [];
     },
     enabled,
-    staleTime: 60_000,
+    staleTime: searchQuery ? 15_000 : 60_000,
     placeholderData: (previousData) => previousData,
   });
 };
@@ -47,98 +52,103 @@ export const useHotelFilterFacets = (params = {}) => {
   return useQuery({
     queryKey: ["hotel-filter-facets", params],
     queryFn: async () => {
-      const [catalogResponse, scopedResponse, featuredResponse] =
-        await Promise.all([
-          // Full option catalog (always show all known filters)
-          hotelService.getHotels({ page: 1, limit: 100 }),
-          // Counts for current search context
-          hotelService.getHotels({ ...params, page: 1, limit: 100 }),
-          hotelService.getHotels({
-            ...params,
-            isFeatured: true,
-            page: 1,
-            limit: 1,
-          }),
-        ]);
+      const baseParams = compactParams({
+        location: params.location,
+        q: params.q,
+        checkIn: params.checkIn,
+        checkOut: params.checkOut,
+        adults: params.adults,
+        rooms: params.rooms,
+        children: params.children,
+        page: 1,
+        limit: 1,
+      });
 
-      const scopedHotels = scopedResponse?.data?.items || [];
-      const catalogFacets = buildFilterFacets(
-        catalogResponse?.data?.items || [],
-      );
-      const scopedFacets = buildFilterFacets(scopedHotels);
-      const merged = mergeFilterFacets(catalogFacets, scopedFacets);
-
-      const featuredTotal = Number(
-        featuredResponse?.data?.pagination?.total ??
-          featuredResponse?.data?.items?.filter((h) => h?.isFeatured === true)
-            ?.length ??
-          0,
-      );
-
-      const hotelLabelTexts = (hotel) => {
-        const fromList = (list) =>
-          (list || [])
-            .map((item) => {
-              if (typeof item === "string") return item;
-              return (
-                item?.name ||
-                item?.tag?.name ||
-                item?.facility?.name ||
-                item?.slug ||
-                ""
-              );
-            })
-            .filter(Boolean);
-
-        return [
-          ...fromList(hotel.badges),
-          ...fromList(hotel.highlights),
-          ...fromList(hotel.tags),
-          hotel.accommodationStyle,
-          hotel.name,
-        ]
-          .filter(Boolean)
-          .map((text) => String(text).toLowerCase());
+      const getTotal = async (extra = {}) => {
+        const response = await hotelService.getHotels({
+          ...baseParams,
+          ...extra,
+          page: 1,
+          limit: 1,
+        });
+        const total = Number(response?.data?.pagination?.total);
+        return Number.isFinite(total) ? total : 0;
       };
 
-      const countHotelsMatching = (needles) =>
-        scopedHotels.filter((hotel) => {
-          const texts = hotelLabelTexts(hotel);
-          return needles.some((needle) =>
-            texts.some((text) => text.includes(needle.toLowerCase())),
-          );
-        }).length;
+      const [facilitiesResponse, featuredTotal, starTotals] = await Promise.all([
+        hotelService.getCatalogFacilities(),
+        getTotal({ isFeatured: true }),
+        Promise.all(
+          ["5", "4", "3"].map(async (star) => ({
+            slug: star,
+            name: `${star} ★`,
+            count: await getTotal({ starRating: star }),
+          })),
+        ),
+      ]);
+
+      const catalogFacilities = Array.isArray(facilitiesResponse?.data)
+        ? facilitiesResponse.data
+        : Array.isArray(facilitiesResponse)
+          ? facilitiesResponse
+          : [];
+
+      const facilityOptions = catalogFacilities.filter((fac) => {
+        const slug = String(fac.slug || "").toLowerCase();
+        const name = String(fac.name || "")
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, "");
+        return slug !== "wifi" && name !== "wifi";
+      });
+
+      const featuredTagOptions = [
+        {
+          name: "Best Hotel of the Month",
+          slug: "best-hotel-of-the-month",
+        },
+        {
+          name: "Beachfront Resort",
+          slug: "beachfront-resort",
+        },
+        {
+          name: "Family Resort",
+          slug: "family-resort",
+        },
+      ];
+
+      const [facilityTotals, featuredTagTotals] = await Promise.all([
+        Promise.all(
+          facilityOptions.map(async (fac) => ({
+            name: fac.name,
+            slug: fac.slug,
+            count: await getTotal({ facilities: fac.slug }),
+          })),
+        ),
+        Promise.all(
+          featuredTagOptions.map(async (tag) => ({
+            ...tag,
+            count: await getTotal({ tags: tag.slug }),
+          })),
+        ),
+      ]);
+
+      const resortFeatures = facilityTotals.sort(
+        (a, b) => b.count - a.count || a.name.localeCompare(b.name),
+      );
 
       return {
-        ...merged,
+        bestFor: [],
+        accommodationStyles: [],
+        resortFeatures,
+        starRatings: starTotals,
+        priceRange: { min: 0, max: 0 },
         featuredPackages: [
           {
             name: "Packages of the Month",
             slug: "featured",
-            count: Number.isFinite(featuredTotal) ? featuredTotal : 0,
+            count: featuredTotal,
           },
-          {
-            name: "Best Hotel of the Month",
-            slug: "best-hotel-of-the-month",
-            count: countHotelsMatching([
-              "best hotel of the month",
-              "hotel of the month",
-            ]),
-          },
-          {
-            name: "Beachfront Resort",
-            slug: "beachfront-resort",
-            count: countHotelsMatching(["beachfront"]),
-          },
-          {
-            name: "Family Resort",
-            slug: "family-resort",
-            count: countHotelsMatching([
-              "family resort",
-              "family favourite",
-              "family favorite",
-            ]),
-          },
+          ...featuredTagTotals,
         ],
       };
     },
@@ -244,6 +254,8 @@ export const useAddHotel = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["hotels"] });
       queryClient.invalidateQueries({ queryKey: ["admin_hotels"] });
+      queryClient.invalidateQueries({ queryKey: ["hotel-suggestions"] });
+      queryClient.invalidateQueries({ queryKey: ["hotel-filter-facets"] });
     },
   });
 };
@@ -257,6 +269,8 @@ export const useUpdateHotel = () => {
       queryClient.invalidateQueries({ queryKey: ["hotels"] });
       queryClient.invalidateQueries({ queryKey: ["admin_hotels"] });
       queryClient.invalidateQueries({ queryKey: ["hotel", variables.id] });
+      queryClient.invalidateQueries({ queryKey: ["hotel-suggestions"] });
+      queryClient.invalidateQueries({ queryKey: ["hotel-filter-facets"] });
     },
   });
 };
@@ -269,6 +283,8 @@ export const useDeleteHotel = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["hotels"] });
       queryClient.invalidateQueries({ queryKey: ["admin_hotels"] });
+      queryClient.invalidateQueries({ queryKey: ["hotel-suggestions"] });
+      queryClient.invalidateQueries({ queryKey: ["hotel-filter-facets"] });
     },
   });
 };

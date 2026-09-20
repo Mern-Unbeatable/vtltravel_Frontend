@@ -186,7 +186,8 @@ export const mapRoomToFormData = (savedRoom) => {
   formData.append("mediaTechnology", mediaTechnology.join(", "));
   formData.append("serviceEquipment", serviceEquipment.join(", "));
 
-  // Features first so room-card chips show Private Deck / Bathtub / etc.
+  // Send display names (backend slugifies + matches by name). Pre-slugifying
+  // broke name lookup and dropped catalog misses (Private Deck, Sea View, …).
   const amenities = [
     ...features,
     ...foodBeverage,
@@ -195,15 +196,8 @@ export const mapRoomToFormData = (savedRoom) => {
     ...serviceEquipment,
   ];
   const amenitySlugs = [
-    ...new Set(
-      amenities.map((a) =>
-        String(a)
-          .toLowerCase()
-          .replace(/\s+/g, "-")
-          .replace(/[^a-z0-9-]/g, ""),
-      ),
-    ),
-  ].filter(Boolean);
+    ...new Set(amenities.map((a) => String(a || "").trim()).filter(Boolean)),
+  ];
   formData.append("amenitySlugs", amenitySlugs.join(","));
 
   formData.append("breakfastIncluded", "true");
@@ -348,40 +342,81 @@ export const mapHotelFormToFormData = (data, base64ToFileFn) => {
 
   const slugMap = {
     "Free Wi-Fi": "free-wifi",
+    "Free WiFi": "free-wifi",
     "Wi-Fi": "free-wifi",
     "Swimming Pool": "swimming-pool",
     "Giant Swimming Pools": "swimming-pool",
+    "Fitness Center": "fitness-center",
+    "Fitness center": "fitness-center",
     Spa: "spa",
     Restaurant: "restaurant",
+    Bar: "bar",
+    "Room Service": "room-service",
+    "Beach Access": "beach-access",
+    "Kids Club": "kids-club",
     "Free Parking": "free-parking",
+    "Car park": "car-park",
+    "Private Pool": "private-pool",
+    "Non-smoking rooms": "non-smoking-rooms",
+    "Pets allowed": "pets-allowed",
+    "Pets not allowed": "pets-not-allowed",
+    "Wheelchair accessible": "wheelchair-accessible",
   };
 
-  const bestForSlugsArr = bestForArr.map((name) =>
-    String(name)
+  const facilitySlugsArr = (data.facilities || []).map((fac) => {
+    const raw = String(fac || "").trim();
+    if (!raw) return "";
+    if (slugMap[raw]) return slugMap[raw];
+    const asSlug = raw
       .toLowerCase()
-      .replace(/\s+/g, "-")
-      .replace(/[^a-z0-9-]/g, ""),
-  );
-  const facilitySlugsArr = (data.facilities || []).map(
-    (fac) => slugMap[fac] || fac.toLowerCase().replace(/\s+/g, "-"),
-  );
-  const combinedSlugs = [
-    ...new Set([...facilitySlugsArr, ...bestForSlugsArr]),
-  ]
-    .filter(Boolean)
-    .join(",");
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+    const compact = raw.toLowerCase().replace(/[^a-z0-9]/g, "");
+    const aliases = {
+      wifi: "free-wifi",
+      "wi-fi": "free-wifi",
+      "free-wi-fi": "free-wifi",
+      freewifi: "free-wifi",
+      swimmingpool: "swimming-pool",
+      fitnesscenter: "fitness-center",
+    };
+    return aliases[asSlug] || aliases[compact] || asSlug;
+  });
 
-  formData.append("facilitySlugs", combinedSlugs);
+  formData.append(
+    "facilitySlugs",
+    [...new Set(facilitySlugsArr)].filter(Boolean).join(","),
+  );
 
-  const filteredAddOns = data.addOns
-    .filter((a) => a.name && a.name.trim() !== "" && !a.id)
-    .map((a) => ({
-      name: a.name,
-      price: parseFloat(a.price) || 0,
-      minPax: Math.max(1, Number(a.minPax) || 1),
-      imageUrl: a.imageUrl || "",
-    }));
-  formData.append("addOns", JSON.stringify(filteredAddOns));
+  const filteredAddOns = (Array.isArray(data.addOns) ? data.addOns : []).filter(
+    (a) => a?.name && String(a.name).trim() !== "",
+  );
+
+  if (filteredAddOns.length === 0) {
+    formData.append("addOns", "[]");
+  } else {
+    filteredAddOns.forEach((a, i) => {
+      formData.append(`addOns[${i}][name]`, String(a.name).trim());
+      formData.append(
+        `addOns[${i}][price]`,
+        String(Number.parseFloat(a.price) || 0),
+      );
+      formData.append(
+        `addOns[${i}][minPax]`,
+        String(Math.max(1, Number(a.minPax) || 1)),
+      );
+
+      const imageUrl = a.imageUrl || "";
+      if (imageUrl.startsWith("data:")) {
+        const fileObj = base64ToFileFn(imageUrl, `addon_${i}.png`);
+        if (fileObj) {
+          formData.append(`addOns[${i}][image]`, fileObj);
+        }
+      } else if (imageUrl) {
+        formData.append(`addOns[${i}][imageUrl]`, imageUrl);
+      }
+    });
+  }
 
   if (data.image) {
     if (data.image.startsWith("data:")) {
@@ -392,11 +427,13 @@ export const mapHotelFormToFormData = (data, base64ToFileFn) => {
     }
   }
 
-  if (data.video) {
+  if (data.videoFile instanceof File) {
+    formData.append("videoUrl", data.videoFile);
+  } else if (data.video) {
     if (data.video.startsWith("data:")) {
       const fileObj = base64ToFileFn(data.video, "video.mp4");
       if (fileObj) formData.append("videoUrl", fileObj);
-    } else {
+    } else if (!data.video.startsWith("blob:")) {
       formData.append("videoUrl", data.video);
     }
   }

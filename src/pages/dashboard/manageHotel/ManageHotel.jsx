@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import HotelList from "./components/HotelList";
 import HotelForm from "./components/HotelForm";
 import { toast } from "react-toastify";
@@ -15,6 +16,7 @@ const LoadingSpinner = () => (
 
 const ManageHotel = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const queryClient = useQueryClient();
   const cmsMode = searchParams.get("mode") || "list";
   const hotelId = searchParams.get("id");
 
@@ -96,6 +98,10 @@ const ManageHotel = () => {
         console.log("--- updateHotel backend response ---", response);
         if (response && response.success) {
           if (response.message) toast.success(response.message);
+          queryClient.invalidateQueries({ queryKey: ["hotels"] });
+          queryClient.invalidateQueries({ queryKey: ["admin_hotels"] });
+          queryClient.invalidateQueries({ queryKey: ["hotel-suggestions"] });
+          queryClient.invalidateQueries({ queryKey: ["hotel-filter-facets"] });
           setSearchParams({});
         } else if (response?.message) {
           toast.error(response.message);
@@ -105,6 +111,10 @@ const ManageHotel = () => {
         console.log("--- addHotel backend response ---", response);
         if (response && response.success) {
           if (response.message) toast.success(response.message);
+          queryClient.invalidateQueries({ queryKey: ["hotels"] });
+          queryClient.invalidateQueries({ queryKey: ["admin_hotels"] });
+          queryClient.invalidateQueries({ queryKey: ["hotel-suggestions"] });
+          queryClient.invalidateQueries({ queryKey: ["hotel-filter-facets"] });
           const newId = response.data?.id || response.data?._id;
           if (newId) {
             setSearchParams({ mode: "edit", id: newId, tab: "calendar" });
@@ -195,6 +205,8 @@ const ManageHotel = () => {
                 success: true,
                 message: response.message,
               });
+              queryClient.invalidateQueries({ queryKey: ["hotel-suggestions"] });
+              queryClient.invalidateQueries({ queryKey: ["hotel-filter-facets"] });
               fetchHotels();
             } else {
               setDeleteResult({

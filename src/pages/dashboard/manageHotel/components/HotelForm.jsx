@@ -96,6 +96,7 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
   // Form tab states
   const [activeFormTab, setActiveFormTab] = useState(tabParam);
   const [selectedRoomId, setSelectedRoomId] = useState(null);
+  const [videoFile, setVideoFile] = useState(null);
 
   // Catalog best_for tags options
   const [bestForOptions, setBestForOptions] = useState([]);
@@ -186,17 +187,41 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
   const availableVal = watch("available");
   const featuredPackagesVal = watch("featuredPackages") || [];
 
+  const resolveMediaUrl = (url) => {
+    if (!url || typeof url !== "string") return "";
+    if (
+      url.startsWith("blob:") ||
+      url.startsWith("data:") ||
+      url.startsWith("http://") ||
+      url.startsWith("https://")
+    ) {
+      return url;
+    }
+    const apiBase =
+      import.meta.env.VITE_API_BASE_URL ||
+      "https://booking-backend.visitsingapore.io/api";
+    const origin = String(apiBase).replace(/\/api\/?$/, "");
+    return `${origin}${url.startsWith("/") ? url : `/${url}`}`;
+  };
+
+  const videoPreviewUrl = resolveMediaUrl(videoVal);
+
   const activeHotelId = hotel?.id || hotel?._id;
 
   useEffect(() => {
     if (hotel) {
       // Map API object properties to form properties
       const mappedFacilities = (hotel.facilities || [])
-        .map((fac) =>
-          typeof fac === "string"
-            ? fac
-            : fac?.facility?.name || fac?.name || "",
-        )
+        .map((fac) => {
+          if (typeof fac === "string") return fac;
+          return (
+            fac?.facility?.slug ||
+            fac?.slug ||
+            fac?.facility?.name ||
+            fac?.name ||
+            ""
+          );
+        })
         .filter(Boolean);
 
       const rawGallery = hotel.gallery || hotel.images || [];
@@ -209,6 +234,7 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
             return { url: img, category: isVideo ? "Videos" : "Hotel" };
           }
           return {
+            id: img.id || img._id || img.imageId || null,
             url: img.url || img.coverImageUrl || "",
             category: img.category || img.type || "Hotel",
           };
@@ -261,14 +287,23 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
           .filter(Boolean),
         addOns:
           hotel.addOns && hotel.addOns.length > 0
-            ? hotel.addOns.map((a) => ({
-                id: a.id || a.addOn?.id || "",
-                name: a.addOn?.name || a.name || "",
-                price: String(a.addOn?.price || a.price || ""),
-                minPax: String(a.addOn?.minPax || a.minPax || 1),
-                imageUrl: a.addOn?.imageUrl || a.imageUrl || "",
-              }))
-            : [{ name: "", price: "", minPax: "1", imageUrl: "" }],
+            ? hotel.addOns
+                .map((a) => {
+                  const nested = a.addOn || a;
+                  const priceValue = nested.price ?? a.price;
+                  return {
+                    id: a.id || nested.id || a.addOnId || "",
+                    name: nested.name || a.name || "",
+                    price:
+                      priceValue !== undefined && priceValue !== null
+                        ? String(priceValue)
+                        : "",
+                    minPax: String(nested.minPax ?? a.minPax ?? 1),
+                    imageUrl: nested.imageUrl || a.imageUrl || "",
+                  };
+                })
+                .filter((a) => a.name || a.imageUrl)
+            : [],
         reviewScore:
           hotel.reviewScore !== undefined && hotel.reviewScore !== null
             ? String(hotel.reviewScore)
@@ -279,6 +314,7 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
             : "",
         ratingLabel: hotel.ratingLabel || "",
       });
+      setVideoFile(null);
     }
   }, [hotel, reset]);
 
@@ -298,18 +334,34 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
   };
 
   const handleVideoUpload = async (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      try {
-        const base64 = await fileToBase64(file, {
-          maxSizeMB: 20,
-          allowedTypes: ["video/*", "image/*"],
-        });
-        setValue("video", base64);
-      } catch (err) {
-        alert(err.message);
-      }
+    const input = e.target;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    const name = String(file.name || "").toLowerCase();
+    const isVideoMime = file.type.startsWith("video/");
+    const isVideoExt = /\.(mp4|webm|mov|m4v|ogg)$/i.test(name);
+    if (!isVideoMime && !isVideoExt) {
+      toast.error("Please select a video file (MP4, WEBM, MOV).");
+      input.value = "";
+      return;
     }
+
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error("File size exceeds the limit of 50MB");
+      input.value = "";
+      return;
+    }
+
+    const previous = watch("video");
+    if (previous && String(previous).startsWith("blob:")) {
+      URL.revokeObjectURL(previous);
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    setVideoFile(file);
+    setValue("video", objectUrl, { shouldDirty: true, shouldValidate: true });
+    toast.success("Video ready for preview");
   };
 
   // Rooms CRUD within Hotel Form
@@ -501,7 +553,10 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
     // Combine into tagIds list
     const tagIds = [...selectedBestForIds, ...selectedFeaturedPackageIds];
 
-    const formData = mapHotelFormToFormData({ ...data, tagIds }, base64ToFile);
+    const formData = mapHotelFormToFormData(
+      { ...data, tagIds, videoFile },
+      base64ToFile,
+    );
 
     console.log("--- HotelForm whyBookWithUs ---", data.highlights);
     console.log("--- HotelForm submit FormData ---");
@@ -663,7 +718,6 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Main Cover Image */}
               <FormFileInput
                 label="Cover Image"
                 accept="image/*"
@@ -672,12 +726,11 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
                 error={errors.image}
               />
 
-              {/* Hotel Video */}
               <FormFileInput
                 label="Hotel Video"
-                accept="video/*,image/*"
+                accept="video/*"
                 onChange={handleVideoUpload}
-                valueText={videoVal}
+                valueText={videoPreviewUrl || videoVal}
                 error={errors.video}
               />
             </div>
