@@ -165,21 +165,60 @@ const RoomFormModal = ({ isOpen, onClose, onSave, room }) => {
     return String(value);
   };
 
-  const collectFeatureNames = (roomData) => {
-    if (!roomData) return [];
-    if (Array.isArray(roomData.features) && roomData.features.length > 0) {
-      return roomData.features
+  const toNameList = (value) => {
+    if (!value) return [];
+    if (Array.isArray(value)) {
+      return value
         .map((item) => (typeof item === 'string' ? item : item?.name))
+        .map((item) => String(item || '').trim())
         .filter(Boolean);
     }
-    if (Array.isArray(roomData.amenityNames) && roomData.amenityNames.length > 0) {
-      return roomData.amenityNames.filter(Boolean);
+    return String(value)
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+  };
+
+  /** Only room "features" checkboxes — never dump facility-group amenities here. */
+  const collectFeatureNames = (roomData) => {
+    if (!roomData) return [];
+
+    if (Array.isArray(roomData.features) && roomData.features.length > 0) {
+      return toNameList(roomData.features);
     }
+
+    const facilityGroups = roomData.facilityGroups || {};
+    const facilityItems = new Set(
+      [
+        ...toNameList(roomData.foodBeverage || facilityGroups.foodBeverage),
+        ...toNameList(
+          roomData.bathroomFacilities ||
+            roomData.bathroom ||
+            facilityGroups.bathroomFacilities,
+        ),
+        ...toNameList(
+          roomData.mediaTechnology ||
+            roomData.mediaTech ||
+            facilityGroups.mediaTechnology,
+        ),
+        ...toNameList(roomData.serviceEquipment || facilityGroups.serviceEquipment),
+      ].map((name) => name.toLowerCase()),
+    );
+
+    const fromAmenityNames = toNameList(roomData.amenityNames);
+    if (fromAmenityNames.length > 0) {
+      return fromAmenityNames.filter(
+        (name) => !facilityItems.has(name.toLowerCase()),
+      );
+    }
+
     if (Array.isArray(roomData.amenities) && roomData.amenities.length > 0) {
       return roomData.amenities
         .map((item) => item?.amenity?.name || item?.name)
-        .filter(Boolean);
+        .filter(Boolean)
+        .filter((name) => !facilityItems.has(String(name).toLowerCase()));
     }
+
     return [];
   };
 

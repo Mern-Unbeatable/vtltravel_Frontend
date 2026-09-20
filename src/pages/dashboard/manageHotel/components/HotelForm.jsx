@@ -313,6 +313,53 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
   };
 
   // Rooms CRUD within Hotel Form
+  const mergeSavedRoomIntoListItem = (previousRoom, savedRoom, apiRoom) => {
+    const facilityGroups = {
+      foodBeverage: savedRoom.foodBeverage || [],
+      bathroomFacilities: savedRoom.bathroomFacilities || [],
+      mediaTechnology: savedRoom.mediaTechnology || [],
+      serviceEquipment: savedRoom.serviceEquipment || [],
+    };
+
+    return {
+      ...(previousRoom || {}),
+      ...(apiRoom || {}),
+      id: apiRoom?.id || apiRoom?._id || previousRoom?.id || previousRoom?._id,
+      _id: apiRoom?._id || apiRoom?.id || previousRoom?._id || previousRoom?.id,
+      name: savedRoom.name,
+      description: savedRoom.description,
+      price: savedRoom.price,
+      pricePerNight: savedRoom.price,
+      basePrice: savedRoom.price,
+      discountPrice: savedRoom.discountPrice,
+      size: savedRoom.size,
+      sizeSqm: savedRoom.size,
+      capacity: savedRoom.capacity,
+      maxCapacity: savedRoom.maxCapacity || savedRoom.capacity,
+      maxAdults: savedRoom.maxAdults,
+      maxChildren: savedRoom.maxChildren,
+      bedInfo: savedRoom.bedInfo,
+      bedCount: savedRoom.bedInfo,
+      baths: savedRoom.baths,
+      bathrooms: savedRoom.baths,
+      roomsLeft: savedRoom.roomsLeft,
+      roomsLeftAlert: savedRoom.roomsLeft
+        ? `Only ${savedRoom.roomsLeft} rooms left`
+        : previousRoom?.roomsLeftAlert,
+      tags: savedRoom.tags,
+      features: savedRoom.features || [],
+      foodBeverage: facilityGroups.foodBeverage,
+      bathroomFacilities: facilityGroups.bathroomFacilities,
+      mediaTechnology: facilityGroups.mediaTechnology,
+      serviceEquipment: facilityGroups.serviceEquipment,
+      facilityGroups: {
+        ...(previousRoom?.facilityGroups || {}),
+        ...(apiRoom?.facilityGroups || {}),
+        ...facilityGroups,
+      },
+    };
+  };
+
   const handleSaveRoom = async (savedRoom) => {
     // Only treat as update when modal was opened via Edit (editingRoom set).
     // Never use Date.now()/temp ids — that wrongly triggered PUT on Add.
@@ -349,20 +396,25 @@ const HotelForm = ({ hotel, onSave, onCancel, isSaving }) => {
         }
       }
 
-      const newRoomData = response.data || response.room || response.roomType;
-      if (newRoomData) {
-        if (isEditingReal) {
-          setValue(
-            "rooms",
-            roomsVal.map((r) =>
-              r.id === editingRoomId || r._id === editingRoomId
-                ? newRoomData
-                : r,
-            ),
-          );
-        } else {
-          setValue("rooms", [...roomsVal, newRoomData]);
-        }
+      const apiRoom = response.data || response.room || response.roomType || null;
+
+      if (isEditingReal) {
+        setValue(
+          "rooms",
+          roomsVal.map((r) =>
+            r.id === editingRoomId || r._id === editingRoomId
+              ? mergeSavedRoomIntoListItem(r, savedRoom, apiRoom)
+              : r,
+          ),
+        );
+      } else {
+        setValue(
+          "rooms",
+          [
+            ...roomsVal,
+            mergeSavedRoomIntoListItem(null, savedRoom, apiRoom),
+          ],
+        );
       }
 
       return response;

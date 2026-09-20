@@ -4,21 +4,45 @@ import Spinner from '../../../../components/Spinner';
 import { api } from '../../../../api/apiMethods';
 import { API_ENDPOINTS } from '../../../../api/endpoints';
 
+const PAGE_LIMIT = 20;
+
 const BookingList = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: PAGE_LIMIT,
+    total: 0,
+    totalPages: 0,
+  });
+  const [summary, setSummary] = useState(null);
   const [selectedBooking, setSelectedBooking] = useState(null);
-  const itemsPerPage = 7;
 
   useEffect(() => {
     const fetchBookings = async () => {
       try {
         setLoading(true);
-        const response = await api.get(API_ENDPOINTS.BOOKINGS);
-        if (response.success && response.data && response.data.items) {
-          setBookings(response.data.items);
+        setError(null);
+        const response = await api.get(API_ENDPOINTS.BOOKINGS, {
+          params: {
+            page: currentPage,
+            limit: PAGE_LIMIT,
+          },
+        });
+
+        if (response.success && response.data) {
+          const items = Array.isArray(response.data.items) ? response.data.items : [];
+          const p = response.data.pagination || {};
+          setBookings(items);
+          setPagination({
+            page: Number(p.page) || currentPage,
+            limit: Number(p.limit) || PAGE_LIMIT,
+            total: Number(p.total) || 0,
+            totalPages: Number(p.totalPages) || 0,
+          });
+          setSummary(response.data.summary || null);
         } else {
           setError('Failed to fetch bookings.');
         }
@@ -31,15 +55,16 @@ const BookingList = () => {
     };
 
     fetchBookings();
-  }, []);
+  }, [currentPage]);
 
-  const totalPages = Math.ceil(bookings.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentData = bookings.slice(startIndex, endIndex);
+  const totalEntries = Number(pagination.total) || 0;
+  const totalPages = Number(pagination.totalPages) || 0;
+  const badgeTotal = Number(summary?.totalBookings) || totalEntries;
+  const startIndex = (Math.max(pagination.page, 1) - 1) * (pagination.limit || PAGE_LIMIT);
+  const endIndex = startIndex + bookings.length;
 
   const handlePageChange = (pageNumber) => {
-    if (pageNumber >= 1 && pageNumber <= totalPages) {
+    if (pageNumber >= 1 && pageNumber <= totalPages && pageNumber !== currentPage) {
       setCurrentPage(pageNumber);
     }
   };
@@ -99,7 +124,7 @@ const BookingList = () => {
           <p className="text-xs text-gray-500 mt-0.5">Track confirmed hotel names, room details, and ferry seat allocations below.</p>
         </div>
         <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full">
-          Total {bookings.length} Bookings
+          Total {badgeTotal} Bookings
         </span>
       </div>
 
@@ -118,8 +143,8 @@ const BookingList = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 bg-white">
-            {currentData.length > 0 ? (
-              currentData.map((item) => (
+            {bookings.length > 0 ? (
+              bookings.map((item) => (
                 <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
                   <td className="px-6 py-4">
                     <span className="font-semibold text-slate-950 block text-sm">{item.guestName || 'Guest'}</span>
@@ -168,8 +193,8 @@ const BookingList = () => {
 
       {/* Mobile/Tablet Card View */}
       <div className="grid grid-cols-1 gap-4 p-4 md:hidden">
-        {currentData.length > 0 ? (
-          currentData.map((item) => (
+        {bookings.length > 0 ? (
+          bookings.map((item) => (
             <div key={item.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex flex-col gap-3">
               <div className="flex justify-between items-start">
                 <div>
@@ -223,12 +248,12 @@ const BookingList = () => {
         )}
       </div>
 
-      {/* Pagination */}
+      {/* Server-side pagination */}
       {totalPages > 1 && (
         <TablePagination
-          currentPage={currentPage}
+          currentPage={pagination.page || currentPage}
           totalPages={totalPages}
-          totalEntries={bookings.length}
+          totalEntries={totalEntries}
           startIndex={startIndex}
           endIndex={endIndex}
           onPageChange={handlePageChange}

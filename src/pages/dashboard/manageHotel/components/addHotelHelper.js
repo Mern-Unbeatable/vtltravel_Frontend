@@ -157,7 +157,10 @@ export const mapRoomToFormData = (savedRoom) => {
 
   formData.append("maxAdults", String(adults));
   formData.append("maxChildren", String(children));
-  formData.append("totalInventory", "5");
+  formData.append(
+    "totalInventory",
+    String(savedRoom.roomsLeft || savedRoom.totalInventory || 5),
+  );
 
   const alertLabel = savedRoom.roomsLeft
     ? `Only ${savedRoom.roomsLeft} rooms left`
