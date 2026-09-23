@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { IoSearchOutline } from 'react-icons/io5';
 import TablePagination from '../../../../components/TablePagination';
 import Spinner from '../../../../components/Spinner';
 import ConfirmDeleteModal from '../../manageHotel/components/ConfirmDeleteModal';
@@ -7,56 +8,121 @@ import { API_ENDPOINTS } from '../../../../api/endpoints';
 import { bookingService } from '../../../../api/services/bookingService';
 
 const PAGE_LIMIT = 20;
+const FETCH_LIMIT = 100;
+
+const matchesBookingSearch = (booking, query) => {
+  const q = String(query || '').trim().toLowerCase();
+  if (!q) return true;
+
+  const phone = `${booking.guestPhoneCode || ''} ${booking.guestPhone || ''}`.toLowerCase();
+  const amountRaw = booking.totalPrice ?? booking.amount ?? '';
+  const amountNum = Number(amountRaw);
+  const amountText = Number.isFinite(amountNum)
+    ? `${amountNum} ${amountNum.toFixed(2)} $${amountNum} $${amountNum.toFixed(2)}`
+    : String(amountRaw);
+
+  const roomLabel =
+    booking.rooms?.[0]?.roomType?.name ||
+    booking.rooms?.[0]?.roomLabel ||
+    '';
+
+  const haystack = [
+    booking.guestName,
+    booking.guestEmail,
+    booking.guestPhone,
+    booking.guestPhoneCode,
+    phone,
+    booking.bookingRef,
+    booking.hotel?.name,
+    booking.hotelName,
+    roomLabel,
+    amountText,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
+  return haystack.includes(q);
+};
 
 const BookingList = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pagination, setPagination] = useState({
-    page: 1,
-    limit: PAGE_LIMIT,
-    total: 0,
-    totalPages: 0,
-  });
+  const [searchInput, setSearchInput] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [summary, setSummary] = useState(null);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteResult, setDeleteResult] = useState(null);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(searchInput.trim());
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
   const fetchBookings = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await api.get(API_ENDPOINTS.BOOKINGS, {
-        params: {
-          page: currentPage,
-          limit: PAGE_LIMIT,
-        },
+
+      const collected = [];
+      let page = 1;
+      let totalPages = 1;
+      let latestSummary = null;
+
+      do {
+        const response = await api.get(API_ENDPOINTS.BOOKINGS, {
+          params: {
+            page,
+            limit: FETCH_LIMIT,
+          },
+        });
+
+        if (!response.success || !response.data) {
+          setError('Failed to fetch bookings.');
+          return;
+        }
+
+        const items = Array.isArray(response.data.items) ? response.data.items : [];
+        collected.push(...items);
+
+        const p = response.data.pagination || {};
+        totalPages = Math.max(1, Number(p.totalPages) || 1);
+        latestSummary = response.data.summary || latestSummary;
+        page += 1;
+      } while (page <= totalPages && page <= 50);
+
+      // Deduplicate by id in case API overlaps pages
+      const unique = [];
+      const seen = new Set();
+      collected.forEach((item) => {
+        const key = item?.id || item?._id || item?.bookingRef;
+        if (!key || seen.has(key)) {
+          if (!key) unique.push(item);
+          return;
+        }
+        seen.add(key);
+        unique.push(item);
       });
 
-      if (response.success && response.data) {
-        const items = Array.isArray(response.data.items) ? response.data.items : [];
-        const p = response.data.pagination || {};
-        setBookings(items);
-        setPagination({
-          page: Number(p.page) || currentPage,
-          limit: Number(p.limit) || PAGE_LIMIT,
-          total: Number(p.total) || 0,
-          totalPages: Number(p.totalPages) || 0,
-        });
-        setSummary(response.data.summary || null);
-      } else {
-        setError('Failed to fetch bookings.');
-      }
+      setBookings(unique);
+      setSummary(latestSummary);
     } catch (err) {
       console.error('Error fetching bookings:', err);
       setError(err.message || 'Something went wrong.');
     } finally {
       setLoading(false);
     }
-  }, [currentPage]);
+  }, []);
 
   useEffect(() => {
     fetchBookings();
@@ -87,7 +153,7 @@ const BookingList = () => {
         if (selectedBooking?.id === deleteTarget.id) {
           setSelectedBooking(null);
         }
-        await fetchBookings();
+        setBookings((prev) => prev.filter((b) => b.id !== deleteTarget.id));
       } else {
         setDeleteResult({
           success: false,
@@ -104,16 +170,44 @@ const BookingList = () => {
     }
   };
 
-  const totalEntries = Number(pagination.total) || 0;
-  const totalPages = Number(pagination.totalPages) || 0;
-  const badgeTotal = Number(summary?.totalBookings) || totalEntries || bookings.length;
-  const startIndex = (Math.max(pagination.page, 1) - 1) * (pagination.limit || PAGE_LIMIT);
-  const endIndex = startIndex + bookings.length;
+  const filteredBookings = useMemo(
+    () =>
+      searchQuery
+        ? bookings.filter((item) => matchesBookingSearch(item, searchQuery))
+        : bookings,
+    [bookings, searchQuery],
+  );
+
+  useEffect(() => {
+    const maxPage = Math.max(1, Math.ceil(filteredBookings.length / PAGE_LIMIT));
+    if (currentPage > maxPage) setCurrentPage(maxPage);
+  }, [filteredBookings.length, currentPage]);
+
+  const totalEntries = filteredBookings.length;
+  const totalPages = Math.max(1, Math.ceil(totalEntries / PAGE_LIMIT));
+  const safePage = Math.min(currentPage, totalPages);
+  const startIndex = (safePage - 1) * PAGE_LIMIT;
+  const endIndex = startIndex + PAGE_LIMIT;
+  const visibleBookings = filteredBookings.slice(startIndex, endIndex);
+  const badgeTotal = searchQuery
+    ? totalEntries
+    : Number(summary?.totalBookings) || bookings.length;
 
   const handlePageChange = (pageNumber) => {
-    if (pageNumber >= 1 && pageNumber <= totalPages && pageNumber !== currentPage) {
+    const maxPage = Math.max(1, Math.ceil(filteredBookings.length / PAGE_LIMIT));
+    if (pageNumber >= 1 && pageNumber <= maxPage && pageNumber !== currentPage) {
       setCurrentPage(pageNumber);
     }
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchInput(e.target.value);
+  };
+
+  const clearSearch = () => {
+    setSearchInput('');
+    setSearchQuery('');
+    setCurrentPage(1);
   };
 
   const getStatusBadgeClass = (status) => {
@@ -150,11 +244,11 @@ const BookingList = () => {
     }).format(value);
   };
 
-  if (loading) {
+  if (loading && bookings.length === 0) {
     return <Spinner />;
   }
 
-  if (error) {
+  if (error && bookings.length === 0) {
     return (
       <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl my-4">
         <p className="font-semibold">Error</p>
@@ -165,18 +259,50 @@ const BookingList = () => {
 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden">
-      <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-white">
-        <div>
-          <h2 className="text-lg font-bold text-slate-900">Manage All Bookings</h2>
-          <p className="text-xs text-gray-500 mt-0.5">Track confirmed hotel names, room details, and ferry seat allocations below.</p>
+      <div className="p-6 border-b border-gray-200 bg-white">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0">
+            <h2 className="text-lg font-bold text-slate-900">Manage All Bookings</h2>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Track confirmed hotel names, room details, and ferry seat allocations below.
+            </p>
+          </div>
+
+          <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center lg:w-auto lg:max-w-xl lg:flex-1 lg:justify-end">
+            <div className="relative w-full sm:min-w-[280px] lg:max-w-md">
+              <IoSearchOutline className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+              <input
+                type="text"
+                placeholder="Search customer, hotel, room, price..."
+                value={searchInput}
+                onChange={handleSearchChange}
+                className="w-full bg-white border border-gray-300 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-primary transition-all"
+              />
+            </div>
+            {searchInput ? (
+              <button
+                type="button"
+                onClick={clearSearch}
+                className="shrink-0 text-xs font-semibold text-slate-600 hover:text-primary cursor-pointer self-start sm:self-center"
+              >
+                Clear
+              </button>
+            ) : null}
+            <span className="self-start sm:self-center text-xs font-semibold text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full whitespace-nowrap">
+              {searchQuery ? `Found ${badgeTotal}` : `Total ${badgeTotal}`} Bookings
+            </span>
+          </div>
         </div>
-        <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full">
-          Total {badgeTotal} Bookings
-        </span>
       </div>
 
+      {error ? (
+        <div className="mx-6 mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
+          <p className="text-sm">{error}</p>
+        </div>
+      ) : null}
+
       {/* Desktop Table View */}
-      <div className="hidden md:block overflow-x-auto">
+      <div className={`hidden md:block overflow-x-auto ${loading ? 'opacity-60' : ''}`}>
         <table className="w-full text-left text-sm text-slate-600">
           <thead className="bg-[#f7f8fa] text-gray-500 uppercase text-xs font-bold border-b border-gray-200">
             <tr>
@@ -190,8 +316,8 @@ const BookingList = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 bg-white">
-            {bookings.length > 0 ? (
-              bookings.map((item) => (
+            {visibleBookings.length > 0 ? (
+              visibleBookings.map((item) => (
                 <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
                   <td className="px-6 py-4">
                     <span className="font-semibold text-slate-950 block text-sm">{item.guestName || 'Guest'}</span>
@@ -243,7 +369,7 @@ const BookingList = () => {
             ) : (
               <tr>
                 <td colSpan="7" className="px-6 py-10 text-center text-gray-400">
-                  No bookings found
+                  {searchQuery ? 'No bookings match your search' : 'No bookings found'}
                 </td>
               </tr>
             )}
@@ -252,9 +378,9 @@ const BookingList = () => {
       </div>
 
       {/* Mobile/Tablet Card View */}
-      <div className="grid grid-cols-1 gap-4 p-4 md:hidden">
-        {bookings.length > 0 ? (
-          bookings.map((item) => (
+      <div className={`grid grid-cols-1 gap-4 p-4 md:hidden ${loading ? 'opacity-60' : ''}`}>
+        {visibleBookings.length > 0 ? (
+          visibleBookings.map((item) => (
             <div key={item.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex flex-col gap-3">
               <div className="flex justify-between items-start">
                 <div>
@@ -314,15 +440,15 @@ const BookingList = () => {
           ))
         ) : (
           <div className="text-center py-6 text-gray-400 text-sm">
-            No bookings found
+            {searchQuery ? 'No bookings match your search' : 'No bookings found'}
           </div>
         )}
       </div>
 
-      {/* Server-side pagination */}
-      {totalPages > 1 && (
+      {/* Client-side pagination */}
+      {totalEntries > PAGE_LIMIT && (
         <TablePagination
-          currentPage={pagination.page || currentPage}
+          currentPage={safePage}
           totalPages={totalPages}
           totalEntries={totalEntries}
           startIndex={startIndex}
